@@ -14,6 +14,9 @@
     <!-- Preload critical assets -->
     <link rel="preload" href="{{ asset('assets/bg.jpg') }}" as="image">
     <link rel="preload" href="{{ asset('assets/logo2.png') }}" as="image">
+    <link rel="preload" href="{{ asset('assets/login.jpg') }}" as="image">
+    <link rel="preload" href="{{ asset('assets/reg.jpg') }}" as="image">
+    <link rel="preload" href="{{ asset('assets/forgot-password.jpg') }}" as="image">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -41,7 +44,9 @@
         <div class="text-center mb-8 animate-fade-in" style="animation-delay: 0.1s;">
             <a href="/" wire:navigate class="inline-block transition-transform hover:scale-105 active:scale-95">
                 <img class="h-24 w-auto mx-auto drop-shadow-lg" src="{{ asset('assets/logo2.png') }}" alt="Veterinary Office Logo">
-                
+                <h1 class="mt-2 text-xl font-bold text-white bg-green-600/90 px-4 py-1 rounded-full shadow-md">
+                    {{ config('app.name', 'Veterinary Office') }}
+                </h1>
             </a>
         </div>
 
@@ -51,15 +56,31 @@
                 <!-- Image Column (Hidden on mobile) -->
                 <div class="hidden md:block md:w-1/2 relative rounded-lg overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-t from-blue-600/20 to-transparent"></div>
-                    <img src="{{ request()->routeIs('login') ? asset('assets/reg.jpg') : asset('assets/reg.jpg') }}" 
-                         alt="{{ request()->routeIs('login') ? 'Login Illustration' : 'Registration Illustration' }}" 
+                    <img src="@if(request()->routeIs('password.request')){{ asset('assets/forgot.jpg') }}
+                             @elseif(request()->routeIs('login')){{ asset('assets/login.jpg') }}
+                             @else{{ asset('assets/reg.jpg') }}@endif" 
+                         alt="@if(request()->routeIs('password.request'))Password Reset
+                             @elseif(request()->routeIs('login'))Login
+                             @elseRegistration @endif Illustration" 
                          class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
                     <div class="absolute bottom-0 left-0 right-0 p-4 text-white bg-gradient-to-t from-black/70 to-transparent">
                         <h3 class="font-bold text-lg">
-                            {{ request()->routeIs('login') ? 'Welcome Back' : 'Join Our Community' }}
+                            @if(request()->routeIs('password.request'))
+                                Reset Your Password
+                            @elseif(request()->routeIs('login'))
+                                Welcome Back
+                            @else
+                                Join Our Community
+                            @endif
                         </h3>
                         <p class="text-sm">
-                            {{ request()->routeIs('login') ? 'Sign in to continue' : 'Register to access premium veterinary services' }}
+                            @if(request()->routeIs('password.request'))
+                                Get back to your account
+                            @elseif(request()->routeIs('login'))
+                                Sign in to continue
+                            @else
+                                Register to access premium veterinary services
+                            @endif
                         </p>
                     </div>
                 </div>
@@ -68,13 +89,25 @@
                 <div class="w-full md:w-1/2">
                     <div class="text-center mb-6">
                         <h2 class="text-3xl font-bold text-gray-800 mb-1 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                            {{ request()->routeIs('login') ? 'Login Account' : 'Create your account' }}
+                            @if(request()->routeIs('password.request'))
+                                Forgot Password
+                            @elseif(request()->routeIs('login'))
+                                Login Account
+                            @else
+                                Create your account
+                            @endif
                         </h2>
                         <p class="text-sm text-gray-600 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                             </svg>
-                            {{ request()->routeIs('login') ? 'Access your dashboard' : 'Register as an Animal Owner' }}
+                            @if(request()->routeIs('password.request'))
+                                Recover your account access
+                            @elseif(request()->routeIs('login'))
+                                Access your dashboard
+                            @else
+                                Register as an Animal Owner
+                            @endif
                         </p>
                     </div>
                     
