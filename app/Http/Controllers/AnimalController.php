@@ -22,7 +22,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 
-
 use Illuminate\Http\Request;
 
 class AnimalController extends Controller
@@ -495,5 +494,25 @@ public function getTransactionDetail(Request $request, $transaction_id)
 }
 
 
+
+
+public function historyPdf($animal_id)
+{
+    $animal = Animal::with([
+        'transactions.transactionType',
+        'transactions.transactionSubtype',
+        'transactions.vet',
+        'owner.user',
+        'species',
+        'breed'
+    ])
+    ->where('animal_id', $animal_id)
+    ->firstOrFail();
+
+    $transactions = $animal->transactions;
+
+    $pdf = Pdf::loadView('pdf.transaction_history', compact('animal', 'transactions'));
+    return $pdf->download("animal-{$animal->animal_id}-history.pdf");
+}
 
 }

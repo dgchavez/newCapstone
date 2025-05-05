@@ -26,8 +26,34 @@
             background-repeat: no-repeat; /* Prevents tiling */
             background-attachment: fixed; /* Keeps the background fixed on scroll */
         }
+        #animal-card {
+            min-height: 200px; /* or whatever is appropriate */
+            height: auto;
+            overflow: visible;
+        }
     </style>
 </head>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+window.downloadIdCard = function(type) {
+    const card = document.getElementById('animal-card');
+    if (!card) {
+        alert('No card found to download!');
+        return;
+    }
+    html2canvas(card, {
+        backgroundColor: type === 'jpeg' ? '#FFFFFF' : null,
+        useCORS: true,
+        scale: 2 // or use: scale: window.devicePixelRatio
+    }).then(canvas => {
+        let link = document.createElement('a');
+        link.download = 'animal-id-card.' + (type === 'jpeg' ? 'jpg' : 'png');
+        link.href = canvas.toDataURL('image/' + type, 1.0);
+        link.click();
+    });
+}
+</script>
 
 <body class="font-sans antialiased">
     <div class="min-h-screen bg-gray-100 bg-opacity-80">
