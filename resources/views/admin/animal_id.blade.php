@@ -11,19 +11,13 @@
           
                 <!-- Direct Download Buttons -->
                 <div class="flex gap-2">
-                    <a href="{{ route('animal.id.pdf', $animal->animal_id) }}" 
-                        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                        <!-- your SVG -->
-                        Download PDF
-                     </a>
-                     
-                    <button onclick="showDownloadMessage('PNG')" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center">
+                    <button onclick="downloadIdCard('png')" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
                         </svg>
                         PNG
                     </button>
-                    <button onclick="showDownloadMessage('JPG')" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center">
+                    <button onclick="downloadIdCard('jpeg')" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
                         </svg>
@@ -82,13 +76,12 @@
                         <div class="col-span-2 pl-2 relative">
                             <!-- QR Code in Upper Right Corner -->
                             <div class="absolute top-0 right-0 w-20 h-20 bg-white p-1 rounded-bl border border-gray-300 qr-container">
-                                {!! QrCode::size(72)->margin(0)->color(22, 82, 58)->generate(route('animal.id', $animal->animal_id)) !!}
-                            </div>
+                            {!! QrCode::size(72)->margin(0)->color(22, 82, 58)->generate(route('animal.history.pdf', $animal->animal_id)) !!}                            </div>
             
                             <!-- Animal Details -->
                             <div class="pr-20"> <!-- Padding to avoid QR overlap -->
                                 <div class="flex items-baseline gap-1 mb-1">
-                                    <h2 class="text-lg font-bold uppercase tracking-tight text-gray-800 truncate animal-name">{{ $animal->name }}</h2>
+                                    <h2 class="text-lg font-bold uppercase tracking-tight text-gray-800 animal-name">{{ $animal->name }}</h2>
                                     @if(!$animal->is_group)
                                         <span class="text-gray-500">({{ $animal->gender ? $animal->gender[0] : '-' }})</span>
                                     @endif
@@ -204,201 +197,56 @@
     </div>
 </div>
 
-<!-- Inline JavaScript for resize functionality -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const animalCard = document.getElementById('animal-card');
-        const resizeHandle = document.getElementById('resize-handle');
-        const sizeIndicator = document.getElementById('size-indicator');
-        let isResizing = false;
-        let startWidth, startHeight, startX, startY;
-        
-        // Set initial size
-        animalCard.style.width = '320px';
-        updateResponsiveness();
-        
-        // Initialize resize functionality
-        resizeHandle.addEventListener('mousedown', initResize);
-        
-        function initResize(e) {
-            e.preventDefault();
-            isResizing = true;
-            
-            // Get initial dimensions
-            startWidth = animalCard.offsetWidth;
-            startHeight = animalCard.offsetHeight;
-            startX = e.clientX;
-            startY = e.clientY;
-            
-            // Show size indicator
-            sizeIndicator.classList.remove('hidden');
-            updateSizeIndicator();
-            
-            // Add event listeners for drag
-            document.addEventListener('mousemove', resize);
-            document.addEventListener('mouseup', stopResize);
-        }
-        
-        function resize(e) {
-            if (!isResizing) return;
-            
-            // Calculate new width and height
-            const newWidth = startWidth + (e.clientX - startX);
-            // We're making the height respond to the width for this card to maintain proportions
-            
-            // Apply size constraints
-            const constrainedWidth = Math.max(240, Math.min(480, newWidth));
-            
-            // Apply new dimensions
-            animalCard.style.width = constrainedWidth + 'px';
-            
-            // Update size indicator
-            updateSizeIndicator();
-            
-            // Update responsive elements
-            updateResponsiveness();
-        }
-        
-        function stopResize() {
-            isResizing = false;
-            document.removeEventListener('mousemove', resize);
-            document.removeEventListener('mouseup', stopResize);
-            
-            // Hide size indicator
-            sizeIndicator.classList.add('hidden');
-            
-            // Show notification
-            showNotification('Card resized to ' + animalCard.offsetWidth + 'px width');
-        }
-        
-        function updateSizeIndicator() {
-            sizeIndicator.textContent = `${animalCard.offsetWidth}px width`;
-        }
-        
-        function updateResponsiveness() {
-            const width = animalCard.offsetWidth;
-            
-            // Scale text based on card width
-            const nameElement = document.querySelector('.animal-name');
-            const speciesElement = document.querySelector('.species-text');
-            const breedElement = document.querySelector('.breed-text');
-            const idElement = document.querySelector('.card-id-text');
-            const ownerElement = document.querySelector('.owner-name');
-            const contactElement = document.querySelector('.owner-contact');
-            const watermarkElement = document.querySelector('.watermark-text');
-            const qrContainer = document.querySelector('.qr-container');
-            const ownerPhoto = document.querySelector('.owner-photo');
-            
-            // Adjust text sizes based on card width
-            if (width < 280) {
-                nameElement.classList.remove('text-lg');
-                nameElement.classList.add('text-base');
-                
-                idElement.classList.remove('text-xl');
-                idElement.classList.add('text-lg');
-                
-                watermarkElement.classList.remove('text-5xl');
-                watermarkElement.classList.add('text-4xl');
-                
-                if (qrContainer) {
-                    qrContainer.classList.remove('w-20', 'h-20');
-                    qrContainer.classList.add('w-16', 'h-16');
-                }
-                
-                if (ownerPhoto) {
-                    ownerPhoto.classList.remove('w-8', 'h-8');
-                    ownerPhoto.classList.add('w-6', 'h-6');
-                }
-            } else if (width > 400) {
-                nameElement.classList.remove('text-base', 'text-lg');
-                nameElement.classList.add('text-xl');
-                
-                idElement.classList.remove('text-lg');
-                idElement.classList.add('text-xl');
-                
-                watermarkElement.classList.remove('text-4xl');
-                watermarkElement.classList.add('text-6xl');
-                
-                if (qrContainer) {
-                    qrContainer.classList.remove('w-16', 'h-16');
-                    qrContainer.classList.add('w-24', 'h-24');
-                }
-                
-                if (ownerPhoto) {
-                    ownerPhoto.classList.remove('w-6', 'h-6');
-                    ownerPhoto.classList.add('w-10', 'h-10');
-                }
-            } else {
-                nameElement.classList.remove('text-base', 'text-xl');
-                nameElement.classList.add('text-lg');
-                
-                idElement.classList.remove('text-lg');
-                idElement.classList.add('text-xl');
-                
-                watermarkElement.classList.remove('text-4xl', 'text-6xl');
-                watermarkElement.classList.add('text-5xl');
-                
-                if (qrContainer) {
-                    qrContainer.classList.remove('w-16', 'h-16', 'w-24', 'h-24');
-                    qrContainer.classList.add('w-20', 'h-20');
-                }
-                
-                if (ownerPhoto) {
-                    ownerPhoto.classList.remove('w-6', 'h-6', 'w-10', 'h-10');
-                    ownerPhoto.classList.add('w-8', 'h-8');
-                }
-            }
-        }
-    });
-    
-    // Function to show download message
-    function showDownloadMessage(format) {
-        // Get animal ID
-        var animalIdElement = document.querySelector('.card-id-text');
-        var animalId = animalIdElement ? animalIdElement.innerText : 'unknown';
-        
-        // Create a form for downloading
-        var form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/animals/' + animalId + '/download';
-        
-        // Add CSRF token
-        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        var csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-        
-        // Add format parameter
-        var formatInput = document.createElement('input');
-        formatInput.type = 'hidden';
-        formatInput.name = 'format';
-        formatInput.value = format.toLowerCase();
-        form.appendChild(formatInput);
-        
-        // Append form to document and submit
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-        
-        // Show notification
-        showNotification('Downloading animal ID card as ' + format);
-    }
-    
-    // Function to show notification
-    function showNotification(message) {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.classList.remove('hidden');
+function downloadIdCard(type) {
+    const card = document.getElementById('animal-card');
+    setTimeout(() => {
+        html2canvas(card, {
+            scale: 2,
+            backgroundColor: type === 'jpeg' ? '#FFFFFF' : null,
+            useCORS: true,
+        }).then(canvas => {
+            let link = document.createElement('a');
+            link.download = `animal-id-${document.querySelector('.card-id-text').innerText}.${type}`;
+            link.href = canvas.toDataURL(`image/${type}`, 1.0);
+            link.click();
+            showNotification(`Downloaded as ${type.toUpperCase()} successfully!`);
+        }).catch(error => {
+            console.error('Error generating ID card:', error);
+            showNotification('Error generating download. Please try again.', true);
+        });
+    }, 300); // 300ms delay to allow fonts to load
+}
 
-        setTimeout(() => {
-            notification.classList.add('hidden');
-        }, 3000);
-    }
+function showNotification(message, isError = false) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = 'fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg';
+    notification.classList.add(isError ? 'bg-red-600' : 'bg-green-600', 'text-white');
+    notification.classList.remove('hidden');
+    
+    setTimeout(() => {
+        notification.classList.add('hidden');
+    }, 3000);
+}
 
-    function showDownloadMessage(format) {
-        showNotification(`Preparing ${format} download...`);
-        // Optional: trigger actual download here
-    }
+console.log('downloadIdCard:', typeof downloadIdCard);
 </script>
+
+<style>
+#animal-card, #animal-card * {
+    overflow: visible !important;
+}
+.animal-name,
+.card-id-text,
+.watermark-text,
+.owner-name,
+.owner-contact,
+.species-text,
+.breed-text {
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+</style>

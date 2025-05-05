@@ -38,7 +38,7 @@ Route::get('/', function () {
 });
 
 //Generate ID
-
+Route::get('/animals/{animal}/history-pdf', [AnimalController::class, 'historyPdf'])->name('animal.history.pdf');
 Route::get('/animal-id/{animal_id}', [AnimalController::class, 'showID'])->name('animal.id');
 
 Route::get('/animal/{animal_id}/id/pdf', [AnimalController::class, 'downloadIDPdf'])->name('animal.id.pdf');
