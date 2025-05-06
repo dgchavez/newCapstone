@@ -69,13 +69,6 @@ Route::get('/transaction/{transaction}/pdf', [TransactionsController::class, 'do
 
 
 Route::group(['middleware' => 'admin'],function(){
-    
-    // Legal Policies
-    Route::resource('policies', \App\Http\Controllers\Admin\PolicyController::class)
-        ->except(['show']);
-    
-    Route::post('policies/{policy}/toggle-publish', [\App\Http\Controllers\Admin\PolicyController::class, 'togglePublish'])
-        ->name('policies.toggle-publish');
 
     //Dashboard
     Route::get('/admin/dashboard',[AdminController::class,'loadAdminDashboard'])
