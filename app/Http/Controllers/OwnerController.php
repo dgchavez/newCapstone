@@ -20,6 +20,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
 
 
 
@@ -210,64 +212,67 @@ class OwnerController extends Controller
     }
     
     
-    public function updateAnimal(Request $request, $owner_id, $animal_id)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'species_id' => 'required|exists:species,id',
-            'breed_id' => 'required|exists:breeds,id',
-            'color' => 'nullable|string|max:255', // Validation for color
-            'birth_date' => ['nullable', 'date', 'before_or_equal:today'], // Ensure birthdate is not in the future
-            'gender' => 'nullable|in:Male,Female',
-            'medical_condition' => 'nullable|string|max:255',
-            'photo_front' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'photo_back' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'photo_left_side' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'photo_right_side' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_group' => 'nullable|boolean',
-            'group_count' => 'nullable|integer|min:1|required_if:is_group,true',
-            'is_vaccinated' => 'required|in:0,1,2', // Add validation for is_vaccinated
-        ]);
-    
-        $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
-    
-        // Handle photo uploads
-        $photos = [];
-        foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-            if ($request->hasFile($photo)) {
-                // Delete the old photo if it exists
-                if ($animal->$photo) {
-                    \Storage::disk('public')->delete($animal->$photo);
+public function updateAnimal(Request $request, $owner_id, $animal_id)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'species_id' => 'required|exists:species,id',
+        'breed_id' => 'required|exists:breeds,id',
+        'color' => 'nullable|string|max:255',
+        'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
+        'gender' => 'nullable|in:Male,Female',
+        'medical_condition' => 'nullable|string|max:255',
+        'photo_front' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo_back' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo_left_side' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo_right_side' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'is_group' => 'nullable|boolean',
+        'group_count' => 'nullable|integer|min:1|required_if:is_group,true',
+        'is_vaccinated' => 'required|in:0,1,2',
+    ]);
+
+    $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
+
+    // Handle photo uploads
+    $photos = [];
+    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+        if ($request->hasFile($photo)) {
+            // Delete the old photo if it exists
+            if ($animal->$photo) {
+                $oldPath = public_path('storage/' . $animal->$photo);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
                 }
-                // Store the new photo
-                $photos[$photo] = $request->file($photo)->store('animals/photos', 'public');
-            } else {
-                $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
             }
+            $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+            $request->file($photo)->move(public_path('storage/animals/photos'), $filename);
+            $photos[$photo] = 'animals/photos/' . $filename;
+        } else {
+            $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
         }
-    
-        // Update the animal record
-        Animal::where('animal_id', $animal_id)->update([
-            'name' => $request->name,
-            'species_id' => $request->species_id,
-            'breed_id' => $request->breed_id,
-            'color' => $request->color,
-            'birth_date' => $request->birth_date,
-            'gender' => $request->gender,
-            'medical_condition' => $request->medical_condition,
-            'photo_front' => $photos['photo_front'],
-            'photo_back' => $photos['photo_back'],
-            'photo_left_side' => $photos['photo_left_side'],
-            'photo_right_side' => $photos['photo_right_side'],
-            'is_group' => $request->is_group,
-            'group_count' => $request->is_group ? $request->group_count : 1,
-            'is_vaccinated' => $request->is_vaccinated, // Add is_vaccinated here
-        ]);
-    
-        return redirect()->route('owners.profile-owner', ['owner_id' => $owner_id])
-                         ->with('success', 'Animal updated successfully!');
     }
-    
+
+    // Update the animal record
+    Animal::where('animal_id', $animal_id)->update([
+        'name' => $request->name,
+        'species_id' => $request->species_id,
+        'breed_id' => $request->breed_id,
+        'color' => $request->color,
+        'birth_date' => $request->birth_date,
+        'gender' => $request->gender,
+        'medical_condition' => $request->medical_condition,
+        'photo_front' => $photos['photo_front'],
+        'photo_back' => $photos['photo_back'],
+        'photo_left_side' => $photos['photo_left_side'],
+        'photo_right_side' => $photos['photo_right_side'],
+        'is_group' => $request->is_group,
+        'group_count' => $request->is_group ? $request->group_count : 1,
+        'is_vaccinated' => $request->is_vaccinated,
+    ]);
+
+    return redirect()->route('owners.profile-owner', ['owner_id' => $owner_id])
+                     ->with('success', 'Animal updated successfully!');
+}
 
 
 
@@ -635,16 +640,16 @@ public function owner_editprofile($id)
        $transaction = Owner::where('user_id', $user->user_id)->first();
 
        // Handle profile image upload if a file is provided
-       if ($request->hasFile('profile_image')) {
-           // Delete old image if it exists
-           if ($user->profile_image) {
-               Storage::disk('public')->delete($user->profile_image);
-           }
-       
-           // Store the new image
-           $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-           $user->profile_image = $imagePath;
-       }
+        if ($request->hasFile('profile_image')) {
+            if ($user->profile_image) {
+                Storage::disk('public')->delete($user->profile_image);
+            }
+            $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+            // Copy to public/storage for web access
+            copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
+            $user->profile_image = $imagePath;
+        }
+   
        
         // Set the role to 1 explicitly
     $user->role = 1;
@@ -753,13 +758,16 @@ public function owner_editprofile($id)
        ]);
    
        // Handle file uploads for photos
-       foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-           if ($request->hasFile($photo)) {
-               $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
-           } else {
-               $data[$photo] = null;
-           }
-       }
+        // Handle file uploads for photos
+foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+    if ($request->hasFile($photo)) {
+        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+        $request->file($photo)->move(public_path('storage/animal_photos'), $filename);
+        $data[$photo] = 'animal_photos/' . $filename;
+    } else {
+        $data[$photo] = null;
+    }
+}
    
        try {
            // Save the animal record

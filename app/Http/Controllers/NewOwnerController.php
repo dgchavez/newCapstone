@@ -84,19 +84,23 @@ class NewOwnerController extends Controller
         $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
     
         // Handle photo uploads
-        $photos = [];
-        foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-            if ($request->hasFile($photo)) {
-                // Delete the old photo if it exists
-                if ($animal->$photo) {
-                    \Storage::disk('public')->delete($animal->$photo);
+   $photos = [];
+    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+        if ($request->hasFile($photo)) {
+            // Delete the old photo if it exists
+            if ($animal->$photo) {
+                $oldPath = public_path('storage/' . $animal->$photo);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
                 }
-                // Store the new photo
-                $photos[$photo] = $request->file($photo)->store('animals/photos', 'public');
-            } else {
-                $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
             }
+            $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+            $request->file($photo)->move(public_path('storage/animals/photos'), $filename);
+            $photos[$photo] = 'animals/photos/' . $filename;
+        } else {
+            $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
         }
+    }
     
         // Update the animal record
         Animal::where('animal_id', $animal_id)->update([

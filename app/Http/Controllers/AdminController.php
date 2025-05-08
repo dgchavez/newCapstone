@@ -610,13 +610,15 @@ class AdminController extends Controller
        ]);
    
        // Handle file uploads for photos
-       foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-           if ($request->hasFile($photo)) {
-               $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
-           } else {
-               $data[$photo] = null;
-           }
-       }
+foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+    if ($request->hasFile($photo)) {
+        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+        $request->file($photo)->move(public_path('storage/animal_photos'), $filename);
+        $data[$photo] = 'animal_photos/' . $filename;
+    } else {
+        $data[$photo] = null;
+    }
+}
    
        try {
            // Save the animal record
@@ -712,14 +714,15 @@ public function getBreeds($species_id)
        $user = User::findOrFail($id);
        $transaction = Owner::where('user_id', $user->user_id)->first();
    
-       // Handle profile image upload
-       if ($request->hasFile('profile_image')) {
-           if ($user->profile_image) {
-               Storage::disk('public')->delete($user->profile_image);
-           }
-           $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-           $user->profile_image = $imagePath;
-       }
+          if ($request->hasFile('profile_image')) {
+            if ($user->profile_image) {
+                Storage::disk('public')->delete($user->profile_image);
+            }
+            $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+            // Copy to public/storage for web access
+            copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
+            $user->profile_image = $imagePath;
+        }
    
        $user->role = 1;
        $user->update($request->only([
@@ -891,17 +894,20 @@ public function vet_update(Request $request, $user_id)
     $veterinarian->address->street = $request->street;
     $veterinarian->address->save();
 
-    // Update the profile image if a new one is uploaded
-    if ($request->hasFile('profile_image')) {
-        // Delete old image if it exists
-        if ($veterinarian->profile_image) {
-            Storage::disk('public')->delete($veterinarian->profile_image);
+if ($request->hasFile('profile_image')) {
+    // Delete old image if it exists
+    if ($veterinarian->profile_image) {
+        $oldPath = public_path('storage/' . $veterinarian->profile_image);
+        if (file_exists($oldPath)) {
+            unlink($oldPath);
         }
-    
-        // Store the new image
-        $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-        $veterinarian->profile_image = $imagePath;
     }
+
+    // Store the new image directly in public/storage/profile_images
+    $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+    $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+    $veterinarian->profile_image = 'profile_images/' . $filename;
+}
 
     // Save the updated veterinarian details
     $veterinarian->save();

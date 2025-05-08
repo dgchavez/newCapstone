@@ -125,6 +125,8 @@ class UserController extends Controller
                 Storage::disk('public')->delete($user->profile_image);
             }
             $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+            // Copy to public/storage for web access
+            copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
             $user->profile_image = $imagePath;
         }
     
@@ -216,14 +218,14 @@ class UserController extends Controller
         $user = User::findOrFail($id);
     
         // Handle profile image upload if a file is provided
+      // Handle profile image upload if a file is provided
         if ($request->hasFile('profile_image')) {
-            // Delete old image if it exists
             if ($user->profile_image) {
                 Storage::disk('public')->delete($user->profile_image);
             }
-        
-            // Store the new image
             $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+            // Copy to public/storage for web access
+            copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
             $user->profile_image = $imagePath;
         }
     
@@ -407,7 +409,7 @@ class UserController extends Controller
     
     
 
-    public function ownerList_update(Request $request, $owner_id)
+       public function ownerList_update(Request $request, $owner_id)
     {
         try {
             // Log the incoming request data for debugging
@@ -434,6 +436,20 @@ class UserController extends Controller
             // Find the user
             $user = User::findOrFail($owner_id);
 
+            // Handle profile image upload
+            if ($request->hasFile('profile_image')) {
+                // Delete the old profile image if it exists
+                if ($user->profile_image) {
+                    $oldPath = public_path('storage/' . $user->profile_image);
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+                $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+                $user->profile_image = 'profile_images/' . $filename;
+            }
+
             // Update user
             $user->update([
                 'complete_name' => $validated['complete_name'],
@@ -443,6 +459,7 @@ class UserController extends Controller
                 'status' => $validated['status'],
                 'email' => $validated['email'],
                 'role' => 1,
+                'profile_image' => $user->profile_image,
             ]);
 
             // Update address
@@ -554,13 +571,19 @@ class UserController extends Controller
         'street' => $request->street, // Save the street address
     ]);
 
-    // Handle the profile image upload
-    if ($request->hasFile('profile_image')) {
-        $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
-        $user->profile_image = $profileImagePath;
-        $user->save();
+if ($request->hasFile('profile_image')) {
+    // Optionally delete the old profile image if it exists
+    if ($user->profile_image) {
+        $oldPath = public_path('storage/' . $user->profile_image);
+        if (file_exists($oldPath)) {
+            unlink($oldPath);
+        }
     }
-
+    $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+    $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+    $user->profile_image = 'profile_images/' . $filename;
+    $user->save();
+}
     // Send the email with the generated password
     \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\WelcomeEmail($user, $randomPassword));
 
@@ -616,12 +639,18 @@ public function update_veterinarian(Request $request, $id)
     $veterinarian->birth_date = $request->birth_date;
     $veterinarian->designation_id = $request->designation_id;
 
-    // Handle the profile image upload
-    if ($request->hasFile('profile_image')) {
-        $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
-        $veterinarian->profile_image = $profileImagePath;
+if ($request->hasFile('profile_image')) {
+    // Optionally delete the old profile image if it exists
+    if ($veterinarian->profile_image) {
+        $oldPath = public_path('storage/' . $veterinarian->profile_image);
+        if (file_exists($oldPath)) {
+            unlink($oldPath);
+        }
     }
-
+    $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+    $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+    $veterinarian->profile_image = 'profile_images/' . $filename;
+}
     // Save the updated veterinarian information
     $veterinarian->save();
 

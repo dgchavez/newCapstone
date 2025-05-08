@@ -345,6 +345,19 @@ public function ownerList_update(Request $request, $owner_id)
 
         // Find the user
         $user = User::findOrFail($owner_id);
+        
+               if ($request->hasFile('profile_image')) {
+                // Delete the old profile image if it exists
+                if ($user->profile_image) {
+                    $oldPath = public_path('storage/' . $user->profile_image);
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+                $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+                $user->profile_image = 'profile_images/' . $filename;
+            }
 
         // Update user
         $user->update([
@@ -547,14 +560,18 @@ public function owner_update(Request $request, $id)
     $user = User::findOrFail($id);
     $transaction = Owner::where('user_id', $user->user_id)->first();
 
-    // Handle profile image upload
-    if ($request->hasFile('profile_image')) {
-        if ($user->profile_image) {
-            Storage::disk('public')->delete($user->profile_image);
-        }
-        $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-        $user->profile_image = $imagePath;
-    }
+       if ($request->hasFile('profile_image')) {
+                // Delete the old profile image if it exists
+                if ($user->profile_image) {
+                    $oldPath = public_path('storage/' . $user->profile_image);
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+                $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+                $user->profile_image = 'profile_images/' . $filename;
+            }
 
     $user->role = 1;
     $user->update($request->only([
@@ -670,14 +687,16 @@ public function showAddAnimalForm($owner_id)
 
        ]);
    
-       // Handle file uploads for photos
-       foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-           if ($request->hasFile($photo)) {
-               $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
-           } else {
-               $data[$photo] = null;
-           }
-       }
+           // Handle file uploads for photos
+foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+    if ($request->hasFile($photo)) {
+        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+        $request->file($photo)->move(public_path('storage/animal_photos'), $filename);
+        $data[$photo] = 'animal_photos/' . $filename;
+    } else {
+        $data[$photo] = null;
+    }
+}
    
        try {
            // Save the animal record
@@ -770,19 +789,23 @@ public function showAddAnimalForm($owner_id)
         $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
     
         // Handle photo uploads
-        $photos = [];
-        foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-            if ($request->hasFile($photo)) {
-                // Delete the old photo if it exists
-                if ($animal->$photo) {
-                    \Storage::disk('public')->delete($animal->$photo);
+    $photos = [];
+    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+        if ($request->hasFile($photo)) {
+            // Delete the old photo if it exists
+            if ($animal->$photo) {
+                $oldPath = public_path('storage/' . $animal->$photo);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
                 }
-                // Store the new photo
-                $photos[$photo] = $request->file($photo)->store('animals/photos', 'public');
-            } else {
-                $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
             }
+            $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+            $request->file($photo)->move(public_path('storage/animals/photos'), $filename);
+            $photos[$photo] = 'animals/photos/' . $filename;
+        } else {
+            $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
         }
+    }
     
         // Update the animal record
         Animal::where('animal_id', $animal_id)->update([
@@ -1242,17 +1265,28 @@ public function animalUpdate(Request $request, $animal_id)
         'name', 'owner_id', 'species_id', 'breed_id', 'birth_date', 'gender', 'medical_condition', 'is_group', 'group_count', 'color', 'is_vaccinated',
     ]);
 
-    // Handle photo uploads and update the existing photos
-    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-        if ($request->hasFile($photo)) {
-            // Store new photo and update the animal record
-            $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
-        } else {
-            // Retain old photo if not replaced
-            $data[$photo] = $animal->{$photo}; // Retain the old photo if the user doesn't upload a new one
+  foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+    if ($request->hasFile($photo)) {
+        // Delete the old photo if it exists
+        if ($animal->{$photo}) {
+            $oldPath = public_path('storage/' . $animal->{$photo});
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
         }
+        // Create the directory if it doesn't exist
+        $destinationPath = public_path('storage/animal_photos');
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+        // Move the uploaded file
+        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+        $request->file($photo)->move($destinationPath, $filename);
+        $data[$photo] = 'animal_photos/' . $filename; // Save relative path
+    } else {
+        $data[$photo] = $animal->{$photo};
     }
-
+}
     // If it's a group, handle the group-specific logic
     if ($data['is_group'] == 1) {
         // Set a default value for name (or empty string) when it's a group
@@ -1397,15 +1431,28 @@ public function update(Request $request, $animal_id)
     ]);
 
     // Handle photo uploads and update the existing photos
-    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-        if ($request->hasFile($photo)) {
-            // Store new photo and update the animal record
-            $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
-        } else {
-            // Retain old photo if not replaced
-            $data[$photo] = $animal->{$photo}; // Retain the old photo if the user doesn't upload a new one
+foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+    if ($request->hasFile($photo)) {
+        // Delete the old photo if it exists
+        if ($animal->{$photo}) {
+            $oldPath = public_path('storage/' . $animal->{$photo});
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
         }
+        // Create the directory if it doesn't exist
+        $destinationPath = public_path('storage/animal_photos');
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+        // Move the uploaded file
+        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+        $request->file($photo)->move($destinationPath, $filename);
+        $data[$photo] = 'animal_photos/' . $filename; // Save relative path
+    } else {
+        $data[$photo] = $animal->{$photo};
     }
+}
 
     // If it's a group, handle the group-specific logic
     if ($data['is_group'] == 1) {
