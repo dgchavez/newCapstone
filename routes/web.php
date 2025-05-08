@@ -37,6 +37,15 @@ Route::get('/', function () {
     return view('welcome', compact('veterinarians'));
 });
 
+// Clean up temporary PDFs
+Route::delete('storage/temp/{filename}', function ($filename) {
+    if (Storage::exists('public/temp/' . $filename)) {
+        Storage::delete('public/temp/' . $filename);
+        return response()->json(['success' => true]);
+    }
+    return response()->json(['success' => false], 404);
+});
+
 Route::post('/admin/users/{user}/toggle-status', [UserController::class, 'toggleUserStatus'])->name('users.toggle-status');
 
 Route::get('/admin/users/{user}/credentials', [UserController::class, 'getUserCredentials'])

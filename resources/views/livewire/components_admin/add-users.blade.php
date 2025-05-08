@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 new #[Layout('layouts.guest')] class extends Component
 {
@@ -200,14 +202,28 @@ new #[Layout('layouts.guest')] class extends Component
 
     public function downloadCredentialsPDF()
     {
-        // This will be implemented in a controller - for now just close the modal
-        $this->closeCredentialsModal();
+        // Generate a unique filename
+        $filename = 'user_credentials_' . time() . '.pdf';
+        
+        // Create the PDF
+        $pdf = PDF::loadView('pdf.user-credentials', [
+            'username' => $this->userIdentifier,
+            'password' => $this->generatedPassword,
+            'isEmail' => $this->is_email_field,
+            'userName' => $this->complete_name
+        ]);
+        
+        // Store in temp storage
+        Storage::put('public/temp/' . $filename, $pdf->output());
+        
+        // Return the URL to download
+        $this->dispatch('download-pdf', url('storage/temp/' . $filename));
     }
 
     public function printCredentials()
     {
         // This will trigger browser print - handled by JavaScript
-        $this->dispatchBrowserEvent('print-credentials');
+        $this->dispatch('print-credentials');
     }
 
     public function previousStep()
@@ -565,27 +581,38 @@ new #[Layout('layouts.guest')] class extends Component
 </div>
 
 <script>
-    document.addEventListener('livewire:load', function() {
-        window.addEventListener('print-credentials', function() {
-            // Store the current body content
-            const originalContent = document.body.innerHTML;
+    document.addEventListener('livewire:init', () => {
+        // For print credentials
+        Livewire.on('print-credentials', () => {
+            const printContents = document.getElementById('credentials-printable').innerHTML;
+            const originalContents = document.body.innerHTML;
             
-            // Replace with just the credential content
-            const printContent = document.getElementById('credentials-printable').innerHTML;
-            document.body.innerHTML = `
-                <div style="padding: 20px; max-width: 500px; margin: 0 auto;">
-                    ${printContent}
-                </div>
-            `;
-            
-            // Print
+            document.body.innerHTML = printContents;
             window.print();
+            document.body.innerHTML = originalContents;
             
-            // Restore original content
-            document.body.innerHTML = originalContent;
+            // Re-initialize Livewire after printing
+            Livewire.rescan();
+        });
+
+        // For downloading PDF (if applicable)
+        Livewire.on('download-pdf', (url) => {
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'user_credentials.pdf';
+            link.target = '_blank';
             
-            // Re-initialize Livewire after restoring content
-            window.Livewire.rescan();
+            // Trigger the download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(link);
+                // After some time, delete the file from server
+                fetch(url, { method: 'DELETE' });
+            }, 100);
         });
     });
 </script> 

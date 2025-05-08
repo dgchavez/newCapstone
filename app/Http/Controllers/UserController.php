@@ -103,92 +103,143 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         
-        $request->validate([
+        // Base validation rules
+        $validationRules = [
             'complete_name' => 'required|string|max:100',
             'role' => 'required|integer',
             'contact_no' => 'required|string|max:15',
             'gender' => 'required|string|max:10',
             'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
             'status' => 'required|integer',
-            'identifier' => 'required|string|max:255',
             'barangay_id' => 'required|exists:barangays,id',
             'street' => 'nullable|string|max:255',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'designation_id' => 'nullable|exists:designations,designation_id',
             'selectedCategories' => 'required_if:role,1|array',
             'civil_status' => 'required_if:role,1|string|nullable',
-        ]);
-    
-        // Handle profile image upload if a file is provided
-        if ($request->hasFile('profile_image')) {
-            if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
-            }
-            $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-            // Copy to public/storage for web access
-            copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
-            $user->profile_image = $imagePath;
-        }
-    
-        // Update user data
-        $user->update($request->only([
-            'complete_name',
-            'role',
-            'contact_no',
-            'gender',
-            'birth_date',
-            'status',
-            'identifier',
-            'designation_id',
-        ]));
-    
-        // Update or create the address
-        $user->address()->updateOrCreate(
-            ['user_id' => $user->user_id],
-            $request->only(['barangay_id', 'street'])
-        );
-    
-        // Handle owner-specific data if role is owner (1)
-        if ($request->role == 1) {
-            // Update or create owner data
-            $user->owner()->updateOrCreate(
-                ['user_id' => $user->user_id],
-                [
-                    'civil_status' => $request->civil_status,
-                    'permit' => 1
-                ]
-            );
-    
-            // Update categories
-            if (isset($request->selectedCategories)) {
-                // Convert all values to integers and filter out invalid ones
-                $categories = [];
-                foreach ($request->selectedCategories as $categoryId) {
-                    // Include the category if it's a valid number (including 0)
-                    if (is_numeric($categoryId) || $categoryId === '0') {
-                        $categories[] = (int)$categoryId;
+            'is_email_field' => 'required|boolean',
+            'identifier' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request, $user) {
+                    if ($request->is_email_field) {
+                        // Email validation
+                        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                            $fail('The email address is invalid.');
+                        }
+                    } else {
+                        // Username validation
+                        if (strlen($value) < 5) {
+                            $fail('The username must be at least 5 characters.');
+                        }
+                        if (!preg_match('/^[a-zA-Z0-9_.]+$/', $value)) {
+                            $fail('The username can only contain letters, numbers, underscore and dot.');
+                        }
+                    }
+                    
+                    // Check uniqueness (using the email field for both)
+                    if (User::where('email', $value)
+                            ->where('user_id', '!=', $user->user_id)
+                            ->exists()) {
+                        $fail('This ' . ($request->is_email_field ? 'email' : 'username') . ' is already taken.');
                     }
                 }
-                
-                // Log the categories being processed
-                Log::info('Categories being synced:', $categories);
-                
-                // Sync the categories
-                $user->categories()->sync($categories);
+            ],
+        ];
+
+        $validated = $request->validate($validationRules);
+
+        try {
+            DB::beginTransaction();
+
+            // Handle profile image upload if a file is provided
+            if ($request->hasFile('profile_image')) {
+                if ($user->profile_image) {
+                    Storage::disk('public')->delete($user->profile_image);
+                }
+                $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+                copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
+                $user->profile_image = $imagePath;
+            }
+
+            // Prepare user data for update
+            $userData = [
+                'complete_name' => $validated['complete_name'],
+                'role' => $validated['role'],
+                'contact_no' => $validated['contact_no'],
+                'gender' => $validated['gender'],
+                'birth_date' => $validated['birth_date'],
+                'status' => $validated['status'],
+                'is_email_field' => $validated['is_email_field'],
+                'email' => $validated['identifier'], // Using email field for both email and username
+            ];
+
+            // Add designation_id if it exists in validated data
+            if (isset($validated['designation_id'])) {
+                $userData['designation_id'] = $validated['designation_id'];
+            }
+
+            // Update user data
+            $user->update($userData);
+
+            // Update or create the address
+            $user->address()->updateOrCreate(
+                ['user_id' => $user->user_id],
+                $request->only(['barangay_id', 'street'])
+            );
+    
+            // Handle owner-specific data if role is owner (1)
+            if ($request->role == 1) {
+                // Update or create owner data
+                $user->owner()->updateOrCreate(
+                    ['user_id' => $user->user_id],
+                    [
+                        'civil_status' => $request->civil_status,
+                        'permit' => 1
+                    ]
+                );
+        
+                // Update categories
+                if (isset($request->selectedCategories)) {
+                    // Convert all values to integers and filter out invalid ones
+                    $categories = [];
+                    foreach ($request->selectedCategories as $categoryId) {
+                        // Include the category if it's a valid number (including 0)
+                        if (is_numeric($categoryId) || $categoryId === '0') {
+                            $categories[] = (int)$categoryId;
+                        }
+                    }
+                    
+                    // Log the categories being processed
+                    Log::info('Categories being synced:', $categories);
+                    
+                    // Sync the categories
+                    $user->categories()->sync($categories);
+                } else {
+                    // If no categories selected, detach all
+                    $user->categories()->detach();
+                }
             } else {
-                // If no categories selected, detach all
+                // If user is not an owner, remove owner data and category associations
+                if ($user->owner) {
+                    $user->owner->delete();
+                }
                 $user->categories()->detach();
             }
-        } else {
-            // If user is not an owner, remove owner data and category associations
-            if ($user->owner) {
-                $user->owner->delete();
-            }
-            $user->categories()->detach();
+
+            DB::commit();
+
+            return redirect()->route('admin-users')
+                ->with('message', 'User details updated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating user: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'An error occurred while updating the user.')
+                ->withInput();
         }
-    
-        return redirect()->route('admin-users')
-            ->with('message', 'User details updated successfully.');
     }
     
 

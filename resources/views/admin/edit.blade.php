@@ -115,18 +115,53 @@
                     </select>
                 </div>
 
-                <!-- Email/Username Field -->
-                <div>
-                    <x-input-label for="identifier" :value="__('Email or Username')" class="text-lg font-semibold text-gray-800"/>
-                    <x-text-input 
-                        type="text" 
-                        name="identifier" 
-                        id="identifier" 
-                        value="{{ old('identifier', $user->email) }}" 
-                        class="mt-1 block w-full rounded-lg border-green-600 shadow-sm focus:ring-2 focus:ring-green-500" 
-                        required 
-                    />
-                    <p class="mt-1 text-sm text-gray-500">Enter email address or username</p>
+                <!-- Authentication Section -->
+                <div class="space-y-4">
+                    @if($user->role == 1) {{-- Only show toggle for owners --}}
+                    <div>
+                        <x-input-label :value="__('Authentication Method')" class="text-lg font-semibold text-gray-800 mb-2"/>
+                        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500">Email</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="hidden" name="is_email_field" value="0">
+                                    <input type="checkbox" 
+                                           name="is_email_field" 
+                                           value="1"
+                                           class="sr-only peer"
+                                           {{ $user->is_email_field ? 'checked' : '' }}
+                                           onchange="toggleAuthenticationMethod(this)">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                                </label>
+                                <span class="text-gray-500">Username</span>
+                            </div>
+                        </div>
+                    </div>
+                    @else
+                        {{-- For non-owners, force email authentication --}}
+                        <input type="hidden" name="is_email_field" value="1">
+                    @endif
+
+                    <!-- Email/Username Field -->
+                    <div>
+                        <x-input-label id="identifier_label" :value="__($user->role == 1 ? ($user->is_email_field ? 'Email Address' : 'Username') : 'Email Address')" class="text-lg font-semibold text-gray-800"/>
+                        <x-text-input 
+                            type="{{ $user->role == 1 ? ($user->is_email_field ? 'email' : 'text') : 'email' }}"
+                            name="identifier" 
+                            id="identifier" 
+                            value="{{ old('identifier', $user->email) }}" 
+                            class="mt-1 block w-full rounded-lg border-green-600 shadow-sm focus:ring-2 focus:ring-green-500" 
+                            required 
+                        />
+                        <p class="mt-1 text-sm text-gray-500" id="identifier_help">
+                            @if($user->role == 1)
+                                {{ $user->is_email_field ? 'Enter valid email address' : 'Username must be at least 5 characters and can only contain letters, numbers, underscore and dot' }}
+                            @else
+                                Enter valid email address
+                            @endif
+                        </p>
+                        <x-input-error :messages="$errors->get('identifier')" class="mt-2" />
+                    </div>
                 </div>
 
                 <!-- Address Fields -->
@@ -197,39 +232,90 @@
         function toggleOwnerFields() {
             const role = document.getElementById('role').value;
             const ownerFields = document.getElementById('ownerFields');
+            const designationFields = document.getElementById('designationFields');
+
+            // Toggle Owner Fields for Animal Owners
             if (role == '1') {
                 ownerFields.classList.remove('hidden');
             } else {
                 ownerFields.classList.add('hidden');
             }
+
+            // Toggle Designation Fields for Veterinarians
+            if (role == '2') {
+                designationFields.classList.remove('hidden');
+            } else {
+                designationFields.classList.add('hidden');
+            }
+
+            // Handle authentication method based on role
+            handleRoleChange();
         }
 
+        // Ensure correct fields are shown on page load
         document.addEventListener('DOMContentLoaded', function() {
             toggleOwnerFields();
+            
+            // Add event listener for role changes
+            document.getElementById('role').addEventListener('change', function() {
+                toggleOwnerFields();
+            });
         });
-        function toggleOwnerFields() {
-        const role = document.getElementById('role').value;
-        const ownerFields = document.getElementById('ownerFields');
-        const designationFields = document.getElementById('designationFields');
 
-        // Toggle Owner Fields for Animal Owners
-        if (role == '1') {
-            ownerFields.classList.remove('hidden');
-        } else {
-            ownerFields.classList.add('hidden');
+        function toggleAuthenticationMethod(checkbox) {
+            const role = document.getElementById('role').value;
+            
+            // Only allow toggle for owners
+            if (role != '1') {
+                checkbox.checked = true;
+                return;
+            }
+
+            const identifierInput = document.getElementById('identifier');
+            const identifierLabel = document.getElementById('identifier_label');
+            const identifierHelp = document.getElementById('identifier_help');
+            const isEmail = checkbox.checked;
+
+            // Update input type
+            identifierInput.type = isEmail ? 'email' : 'text';
+            
+            // Update label
+            identifierLabel.textContent = isEmail ? 'Email Address' : 'Username';
+            
+            // Update help text
+            identifierHelp.textContent = isEmail 
+                ? 'Enter valid email address' 
+                : 'Username must be at least 5 characters and can only contain letters, numbers, underscore and dot';
+            
+            // Clear the input value when switching types
+            identifierInput.value = '';
+
+            // Update the hidden input value
+            checkbox.value = isEmail ? '1' : '0';
         }
 
-        // Toggle Designation Fields for Veterinarians
-        if (role == '2') {
-            designationFields.classList.remove('hidden');
-        } else {
-            designationFields.classList.add('hidden');
-        }
-    }
+        function handleRoleChange() {
+            const role = document.getElementById('role').value;
+            const authenticationSection = document.querySelector('.authentication-toggle');
+            const identifierInput = document.getElementById('identifier');
+            const identifierLabel = document.getElementById('identifier_label');
+            const identifierHelp = document.getElementById('identifier_help');
 
-    // Ensure correct fields are shown on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        toggleOwnerFields();
-    });
+            if (role != '1') {
+                // For non-owners, force email authentication
+                if (authenticationSection) {
+                    authenticationSection.classList.add('hidden');
+                }
+                identifierInput.type = 'email';
+                identifierLabel.textContent = 'Email Address';
+                identifierHelp.textContent = 'Enter valid email address';
+                document.querySelector('input[name="is_email_field"]').value = '1';
+            } else {
+                // For owners, show authentication toggle
+                if (authenticationSection) {
+                    authenticationSection.classList.remove('hidden');
+                }
+            }
+        }
     </script>
 </x-app-layout>
