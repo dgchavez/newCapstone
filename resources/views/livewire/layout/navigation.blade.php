@@ -12,7 +12,7 @@ new class extends Component
     {
         $logout();
 
-        $this->redirect('/', navigate: true);
+        $this->redirect('/');
     }
 };
 ?>
@@ -104,6 +104,10 @@ new class extends Component
                                         <x-dropdown-link :href="route('designation.index')"
                                             class="px-4 py-2 text-sm rounded-lg hover:bg-green-50 hover:text-green-600 transition-all duration-300" wire:navigate>
                                             {{ __('Designations') }}
+                                        </x-dropdown-link>
+                                        <x-dropdown-link :href="route('policies.index')"
+                                            class="px-4 py-2 text-sm rounded-lg hover:bg-green-50 hover:text-green-600 transition-all duration-300" wire:navigate>
+                                            {{ __('Legal Policies') }}
                                         </x-dropdown-link>
                                     </div>
                                 </x-slot>

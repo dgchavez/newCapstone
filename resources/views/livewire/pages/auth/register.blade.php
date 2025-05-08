@@ -181,11 +181,30 @@ new #[Layout('layouts.guest')] class extends Component
                     <x-input-error :messages="$errors->get('street')" class="mt-2" />
                 </div>
 
+
                 <!-- Contact Number -->
                 <div class="mt-4">
                     <x-input-label for="contact_no" :value="__('Contact Number')" />
                     <x-text-input wire:model="contact_no" id="contact_no" class="block mt-1 w-full" type="text" />
                     <x-input-error :messages="$errors->get('contact_no')" class="mt-2" />
+
+            <!-- Categories Selection -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pet Owner Categories (Select all that apply)</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach($categories as $category)
+                        <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer">
+                            <input type="checkbox" 
+                                wire:model="selected_categories" 
+                                value="{{ $category->id }}" 
+                                class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <div class="ml-3">
+                                <span class="block text-sm font-medium text-gray-700">{{ $category->name }}</span>
+                                <span class="block text-xs text-gray-500 mt-1">Common pets in this category</span>
+                            </div>
+                        </label>
+                    @endforeach
+
                 </div>
 
                 <!-- Gender -->
