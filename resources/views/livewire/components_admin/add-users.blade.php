@@ -33,6 +33,7 @@ new #[Layout('layouts.guest')] class extends Component
     public string $password = '';
     public string $password_confirmation = '';
     public ?int $designation_id = null; // Nullable, optional designation field
+    public bool $is_email_field = true; // Flag to track if email field contains an email or username
 
     // Owner-specific fields
     public ?string $civil_status = null;
@@ -50,6 +51,12 @@ new #[Layout('layouts.guest')] class extends Component
     public array $selectedCategories = [];
 
     public bool $isProcessing = false;
+    public bool $showCredentials = false; // Flag to show credentials modal
+    public ?string $generatedPassword = null; // Generated password to show in modal
+    public ?string $userIdentifier = null; // Username/email to show in modal
+
+    public int $currentStep = 1;
+    public int $totalSteps = 3;
 
     /**
      * Mount function to initialize barangays and designations.
@@ -60,13 +67,21 @@ new #[Layout('layouts.guest')] class extends Component
         $this->barangays = Barangay::all();
         $this->designations = Designation::all();
         $this->categories = Category::all();
-
     }
 
-/**
- * Handle an incoming registration request.
- */
- public function isConnectedToInternet()
+    /**
+     * Toggle between email and username for the identifier field
+     */
+    public function toggleIdentifierType()
+    {
+        $this->is_email_field = !$this->is_email_field;
+        $this->email = ''; // Clear the field when switching types
+    }
+
+    /**
+     * Handle an incoming registration request.
+     */
+    public function isConnectedToInternet()
     {
         try {
             // Check by sending a simple HTTP request to a known service (Google in this case)
@@ -77,81 +92,137 @@ new #[Layout('layouts.guest')] class extends Component
             return false;
         }
     }
- public function register()
-{
-    $this->isProcessing = true;
 
-    try {
-        DB::beginTransaction();
+    public function register()
+    {
+        $this->isProcessing = true;
 
-        // Validate inputs
-        $validated = $this->validate([
-            'complete_name' => ['required', 'string', 'max:255'],
-            'role' => ['required', 'integer', 'in:1,2,3'], // Validate roles
-            'contact_no' => ['nullable', 'string', 'max:15'],
-            'gender' => ['required', 'string'],
-            'birth_date' => ['nullable', 'date', 'before_or_equal:today'], // Ensure birthdate is not in the future
-            'status' => ['required', 'integer'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'designation_id' => ['nullable', 'exists:designations,designation_id'],
-            'civil_status' => ['nullable', 'required_if:role,1', 'string', 'max:255'],
-            'selectedCategories' => ['nullable', 'required_if:role,1', 'array'],  // Make selectedCategories an array when role is 1
-            'selectedCategories.*' => ['exists:categories,id'],  // Ensure all selected category IDs exist in the categories table
-            'barangay_id' => ['required', 'exists:barangays,id'],
-            'street' => ['nullable', 'string', 'max:255'],
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Generate password
-        $randomPassword = Str::random(8);
-        $hashedPassword = Hash::make($randomPassword);
+            // Validation rules will change based on identifier type and role
+            $validationRules = [
+                'complete_name' => ['required', 'string', 'max:255'],
+                'role' => ['required', 'integer', 'in:1,2,3'], // Validate roles
+                'contact_no' => ['nullable', 'string', 'max:15'],
+                'gender' => ['required', 'string'],
+                'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
+                'status' => ['required', 'integer'],
+                'designation_id' => ['nullable', 'exists:designations,designation_id'],
+                'civil_status' => ['nullable', 'required_if:role,1', 'string', 'max:255'],
+                'selectedCategories' => ['nullable', 'required_if:role,1', 'array'],
+                'selectedCategories.*' => ['exists:categories,id'],
+                'barangay_id' => ['required', 'exists:barangays,id'],
+                'street' => ['nullable', 'string', 'max:255'],
+            ];
 
-        // Create user
-        $user = User::create([
-            'complete_name' => $validated['complete_name'],
-            'role' => $validated['role'],
-            'contact_no' => $validated['contact_no'],
-            'gender' => $validated['gender'],
-            'birth_date' => $validated['birth_date'],
-            'status' => $validated['status'],
-            'email' => $validated['email'],
-            'password' => $hashedPassword,
-            'designation_id' => $validated['designation_id'],
-        ]);
+            // Email validation based on field type and role
+            if ($this->is_email_field) {
+                // Field is used as email
+                $validationRules['email'] = ['required', 'string', 'email', 'max:255', 'unique:users,email'];
+            } else {
+                // Field is used as username (for owners only)
+                $validationRules['email'] = ['required', 'string', 'min:5', 'max:25', 'unique:users,email', 'regex:/^[a-zA-Z0-9_.]+$/'];
+            }
 
-        // Create address
-        $user->address()->create([
-            'barangay_id' => $this->barangay_id,
-            'street' => $this->street,
-        ]);
+            // Different validation for non-owner roles
+            if ($this->role != 1) {
+                // Non-owners (staff) must use email
+                $this->is_email_field = true;
+                $validationRules['email'] = ['required', 'string', 'email', 'max:255', 'unique:users,email'];
+            }
 
-        // If owner, create owner record and attach categories
-        if ($validated['role'] === 1) {
-            $owner = $user->owner()->create([
-                'civil_status' => $this->civil_status,
-                'permit' => $this->permit,
+            $validated = $this->validate($validationRules);
+
+            // Generate password
+            $randomPassword = Str::random(8);
+            $hashedPassword = Hash::make($randomPassword);
+
+            // Create user
+            $user = User::create([
+                'complete_name' => $validated['complete_name'],
+                'role' => $validated['role'],
+                'contact_no' => $validated['contact_no'],
+                'gender' => $validated['gender'],
+                'birth_date' => $validated['birth_date'],
+                'status' => $validated['status'],
+                'email' => $validated['email'], // Will be either email or username
+                'password' => $hashedPassword,
+                'designation_id' => $validated['designation_id'],
             ]);
 
-            if (!empty($this->selectedCategories)) {
-                $user->categories()->attach($this->selectedCategories);
+            // Create address
+            $user->address()->create([
+                'barangay_id' => $this->barangay_id,
+                'street' => $this->street,
+            ]);
+
+            // If owner, create owner record and attach categories
+            if ($validated['role'] === 1) {
+                $owner = $user->owner()->create([
+                    'civil_status' => $this->civil_status,
+                    'permit' => $this->permit,
+                ]);
+
+                if (!empty($this->selectedCategories)) {
+                    $user->categories()->attach($this->selectedCategories);
+                }
             }
+
+            DB::commit();
+
+            // Send email only if it's a valid email address
+            if ($this->is_email_field) {
+                dispatch(function () use ($user, $randomPassword) {
+                    Mail::to($user->email)->send(new WelcomeEmail($user, $randomPassword));
+                })->afterResponse();
+            }
+
+            // Store credentials for display
+            $this->generatedPassword = $randomPassword;
+            $this->userIdentifier = $this->email;
+            $this->showCredentials = true;
+            $this->isProcessing = false;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', 'Cannot add user due to an issue. Please try again.');
+            $this->isProcessing = false;
         }
+    }
 
-        DB::commit();
-
-        // Send email in the background
-        dispatch(function () use ($user, $randomPassword) {
-            Mail::to($user->email)->send(new WelcomeEmail($user, $randomPassword));
-        })->afterResponse();
-
+    public function closeCredentialsModal()
+    {
+        $this->showCredentials = false;
         session()->flash('message', 'User added successfully!');
         return redirect()->route('admin-users');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        session()->flash('error', 'Cannot add user due to an issue. Please try again.');
-        $this->isProcessing = false;
     }
-}
+
+    public function downloadCredentialsPDF()
+    {
+        // This will be implemented in a controller - for now just close the modal
+        $this->closeCredentialsModal();
+    }
+
+    public function printCredentials()
+    {
+        // This will trigger browser print - handled by JavaScript
+        $this->dispatchBrowserEvent('print-credentials');
+    }
+
+    public function previousStep()
+    {
+        if ($this->currentStep > 1) {
+            $this->currentStep--;
+        }
+    }
+
+    public function nextStep()
+    {
+        if ($this->currentStep < $this->totalSteps) {
+            $this->currentStep++;
+        }
+    }
 }
 ?>
 
@@ -167,159 +238,318 @@ new #[Layout('layouts.guest')] class extends Component
     </div>
     @endif
 
+    <!-- Credentials Modal -->
+    @if($showCredentials)
+    <div class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full" id="credentials-printable">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">User Credentials</h3>
+                <p class="text-sm text-gray-600">Please provide these credentials to the user</p>
+            </div>
+            
+            <div class="border border-gray-200 rounded-lg p-6 bg-gray-50 mb-6">
+                <div class="mb-4">
+                    <p class="text-sm text-gray-500">{{ $is_email_field ? 'Email' : 'Username' }}</p>
+                    <p class="text-lg font-semibold text-gray-800">{{ $userIdentifier }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Password</p>
+                    <p class="text-lg font-semibold text-gray-800">{{ $generatedPassword }}</p>
+                </div>
+            </div>
+            
+            <div class="text-center text-sm text-gray-500 mb-6">
+                <p>User must change their password after first login</p>
+            </div>
+            
+            <div class="flex space-x-3 justify-center">
+                <button wire:click="printCredentials" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Print
+                </button>
+                <button wire:click="downloadCredentialsPDF" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download PDF
+                </button>
+                <button wire:click="closeCredentialsModal" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Error Message for No Internet -->
     @if (session()->has('error'))
         <div class="text-center mb-6">
             <p class="text-lg text-red-500">{{ session('error') }}</p>
         </div>
     @endif
-    <!-- Title -->
-    <div class="text-center mb-6">
-        <h2 class="text-3xl font-semibold text-gray-800">User Registration Form</h2>
-        <p class="text-lg text-gray-500">Please fill in the details below to create a new account.</p>
+
+    <!-- Title with Gradient Background -->
+    <div class="text-center mb-6 bg-gradient-to-r from-blue-600 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
+        <h2 class="text-3xl font-bold text-white">User Registration Form</h2>
+        <p class="text-lg text-blue-100">Add a new user to the system</p>
     </div>
 
     <!-- Logo -->
     <div class="text-center mb-8">
         <a href="/">
-            <img class="h-20 w-auto mx-auto" src="{{ asset('assets/1.jpg') }}" alt="Your Logo">
+            <img class="h-24 w-auto mx-auto hover:scale-105 transition-transform duration-300" src="{{ asset('assets/1.jpg') }}" alt="Your Logo">
         </a>
     </div>
 
     <form wire:submit.prevent="register" class="space-y-8">
         <!-- Disable all form inputs while processing -->
         <div wire:loading.class="opacity-50 pointer-events-none">
-            <!-- Complete Name -->
-            <div>
-                <x-input-label for="complete_name" :value="__('Full Name')" class="text-lg font-semibold text-gray-800"/>
-                <x-text-input wire:model="complete_name" id="complete_name" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" type="text" required autofocus />
-                <x-input-error :messages="$errors->get('complete_name')" class="mt-2 text-sm text-red-500" />
-            </div>
+            
+            <!-- Form Sections with Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- User Basic Info Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center border-b pb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                        Basic Information
+                    </h3>
+                    
+                    <!-- Complete Name -->
+                    <div class="mb-4">
+                        <x-input-label for="complete_name" :value="__('Full Name')" class="text-gray-700 font-medium"/>
+                        <x-text-input wire:model="complete_name" id="complete_name" class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" type="text" required autofocus />
+                        <x-input-error :messages="$errors->get('complete_name')" class="mt-2 text-sm text-red-500" />
+                    </div>
 
-            <!-- Role -->
-            <div>
-                <x-input-label for="role" :value="__('Role')" class="text-lg font-semibold text-gray-800"/>
-                <select wire:model="role" id="role" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required wire:change="$refresh">
-                    <option value="#">Select Role</option>
-                    <option value="1">Animal Owner</option>
-                    <option value="2">Veterinarian</option>
-                    <option value="3">Veterinary Receptionist</option>
-                </select>
-                <x-input-error :messages="$errors->get('role')" class="mt-2 text-sm text-red-500" />
-            </div>
+                    <!-- Role -->
+                    <div class="mb-4">
+                        <x-input-label for="role" :value="__('Role')" class="text-gray-700 font-medium"/>
+                        <select wire:model="role" id="role" class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required wire:change="$refresh">
+                            <option value="#">Select Role</option>
+                            <option value="1">Animal Owner</option>
+                            <option value="2">Veterinarian</option>
+                            <option value="3">Veterinary Receptionist</option>
+                        </select>
+                        <x-input-error :messages="$errors->get('role')" class="mt-2 text-sm text-red-500" />
+                    </div>
 
-            @if ($role == 2)
-            <div>
-                <x-input-label for="designation_id" :value="__('Designation')" class="text-lg font-semibold text-gray-800" />
-                <select wire:model="designation_id" id="designation_id" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                    <option value="">Select Designation</option>
-                    @foreach($designations as $designation)
-                        <option value="{{ $designation->designation_id }}">{{ $designation->name }}</option>
-                    @endforeach
-                </select>
-                <x-input-error :messages="$errors->get('designation_id')" class="mt-2 text-sm text-red-500" />
-            </div>
-            @endif
+                    @if ($role == 2)
+                    <div class="mb-4">
+                        <x-input-label for="designation_id" :value="__('Designation')" class="text-gray-700 font-medium" />
+                        <select wire:model="designation_id" id="designation_id" class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="">Select Designation</option>
+                            @foreach($designations as $designation)
+                                <option value="{{ $designation->designation_id }}">{{ $designation->name }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error :messages="$errors->get('designation_id')" class="mt-2 text-sm text-red-500" />
+                    </div>
+                    @endif
+                </div>
 
-            <!-- Barangay Selection -->
-            <div>
-                <x-input-label for="barangay_id" :value="__('Barangay')" class="text-lg font-semibold text-gray-800"/>
-                <select wire:model="barangay_id" id="barangay_id" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                    <option value="">Select Barangay</option>
-                    @foreach($barangays as $barangay)
-                        <option value="{{ $barangay->id }}">{{ $barangay->barangay_name }}</option>
-                    @endforeach
-                </select>
-                <x-input-error :messages="$errors->get('barangay_id')" class="mt-2 text-sm text-red-500" />
-            </div>
+                <!-- Contact Info Section -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center border-b pb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                        </svg>
+                        Contact Information
+                    </h3>
+                    
+                    <!-- Contact Number -->
+                    <div class="mb-4">
+                        <x-input-label for="contact_no" :value="__('Contact Number')" class="text-gray-700 font-medium"/>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 text-gray-500 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg">
+                                +63
+                            </span>
+                            <x-text-input wire:model="contact_no" id="contact_no" class="block mt-0 w-full border border-gray-300 rounded-r-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" type="text" placeholder="9XXXXXXXXX" />
+                        </div>
+                        <x-input-error :messages="$errors->get('contact_no')" class="mt-2 text-sm text-red-500" />
+                    </div>
 
-            <!-- Street Name -->
-            <div>
-                <x-input-label for="street" :value="__('Street Name')" class="text-lg font-semibold text-gray-800"/>
-                <x-text-input wire:model="street" id="street" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" type="text" required />
-                <x-input-error :messages="$errors->get('street')" class="mt-2 text-sm text-red-500" />
-            </div>
+                    <!-- Gender -->
+                    <div class="mb-4">
+                        <x-input-label for="gender" :value="__('Gender')" class="text-gray-700 font-medium"/>
+                        <div class="mt-1 flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" wire:model="gender" value="Male" class="text-blue-600 focus:ring-blue-500 h-5 w-5">
+                                <span class="ml-2 text-gray-700">Male</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" wire:model="gender" value="Female" class="text-blue-600 focus:ring-blue-500 h-5 w-5">
+                                <span class="ml-2 text-gray-700">Female</span>
+                            </label>
+                        </div>
+                        <x-input-error :messages="$errors->get('gender')" class="mt-2 text-sm text-red-500" />
+                    </div>
 
-            <!-- Contact Number -->
-            <div>
-                <x-input-label for="contact_no" :value="__('Contact Number')" class="text-lg font-semibold text-gray-800"/>
-                <x-text-input wire:model="contact_no" id="contact_no" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" type="text" />
-                <x-input-error :messages="$errors->get('contact_no')" class="mt-2 text-sm text-red-500" />
+                    <!-- Birth Date -->
+                    <div>
+                        <x-input-label for="birth_date" :value="__('Birth Date')" class="text-gray-700 font-medium"/>
+                        <x-text-input wire:model="birth_date" id="birth_date" class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" type="date" />
+                        <x-input-error :messages="$errors->get('birth_date')" class="mt-2 text-sm text-red-500" />
+                    </div>
+                </div>
             </div>
+            
+            <!-- Address Section -->
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center border-b pb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                    </svg>
+                    Address Information
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Barangay Selection -->
+                    <div>
+                        <x-input-label for="barangay_id" :value="__('Barangay')" class="text-gray-700 font-medium"/>
+                        <select wire:model="barangay_id" id="barangay_id" class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="">Select Barangay</option>
+                            @foreach($barangays as $barangay)
+                                <option value="{{ $barangay->id }}">{{ $barangay->barangay_name }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error :messages="$errors->get('barangay_id')" class="mt-2 text-sm text-red-500" />
+                    </div>
 
-            <!-- Gender -->
-            <div>
-                <x-input-label for="gender" :value="__('Gender')" class="text-lg font-semibold text-gray-800"/>
-                <select wire:model="gender" id="gender" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                </select>
-                <x-input-error :messages="$errors->get('gender')" class="mt-2 text-sm text-red-500" />
-            </div>
-
-            <!-- Birth Date -->
-            <div>
-                <x-input-label for="birth_date" :value="__('Birth Date')" class="text-lg font-semibold text-gray-800"/>
-                <x-text-input wire:model="birth_date" id="birth_date" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" type="date" />
-                <x-input-error :messages="$errors->get('birth_date')" class="mt-2 text-sm text-red-500" />
+                    <!-- Street Name -->
+                    <div>
+                        <x-input-label for="street" :value="__('Street Name')" class="text-gray-700 font-medium"/>
+                        <x-text-input wire:model="street" id="street" class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" type="text" required />
+                        <x-input-error :messages="$errors->get('street')" class="mt-2 text-sm text-red-500" />
+                    </div>
+                </div>
             </div>
 
             <!-- Owner-Specific Fields -->
             @if ($role == 1)
-                <div>
-                    <x-input-label for="civil_status" :value="__('Civil Status')" class="text-lg font-semibold text-gray-800"/>
-                    <select wire:model="civil_status" id="civil_status" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                        <option value="">Select Civil Status</option>
-                        <option value="Married">Married</option>
-                        <option value="Separated">Separated</option>
-                        <option value="Single">Single</option>
-                        <option value="Widow">Widow</option>
-                    </select>
-                    <x-input-error :messages="$errors->get('civil_status')" class="mt-2 text-sm text-red-500" />
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center border-b pb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4h3a3 3 0 006 0h3a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm2.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm2.45 4a2.5 2.5 0 10-4.9 0h4.9zM12 9a1 1 0 100 2h3a1 1 0 100-2h-3zm-1 4a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    Owner Details
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Civil Status -->
+                    <div>
+                        <x-input-label for="civil_status" :value="__('Civil Status')" class="text-gray-700 font-medium"/>
+                        <select wire:model="civil_status" id="civil_status" class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="">Select Civil Status</option>
+                            <option value="Married">Married</option>
+                            <option value="Separated">Separated</option>
+                            <option value="Single">Single</option>
+                            <option value="Widow">Widow</option>
+                        </select>
+                        <x-input-error :messages="$errors->get('civil_status')" class="mt-2 text-sm text-red-500" />
+                    </div>
+
+               
                 </div>
 
-        <!-- Categories Selection -->
-    <div>
-        <x-input-label for="category" :value="__('Categories')" class="text-lg font-semibold text-gray-800" />
-        <div class="space-y-2">
-            @foreach($categories as $category)
-                <div class="flex items-center">
-                    <input 
-                        type="checkbox" 
-                        id="category_{{ $category->id }}" 
-                        wire:model="selectedCategories" 
-                        value="{{ $category->id }}" 
-                        class="mr-2"
-                    />
-                    <label for="category_{{ $category->id }}" class="text-gray-800">{{ $category->name }}</label>
+                <!-- Categories Selection -->
+                <div class="mt-4">
+                    <x-input-label for="category" :value="__('Pet Categories')" class="text-gray-700 font-medium" />
+                    <div class="mt-2 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            @foreach($categories as $category)
+                                <div class="flex items-center">
+                                    <input 
+                                        type="checkbox" 
+                                        id="category_{{ $category->id }}" 
+                                        wire:model="selectedCategories" 
+                                        value="{{ $category->id }}" 
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    >
+                                    <label for="category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <x-input-error :messages="$errors->get('selectedCategories')" class="mt-2 text-sm text-red-500" />
                 </div>
-            @endforeach
-        </div>
-        <x-input-error :messages="$errors->get('selectedCategories')" class="mt-2 text-sm text-red-500" />
-    </div>
-
-            
-            
-
+            </div>
             @endif
 
-            <!-- Email Address -->
-            <div>
-                <x-input-error :messages="$errors->get('email')" class="mt-2 text-sm text-red-500" />
-                <x-input-label for="email" :value="__('Email')" class="text-lg font-semibold text-gray-800"/>
-                <x-text-input wire:model="email" id="email" class="block mt-1 w-full border border-gray-300 rounded-lg p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" type="email" required />
+            <!-- Authentication Section -->
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center border-b pb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                    </svg>
+                    Authentication
+                </h3>
+                     <!-- Toggle between Email/Username -->
+                     @if ($role == 1)
+                           <div>
+                        <x-input-label for="identifier_type" :value="__('Authentication Method')" class="text-gray-700 font-medium mb-2"/>
+                        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <span class="{{ $is_email_field ? 'font-semibold text-blue-600' : 'text-gray-500' }}">Email</span>
+                                <button 
+                                    type="button" 
+                                    wire:click="toggleIdentifierType" 
+                                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ $is_email_field ? 'bg-blue-600' : 'bg-gray-200' }}"
+                                >
+                                    <span class="sr-only">Toggle email/username</span>
+                                    <span 
+                                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $is_email_field ? 'translate-x-6' : 'translate-x-1' }}" 
+                                        aria-hidden="true"
+                                    ></span>
+                                </button>
+                                <span class="{{ !$is_email_field ? 'font-semibold text-blue-600' : 'text-gray-500' }}">Username</span>
+                            </div>
+                        </div>
+                    </div>
+                     @endif
+                  
+                
+                <!-- Email/Username Field -->
+                <div>
+                    <x-input-label for="email" :value="$is_email_field || $role != 1 ? __('Email') : __('Username')" class="text-gray-700 font-medium"/>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                        </div>
+                        <x-text-input 
+                            wire:model="email" 
+                            id="email" 
+                            class="block mt-1 w-full pl-10 border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            type="{{ $is_email_field ? 'email' : 'text' }}" 
+                            required 
+                            placeholder="{{ $is_email_field ? 'email@example.com' : 'username' }}"
+                        />
+                    </div>
+                    <x-input-error :messages="$errors->get('email')" class="mt-2 text-sm text-red-500" />
+                    @if ($role == 1 && !$is_email_field)
+                        <p class="mt-1 text-sm text-gray-500">Username must be at least 5 characters and can only contain letters, numbers, underscore and dot.</p>
+                    @endif
+                </div>
             </div>
         </div>
 
         <!-- Update submit button to show loading state -->
         <div class="flex items-center justify-center mt-8">
             <x-primary-button 
-                class="bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none text-white font-semibold rounded-lg px-6 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 wire:loading.attr="disabled"
                 wire:target="register"
             >
-                <span wire:loading.remove wire:target="register">
+                <span wire:loading.remove wire:target="register" class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                    </svg>
                     {{ __('Add User') }}
                 </span>
                 <span wire:loading wire:target="register" class="inline-flex items-center">
@@ -332,4 +562,30 @@ new #[Layout('layouts.guest')] class extends Component
             </x-primary-button>
         </div>
     </form>
-</div> 
+</div>
+
+<script>
+    document.addEventListener('livewire:load', function() {
+        window.addEventListener('print-credentials', function() {
+            // Store the current body content
+            const originalContent = document.body.innerHTML;
+            
+            // Replace with just the credential content
+            const printContent = document.getElementById('credentials-printable').innerHTML;
+            document.body.innerHTML = `
+                <div style="padding: 20px; max-width: 500px; margin: 0 auto;">
+                    ${printContent}
+                </div>
+            `;
+            
+            // Print
+            window.print();
+            
+            // Restore original content
+            document.body.innerHTML = originalContent;
+            
+            // Re-initialize Livewire after restoring content
+            window.Livewire.rescan();
+        });
+    });
+</script> 

@@ -65,9 +65,9 @@ new #[Layout('layouts.guest')] class extends Component
             @endif
 
             <form wire:submit="login" class="space-y-5">
-                <!-- Email Address -->
+                <!-- Email/Username Field -->
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email or Username</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
@@ -77,12 +77,12 @@ new #[Layout('layouts.guest')] class extends Component
                         </div>
                         <input wire:model="form.email" id="email" 
                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
-                               type="email" 
+                               type="text" 
                                name="email" 
                                required 
                                autofocus 
                                autocomplete="username" 
-                               placeholder="your@email.com">
+                               placeholder="Email or Username">
                     </div>
                     @error('form.email') <span class="text-xs text-red-600 mt-1">{{ $message }}</span> @enderror
                 </div>

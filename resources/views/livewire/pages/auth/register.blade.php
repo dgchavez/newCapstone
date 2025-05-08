@@ -40,6 +40,9 @@ new #[Layout('layouts.guest')] class extends Component
     public int $currentStep = 1;
     public int $totalSteps = 3;
     
+    // New properties
+    public bool $is_email_field = true; // Flag to track if the email field contains an email or username
+
     /**
      * Mount function to initialize data
      */
@@ -87,26 +90,45 @@ new #[Layout('layouts.guest')] class extends Component
     }
 
     /**
+     * Toggle between email and username for the identifier field
+     */
+    public function toggleIdentifierType()
+    {
+        $this->is_email_field = !$this->is_email_field;
+        $this->email = ''; // Clear the field when switching types
+    }
+
+    /**
      * Handle an incoming registration request.
      */
     public function register(): void
     {
-        // Validate inputs with more specific rules
-        $validated = $this->validate([
+        // Base validation rules
+        $validationRules = [
             'complete_name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-]+$/u'],
             'role' => ['required', 'integer', 'in:1'], 
             'contact_no' => ['required', 'string', 'max:15', 'regex:/^9\d{9}$/'],
             'gender' => ['required', 'string', 'in:Male,Female'],
             'birth_date' => ['required', 'date', 'before:-5 years'],
             'status' => ['required', 'integer'],
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()->mixedCase()->numbers()->symbols()],
             'civil_status' => ['required', 'string', 'in:Single,Married,Separated,Widow'],
             'selected_categories' => ['required', 'array', 'min:1'],
             'selected_categories.*' => ['exists:categories,id'],
             'barangay_id' => ['required', 'exists:barangays,id'],
             'street' => ['required', 'string', 'max:255'],
-        ]);
+        ];
+
+        // Email validation based on field type
+        if ($this->is_email_field) {
+            // Field is used as email
+            $validationRules['email'] = ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'];
+        } else {
+            // Field is used as username
+            $validationRules['email'] = ['required', 'string', 'min:5', 'max:25', 'unique:users,email', 'regex:/^[a-zA-Z0-9_.]+$/'];
+        }
+
+        $validated = $this->validate($validationRules);
 
         // Create the user first
         $user = User::create([
@@ -377,21 +399,53 @@ new #[Layout('layouts.guest')] class extends Component
                 Account Details
             </h3>
             
-            <!-- Email Address -->
+            <!-- Toggle between Email/Username -->
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Authentication Method</label>
+                <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+                    <span class="{{ $is_email_field ? 'font-semibold text-blue-600' : 'text-gray-500' }}">Email</span>
+                    <button 
+                        type="button" 
+                        wire:click="toggleIdentifierType" 
+                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ $is_email_field ? 'bg-blue-600' : 'bg-gray-200' }}"
+                    >
+                        <span class="sr-only">Toggle email/username</span>
+                        <span 
+                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $is_email_field ? 'translate-x-6' : 'translate-x-1' }}" 
+                            aria-hidden="true"
+                        ></span>
+                    </button>
+                    <span class="{{ !$is_email_field ? 'font-semibold text-blue-600' : 'text-gray-500' }}">Username</span>
+                </div>
+            </div>
+            
+            <!-- Email/Username Field -->
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">{{ $is_email_field ? 'Email Address' : 'Username' }}</label>
                 <div class="relative">
-                    <input type="email" wire:model="email" id="email" 
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
-                           placeholder="your@email.com" required>
+                    <input 
+                        type="{{ $is_email_field ? 'email' : 'text' }}" 
+                        wire:model="email" 
+                        id="email" 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
+                        placeholder="{{ $is_email_field ? 'your@email.com' : 'username' }}" 
+                        required
+                    >
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            @if($is_email_field)
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            @else
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            @endif
                         </svg>
                     </div>
                 </div>
                 @error('email') <span class="text-xs text-red-600 mt-1">{{ $message }}</span> @enderror
+                @if(!$is_email_field)
+                    <p class="mt-1 text-xs text-gray-500">Username must be at least 5 characters and can only contain letters, numbers, underscore and dot.</p>
+                @endif
             </div>
 
             <!-- Password -->
