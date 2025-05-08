@@ -117,8 +117,9 @@
 
                 <!-- Authentication Section -->
                 <div class="space-y-4">
-                    @if($user->role == 1) {{-- Only show toggle for owners --}}
-                    <div>
+                    <!-- Authentication Method Toggle (only for owners) -->
+                    @if($user->role == 1)
+                    <div class="authentication-toggle-section">
                         <x-input-label :value="__('Authentication Method')" class="text-lg font-semibold text-gray-800 mb-2"/>
                         <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
                             <div class="flex items-center justify-between">
@@ -138,11 +139,10 @@
                         </div>
                     </div>
                     @else
-                        {{-- For non-owners, force email authentication --}}
                         <input type="hidden" name="is_email_field" value="1">
                     @endif
 
-                    <!-- Email/Username Field -->
+                    <!-- Email/Username Field (always visible) -->
                     <div>
                         <x-input-label id="identifier_label" :value="__($user->role == 1 ? ($user->is_email_field ? 'Email Address' : 'Username') : 'Email Address')" class="text-lg font-semibold text-gray-800"/>
                         <x-text-input 
@@ -233,12 +233,33 @@
             const role = document.getElementById('role').value;
             const ownerFields = document.getElementById('ownerFields');
             const designationFields = document.getElementById('designationFields');
+            const authenticationToggle = document.querySelector('.authentication-toggle-section');
+            const identifierLabel = document.getElementById('identifier_label');
+            const identifierHelp = document.getElementById('identifier_help');
+            const identifierInput = document.getElementById('identifier');
 
             // Toggle Owner Fields for Animal Owners
             if (role == '1') {
                 ownerFields.classList.remove('hidden');
+                // Show authentication toggle for owners
+                if (authenticationToggle) {
+                    authenticationToggle.classList.remove('hidden');
+                }
             } else {
                 ownerFields.classList.add('hidden');
+                // Hide authentication toggle for non-owners
+                if (authenticationToggle) {
+                    authenticationToggle.classList.add('hidden');
+                }
+                // Force email authentication for non-owners
+                if (identifierLabel) identifierLabel.textContent = 'Email Address';
+                if (identifierHelp) identifierHelp.textContent = 'Enter valid email address';
+                if (identifierInput) {
+                    identifierInput.type = 'email';
+                    // Don't clear the value here to preserve existing data
+                }
+                // Set the hidden input value to 1 (email) for non-owners
+                document.querySelector('input[name="is_email_field"]').value = '1';
             }
 
             // Toggle Designation Fields for Veterinarians
@@ -247,12 +268,9 @@
             } else {
                 designationFields.classList.add('hidden');
             }
-
-            // Handle authentication method based on role
-            handleRoleChange();
         }
 
-        // Ensure correct fields are shown on page load
+        // Make sure the toggle is handled on page load
         document.addEventListener('DOMContentLoaded', function() {
             toggleOwnerFields();
             
