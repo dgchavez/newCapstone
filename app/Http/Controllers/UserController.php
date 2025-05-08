@@ -754,6 +754,30 @@ public function getUserPassword(User $user)
     ]);
 }
 
+/**
+ * Toggle user status between active and disabled
+ */
+public function toggleUserStatus(Request $request, User $user)
+{
+    // Don't allow toggling your own account
+    if ($user->user_id === auth()->id()) {
+        return redirect()->back()->with('error', 'You cannot change your own account status.');
+    }
+    
+    // Validate the status
+    $request->validate([
+        'status' => 'required|in:1,2', // Only allow active (1) or disabled (2)
+    ]);
+    
+    // Update the user status
+    $user->update(['status' => $request->status]);
+    
+    // Get the status name for the message
+    $statusName = $request->status == 1 ? 'enabled' : 'disabled';
+    
+    return redirect()->back()->with('message', "User {$user->complete_name} has been {$statusName}.");
+}
+
    }
 
    

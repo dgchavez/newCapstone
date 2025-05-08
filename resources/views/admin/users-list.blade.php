@@ -178,15 +178,49 @@
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                {{ $user->status === 0 ? 'bg-yellow-100 text-yellow-800' : 
-                                                   ($user->status === 1 ? 'bg-green-100 text-green-800' : 
-                                                   'bg-red-100 text-red-800') }}">
-                                                @php
-                                                    $status = [0 => 'Pending', 1 => 'Active', 2 => 'Disabled'];
-                                                @endphp
-                                                {{ $status[$user->status] ?? 'Unknown' }}
-                                            </span>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                    {{ $user->status === 0 ? 'bg-yellow-100 text-yellow-800' : 
+                                                        ($user->status === 1 ? 'bg-green-100 text-green-800' : 
+                                                        'bg-red-100 text-red-800') }}">
+                                                    @php
+                                                        $status = [0 => 'Pending', 1 => 'Active', 2 => 'Disabled'];
+                                                    @endphp
+                                                    {{ $status[$user->status] ?? 'Unknown' }}
+                                                </span>
+                                                
+                                                @if ($user->user_id !== auth()->id() && $user->status !== 0)
+                                                    @if ($user->status === 1)
+                                                        <!-- Disable User Button -->
+                                                        <form action="{{ route('users.toggle-status', $user->user_id) }}" method="POST" class="inline-block">
+                                                            @csrf
+                                                            <input type="hidden" name="status" value="2">
+                                                            <button type="submit" 
+                                                                    class="text-red-600 hover:text-red-900 transition-colors duration-200"
+                                                                    title="Disable User"
+                                                                    onclick="return confirm('Are you sure you want to disable this user?')">
+                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                                </svg>
+                                                            </button>
+                                                        </form>
+                                                    @elseif ($user->status === 2)
+                                                        <!-- Enable User Button -->
+                                                        <form action="{{ route('users.toggle-status', $user->user_id) }}" method="POST" class="inline-block">
+                                                            @csrf
+                                                            <input type="hidden" name="status" value="1">
+                                                            <button type="submit" 
+                                                                    class="text-green-600 hover:text-green-900 transition-colors duration-200"
+                                                                    title="Enable User"
+                                                                    onclick="return confirm('Are you sure you want to enable this user?')">
+                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             @if ($user->user_id !== auth()->id())
@@ -336,12 +370,9 @@
             return confirm('Are you sure you want to reset this user\'s password? A new password will be generated.');
         }
         
-        // For the credentials modal
-        let currentUserId = null;
-        let currentPassword = null;
-        
+        // Global function that will be called from HTML buttons
         function showCredentialsModal(userId) {
-            currentUserId = userId;
+            console.log('Showing credentials for user:', userId);
             
             // Get user information and password via AJAX
             fetch(`/admin/users/${userId}/credentials`)
@@ -350,12 +381,16 @@
                     document.getElementById('credUsername').textContent = data.username;
                     document.getElementById('credentialsModal').classList.remove('hidden');
                     
+                    // Store userId in a data attribute
+                    document.getElementById('credentialsModal').dataset.userId = userId;
+                    
                     // Get password via separate request
                     return fetch(`/admin/users/${userId}/get-password`);
                 })
                 .then(response => response.json())
                 .then(data => {
-                    currentPassword = data.password;
+                    // Store password in a data attribute
+                    document.getElementById('credentialsModal').dataset.password = data.password;
                 })
                 .catch(error => {
                     alert('Error fetching user credentials');
@@ -363,49 +398,104 @@
                 });
         }
         
-        document.getElementById('showPasswordBtn').addEventListener('click', function() {
-            const passwordElement = document.getElementById('credPassword');
-            if (passwordElement.textContent === '********') {
-                passwordElement.textContent = currentPassword;
-                this.textContent = 'Hide Password';
-            } else {
-                passwordElement.textContent = '********';
-                this.textContent = 'Show Password';
-            }
-        });
-        
-        document.getElementById('closeCredBtn').addEventListener('click', function() {
-            document.getElementById('credentialsModal').classList.add('hidden');
-            document.getElementById('credPassword').textContent = '********';
-            document.getElementById('showPasswordBtn').textContent = 'Show Password';
-        });
-        
-        document.getElementById('resetCredBtn').addEventListener('click', function() {
-            if (confirm('Are you sure you want to reset this user\'s password? A new password will be generated.')) {
-                // Reset password via AJAX
-                fetch(`/admin/users/${currentUserId}/reset-password-ajax`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        currentPassword = data.password;
-                        document.getElementById('credPassword').textContent = data.password;
-                        document.getElementById('showPasswordBtn').textContent = 'Hide Password';
-                        alert('Password has been reset successfully!');
+        // Function to setup all event handlers
+        function setupCredentialModalHandlers() {
+            console.log('Setting up credential modal handlers');
+            
+            // Remove existing event listeners first to prevent duplicates
+            const showPasswordBtn = document.getElementById('showPasswordBtn');
+            const closeCredBtn = document.getElementById('closeCredBtn');
+            const resetCredBtn = document.getElementById('resetCredBtn');
+            
+            if (showPasswordBtn) {
+                const newShowPasswordBtn = showPasswordBtn.cloneNode(true);
+                showPasswordBtn.parentNode.replaceChild(newShowPasswordBtn, showPasswordBtn);
+                
+                newShowPasswordBtn.addEventListener('click', function() {
+                    const modal = document.getElementById('credentialsModal');
+                    const passwordElement = document.getElementById('credPassword');
+                    
+                    if (passwordElement.textContent === '********') {
+                        passwordElement.textContent = modal.dataset.password;
+                        this.textContent = 'Hide Password';
                     } else {
-                        alert('Error: ' + data.message);
+                        passwordElement.textContent = '********';
+                        this.textContent = 'Show Password';
                     }
-                })
-                .catch(error => {
-                    alert('Error resetting password');
-                    console.error(error);
                 });
             }
-        });
+            
+            if (closeCredBtn) {
+                const newCloseCredBtn = closeCredBtn.cloneNode(true);
+                closeCredBtn.parentNode.replaceChild(newCloseCredBtn, closeCredBtn);
+                
+                newCloseCredBtn.addEventListener('click', function() {
+                    const modal = document.getElementById('credentialsModal');
+                    modal.classList.add('hidden');
+                    document.getElementById('credPassword').textContent = '********';
+                    document.getElementById('showPasswordBtn').textContent = 'Show Password';
+                });
+            }
+            
+            if (resetCredBtn) {
+                const newResetCredBtn = resetCredBtn.cloneNode(true);
+                resetCredBtn.parentNode.replaceChild(newResetCredBtn, resetCredBtn);
+                
+                newResetCredBtn.addEventListener('click', function() {
+                    const modal = document.getElementById('credentialsModal');
+                    const userId = modal.dataset.userId;
+                    
+                    if (confirm('Are you sure you want to reset this user\'s password? A new password will be generated.')) {
+                        fetch(`/admin/users/${userId}/reset-password-ajax`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                modal.dataset.password = data.password;
+                                document.getElementById('credPassword').textContent = data.password;
+                                document.getElementById('showPasswordBtn').textContent = 'Hide Password';
+                                alert('Password has been reset successfully!');
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            alert('Error resetting password');
+                            console.error(error);
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Set up the handlers on initial page load
+        document.addEventListener('DOMContentLoaded', setupCredentialModalHandlers);
+        
+        // Add hooks for Livewire navigation events
+        if (typeof window.Livewire !== 'undefined') {
+            // For Livewire 3.x
+            document.addEventListener('livewire:navigated', function() {
+                console.log('Livewire navigation detected');
+                setupCredentialModalHandlers();
+            });
+            
+            // For Livewire 2.x
+            document.addEventListener('livewire:load', function() {
+                window.livewire.hook('message.processed', function() {
+                    console.log('Livewire message processed');
+                    setupCredentialModalHandlers();
+                });
+            });
+        }
+        
+        // For direct navigation or if the script loads after the page
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setupCredentialModalHandlers();
+        }
     </script>
 </x-app-layout>

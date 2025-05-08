@@ -37,6 +37,8 @@ Route::get('/', function () {
     return view('welcome', compact('veterinarians'));
 });
 
+Route::post('/admin/users/{user}/toggle-status', [UserController::class, 'toggleUserStatus'])->name('users.toggle-status');
+
 Route::get('/admin/users/{user}/credentials', [UserController::class, 'getUserCredentials'])
     ->name('users.credentials');
 Route::post('/admin/users/{user}/reset-password-ajax', [UserController::class, 'resetPasswordAjax'])
