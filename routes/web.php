@@ -37,6 +37,14 @@ Route::get('/', function () {
     return view('welcome', compact('veterinarians'));
 });
 
+Route::get('/admin/users/{user}/credentials', [UserController::class, 'getUserCredentials'])
+    ->name('users.credentials');
+Route::post('/admin/users/{user}/reset-password-ajax', [UserController::class, 'resetPasswordAjax'])
+    ->name('users.reset-password-ajax');
+Route::post('/admin/users/{user}/approve', [UserController::class, 'approveUser'])
+    ->name('users.approve');
+    Route::get('/admin/users/{user}/get-password', [UserController::class, 'getUserPassword'])->middleware('auth');
+
 //Generate ID
 Route::get('/animals/{animal}/history-pdf', [AnimalController::class, 'historyPdf'])->name('animal.history.pdf');
 Route::get('/animal-id/{animal_id}', [AnimalController::class, 'showID'])->name('animal.id');

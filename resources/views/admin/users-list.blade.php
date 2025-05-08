@@ -191,6 +191,8 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             @if ($user->user_id !== auth()->id())
                                                 <div class="flex items-center space-x-2">
+                                                    <!-- Reset Password Button (only for email users) -->
+                                                    @if(filter_var($user->email, FILTER_VALIDATE_EMAIL))
                                                     <form action="{{ route('users.reset-password', $user->user_id) }}" 
                                                           method="POST" 
                                                           class="inline-block" 
@@ -205,6 +207,34 @@
                                                             </svg>
                                                         </button>
                                                     </form>
+                                                    @endif
+
+                                                    <!-- Show Credentials Button (for username users) -->
+                                                    @if(!filter_var($user->email, FILTER_VALIDATE_EMAIL))
+                                                    <button type="button" 
+                                                            onclick="showCredentialsModal('{{ $user->user_id }}')"
+                                                            class="text-purple-600 hover:text-purple-900 transition-colors duration-200"
+                                                            title="Show Credentials">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                                        </svg>
+                                                    </button>
+                                                    @endif
+
+                                                    @if($user->status == 0)
+                                                    <form action="{{ route('users.approve', $user->user_id) }}" 
+                                                          method="POST" 
+                                                          class="inline-block">
+                                                        @csrf
+                                                        <button type="submit" 
+                                                                class="text-green-600 hover:text-green-900 transition-colors duration-200"
+                                                                title="Approve User">
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                    @endif
 
                                                     <a href="{{ route('users.edit-form', $user->user_id) }}" 
                                                        class="text-blue-600 hover:text-blue-900 transition-colors duration-200"
@@ -260,9 +290,122 @@
         </div>
     </div>
 
+    <!-- Credentials Modal -->
+    <div id="credentialsModal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">User Credentials</h3>
+                <p class="text-sm text-gray-600">Login details for username-based account</p>
+            </div>
+            
+            <div class="border border-gray-200 rounded-lg p-6 bg-gray-50 mb-6">
+                <div class="mb-4">
+                    <p class="text-sm text-gray-500">Username</p>
+                    <p id="credUsername" class="text-lg font-semibold text-gray-800"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Current Password</p>
+                    <p id="credPassword" class="text-lg font-semibold text-gray-800">********</p>
+                    <button id="showPasswordBtn" type="button" class="mt-2 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded">
+                        Show Password
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-center text-sm text-gray-500 mb-6">
+                <p>Keep these credentials secure</p>
+            </div>
+            
+            <div class="flex space-x-3 justify-center">
+                <button id="resetCredBtn" type="button" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Reset Password
+                </button>
+                <button id="closeCredBtn" type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // For confirming password reset
         function confirmReset() {
-            return confirm("Are you sure you want to reset this user's password?");
+            return confirm('Are you sure you want to reset this user\'s password? A new password will be generated.');
         }
+        
+        // For the credentials modal
+        let currentUserId = null;
+        let currentPassword = null;
+        
+        function showCredentialsModal(userId) {
+            currentUserId = userId;
+            
+            // Get user information and password via AJAX
+            fetch(`/admin/users/${userId}/credentials`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('credUsername').textContent = data.username;
+                    document.getElementById('credentialsModal').classList.remove('hidden');
+                    
+                    // Get password via separate request
+                    return fetch(`/admin/users/${userId}/get-password`);
+                })
+                .then(response => response.json())
+                .then(data => {
+                    currentPassword = data.password;
+                })
+                .catch(error => {
+                    alert('Error fetching user credentials');
+                    console.error(error);
+                });
+        }
+        
+        document.getElementById('showPasswordBtn').addEventListener('click', function() {
+            const passwordElement = document.getElementById('credPassword');
+            if (passwordElement.textContent === '********') {
+                passwordElement.textContent = currentPassword;
+                this.textContent = 'Hide Password';
+            } else {
+                passwordElement.textContent = '********';
+                this.textContent = 'Show Password';
+            }
+        });
+        
+        document.getElementById('closeCredBtn').addEventListener('click', function() {
+            document.getElementById('credentialsModal').classList.add('hidden');
+            document.getElementById('credPassword').textContent = '********';
+            document.getElementById('showPasswordBtn').textContent = 'Show Password';
+        });
+        
+        document.getElementById('resetCredBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to reset this user\'s password? A new password will be generated.')) {
+                // Reset password via AJAX
+                fetch(`/admin/users/${currentUserId}/reset-password-ajax`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentPassword = data.password;
+                        document.getElementById('credPassword').textContent = data.password;
+                        document.getElementById('showPasswordBtn').textContent = 'Hide Password';
+                        alert('Password has been reset successfully!');
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Error resetting password');
+                    console.error(error);
+                });
+            }
+        });
     </script>
 </x-app-layout>

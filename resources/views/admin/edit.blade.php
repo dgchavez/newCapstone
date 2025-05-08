@@ -115,10 +115,18 @@
                     </select>
                 </div>
 
-                <!-- Email Address -->
+                <!-- Email/Username Field -->
                 <div>
-                    <x-input-label for="email" :value="__('Email')" class="text-lg font-semibold text-gray-800"/>
-                    <x-text-input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" class="mt-1 block w-full rounded-lg border-green-600 shadow-sm focus:ring-2 focus:ring-green-500" required />
+                    <x-input-label for="identifier" :value="__('Email or Username')" class="text-lg font-semibold text-gray-800"/>
+                    <x-text-input 
+                        type="text" 
+                        name="identifier" 
+                        id="identifier" 
+                        value="{{ old('identifier', $user->email) }}" 
+                        class="mt-1 block w-full rounded-lg border-green-600 shadow-sm focus:ring-2 focus:ring-green-500" 
+                        required 
+                    />
+                    <p class="mt-1 text-sm text-gray-500">Enter email address or username</p>
                 </div>
 
                 <!-- Address Fields -->

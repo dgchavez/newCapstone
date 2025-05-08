@@ -110,7 +110,7 @@ class UserController extends Controller
             'gender' => 'required|string|max:10',
             'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
             'status' => 'required|integer',
-            'email' => 'required|email|max:100|unique:users,email,' . $user->user_id . ',user_id',
+            'identifier' => 'required|string|max:255',
             'barangay_id' => 'required|exists:barangays,id',
             'street' => 'nullable|string|max:255',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -138,7 +138,7 @@ class UserController extends Controller
             'gender',
             'birth_date',
             'status',
-            'email',
+            'identifier',
             'designation_id',
         ]));
     
@@ -208,7 +208,7 @@ class UserController extends Controller
             'contact_no' => 'required|string|max:15',
             'gender' => 'required|string|max:10',
             'birth_date' => 'required|date',
-            'email' => 'required|email|max:100|unique:users,email,' . $id . ',user_id',
+            'identifier' => 'required|string|max:255',
             'barangay_id' => 'required|exists:barangays,id',
             'street' => 'nullable|string|max:255',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Added validation for image
@@ -235,7 +235,7 @@ class UserController extends Controller
             'contact_no',
             'gender',
             'birth_date',
-            'email',
+            'identifier',
         ]));
     
         // Update the password if provided
@@ -302,7 +302,7 @@ class UserController extends Controller
                 'contact_no' => ['nullable', 'string', 'max:15'],
                 'gender' => ['required', 'string'],
                 'birth_date' => ['nullable', 'date'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+                'identifier' => ['required', 'string', 'max:255'],
                 'civil_status' => ['required', 'string'],
                 'barangay_id' => ['required', 'exists:barangays,id'],
                 'street' => ['nullable', 'string', 'max:255'],
@@ -322,7 +322,7 @@ class UserController extends Controller
             $user->gender = $validated['gender'];
             $user->birth_date = $validated['birth_date'];
             $user->status = 1; // Active
-            $user->email = $validated['email'];
+            $user->identifier = $validated['identifier'];
             $user->password = Hash::make($randomPassword);
             $user->save();
 
@@ -422,7 +422,7 @@ class UserController extends Controller
                 'gender' => 'required|string|max:10',
                 'birth_date' => ['nullable', 'date'],
                 'status' => 'required|integer',
-                'email' => 'required|email|max:100|unique:users,email,' . $owner_id . ',user_id',
+                'identifier' => 'required|string|max:100|unique:users,email,' . $owner_id . ',user_id',
                 'barangay_id' => 'required|exists:barangays,id',
                 'street' => 'nullable|string|max:255',
                 'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -457,7 +457,7 @@ class UserController extends Controller
                 'gender' => $validated['gender'],
                 'birth_date' => $validated['birth_date'],
                 'status' => $validated['status'],
-                'email' => $validated['email'],
+                'identifier' => $validated['identifier'],
                 'role' => 1,
                 'profile_image' => $user->profile_image,
             ]);
@@ -673,14 +673,87 @@ public function destroy_veterinarian($user_id)
     return redirect()->route('admin-veterinarians')->with('message', 'Veterinarian deleted successfully.');
 }
 
+    
+    /**
+ * Get credentials for a user with username (not email)
+ */
+public function getUserCredentials(User $user)
+{
+    // Validate that the current user is an admin
+    if (auth()->user()->role !== 0) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+    
+    return response()->json([
+        'username' => $user->email // Your app stores usernames in the email field
+    ]);
+}
+
+/**
+ * Reset a password and return it via AJAX
+ */
+public function resetPasswordAjax(User $user)
+{
+    try {
+        // Generate a random password
+        $randomPassword = \Illuminate\Support\Str::random(8);
+    
+        // Hash the password and update the user's record
+        $user->update([
+            'password' => bcrypt($randomPassword),
+        ]);
+    
+        // For username users, we don't send an email, just return the password
+        return response()->json([
+            'success' => true,
+            'password' => $randomPassword
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Approve a pending user
+ */
+public function approveUser(User $user)
+{
+    if ($user->status === 0) {
+        $user->update(['status' => 1]); // Change from pending (0) to enabled (1)
+        return redirect()->back()->with('message', "User {$user->complete_name} has been approved.");
+    }
+    
+    return redirect()->back()->with('error', "User is not in pending status.");
+}
+
+/**
+ * Get the password for a username-based user (for admin use only)
+ */
+public function getUserPassword(User $user)
+{
+    // Validate that the current user is an admin
+    if (auth()->user()->role !== 0) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+    
+    // For security reasons, we need to reset the password first
+    // since we don't store plain text passwords
+    $randomPassword = \Illuminate\Support\Str::random(8);
+    
+    // Hash the password and update the user's record
+    $user->update([
+        'password' => bcrypt($randomPassword),
+    ]);
+    
+    return response()->json([
+        'success' => true,
+        'password' => $randomPassword
+    ]);
+}
+
    }
 
-    
-    
-    
-    
-        
-
-
-
-
+   
