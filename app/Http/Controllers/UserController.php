@@ -334,9 +334,12 @@ class UserController extends Controller
 
     public function showRegistrationForm()
     {
-        $barangays = Barangay::all();
-        $categories = Category::all();
-        return view('admin.add-owners', compact('barangays', 'categories'));
+        return view('admin.add-owners', [
+            'barangays' => Barangay::all(),
+            'designations' => Designation::all(),
+            'categories' => Category::all(),
+            'is_email_field' => true
+        ]);
     }
 
     /**
@@ -344,101 +347,107 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
+        $validated = $request->validate($this->validationRules($request));
+
         try {
             DB::beginTransaction();
 
-            // Validate inputs
-            $validated = $request->validate([
-                'complete_name' => ['required', 'string', 'max:255'],
-                'contact_no' => ['nullable', 'string', 'max:15'],
-                'gender' => ['required', 'string'],
-                'birth_date' => ['nullable', 'date'],
-                'identifier' => ['required', 'string', 'max:255'],
-                'civil_status' => ['required', 'string'],
-                'barangay_id' => ['required', 'exists:barangays,id'],
-                'street' => ['nullable', 'string', 'max:255'],
-                'selectedCategories' => ['sometimes', 'array'],
-                'selectedCategories.*' => ['exists:categories,id'],
-                'profile_image' => ['nullable', 'image', 'max:2048'],
-            ]);
-
-            // Generate random password
+               // Determine email/username value
+    $identifier = $validated['is_email_field'] 
+    ? $validated['email']
+    : $validated['username'];
+            // Generate password
             $randomPassword = Str::random(8);
             
             // Create user
-            $user = new User();
-            $user->complete_name = $validated['complete_name'];
-            $user->role = 1; // Owner
-            $user->contact_no = $validated['contact_no'];
-            $user->gender = $validated['gender'];
-            $user->birth_date = $validated['birth_date'];
-            $user->status = 1; // Active
-            $user->identifier = $validated['identifier'];
-            $user->password = Hash::make($randomPassword);
-            $user->save();
-
-            // Handle profile image if uploaded
-            if ($request->hasFile('profile_image')) {
-                $imagePath = $request->file('profile_image')->store('profile-images', 'public');
-                $user->profile_image = $imagePath;
-                $user->save();
-            }
-
-            // Create owner record
-            $owner = new Owner();
-            $owner->user_id = $user->user_id;
-            $owner->civil_status = $validated['civil_status'];
-            $owner->permit = 1; // Default active permit
-            $owner->save();
+            $user = User::create([
+                'complete_name' => $validated['complete_name'],
+                'role' => $validated['role'],
+                'contact_no' => $validated['contact_no'],
+                'gender' => $validated['gender'],
+                'birth_date' => $validated['birth_date'],
+                'status' => 1, // Default active status
+                'email' => $identifier,
+                'password' => Hash::make($randomPassword),
+                'designation_id' => $validated['designation_id'] ?? null,
+            ]);
 
             // Create address
-            $address = new Address();
-            $address->user_id = $user->user_id;
-            $address->barangay_id = $validated['barangay_id'];
-            $address->street = $validated['street'] ?? '';
-            $address->save();
+            $user->address()->create([
+                'barangay_id' => $validated['barangay_id'],
+                'street' => $validated['street'],
+            ]);
 
-            // Attach categories if provided
-            if ($request->has('selectedCategories') && is_array($request->selectedCategories)) {
-                Log::info('Attaching categories:', $request->selectedCategories);
-                
-                // Make sure each category ID is valid
-                $validCategoryIds = [];
-                foreach ($request->selectedCategories as $categoryId) {
-                    if (is_numeric($categoryId)) {
-                        $validCategoryIds[] = (int)$categoryId;
-                    }
+            // If owner, create owner record and attach categories
+            if ($validated['role'] == 1) {
+                $owner = $user->owner()->create([
+                    'civil_status' => $validated['civil_status'],
+                    'permit' => 1, // Default permit status
+                ]);
+
+                if (!empty($validated['selectedCategories'])) {
+                    $user->categories()->attach($validated['selectedCategories']);
                 }
-                
-                if (!empty($validCategoryIds)) {
-                    $user->categories()->attach($validCategoryIds);
-                } else {
-                    Log::warning('No valid category IDs found to attach');
-                }
-            } else {
-                Log::info('No categories selected');
             }
 
             DB::commit();
-
-            // Send welcome email in background
-            dispatch(function () use ($user, $randomPassword) {
-                Mail::to($user->email)->send(new WelcomeEmail($user, $randomPassword));
-            })->afterResponse();
-
-            return redirect()
-                ->route('admin-owners')
-                ->with('message', 'Owner registered successfully!');
-
         } catch (\Exception $e) {
             DB::rollBack();
-            // For debugging
-            // dd($e->getMessage());
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to register owner: ' . $e->getMessage());
+            return back()->with('error', 'Cannot add user due to an issue. Please try again.')
+                         ->withInput();
         }
+    
+        // Email sending outside transaction
+        try {
+            if ($validated['is_email_field']) {
+                Mail::to($user->email)->send(new WelcomeEmail($user, $randomPassword));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Email sending failed: ' . $e->getMessage());
+        }
+    
+        return redirect()->route('admin-owners')->with([
+            'credentials' => [
+                'identifier' => $user->email,
+                'password' => $randomPassword,
+                'is_email' => $validated['is_email_field']
+            ]
+        ])->with('message', 'User registered successfully! Password has been sent to their email.');
+            }
+
+    private function validationRules(Request $request)
+    {
+        $rules = [
+            'complete_name' => 'required|string|max:255',
+            'role' => 'required|integer|in:1,2,3',
+            'contact_no' => 'nullable|string|max:15',
+            'gender' => 'required|string|in:Male,Female',
+            'birth_date' => 'nullable|date|before_or_equal:today',
+            'barangay_id' => 'required|exists:barangays,id',
+            'street' => 'required|string|max:255',
+            'is_email_field' => 'required|boolean',
+        ];
+
+        // Role-specific rules
+        if ($request->role == 1) {
+            $rules['civil_status'] = 'required|string|in:Married,Separated,Single,Widow';
+            $rules['selectedCategories'] = 'required|array|min:1';
+            $rules['selectedCategories.*'] = 'exists:categories,id';
+
+            if ($request->role == 1) {
+                if ($request->is_email_field) {
+                    $rules['email'] = 'required|email|max:255|unique:users,email';
+                    $rules['username'] = 'nullable|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/';
+                } else {
+                    $rules['username'] = 'required|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/|unique:users,email';
+                    $rules['email'] = 'nullable|email';
+                }
+            }
+        
+            return $rules;
     }
+}
+
 
 
     public function ownerList_edit($owner_id)
