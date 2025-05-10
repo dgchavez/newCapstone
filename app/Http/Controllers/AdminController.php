@@ -701,62 +701,103 @@ public function getBreeds($species_id)
 
    public function owner_update(Request $request, $id)
    {
-       $request->validate([
+       // Validation rules
+       $validationRules = [
            'complete_name' => 'required|string|max:100',
            'contact_no' => 'required|string|max:15',
            'gender' => 'required|string|max:10',
            'birth_date' => 'required|date',
            'status' => 'required|integer',
-           'email' => 'required|email|max:100|unique:users,email,' . $id . ',user_id',
+           'is_email_field' => 'required|boolean',
+           'email' => [
+               'required',
+               'string',
+               'max:255',
+               function ($attribute, $value, $fail) use ($request, $id) {
+                   if ($request->is_email_field == 1) {
+                       // Email validation
+                       if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                           $fail('The email address is invalid.');
+                       }
+                   } else {
+                       // Username validation
+                       if (strlen($value) < 5) {
+                           $fail('The username must be at least 5 characters.');
+                       }
+                       if (!preg_match('/^[a-zA-Z0-9_.]+$/', $value)) {
+                           $fail('The username can only contain letters, numbers, underscore and dot.');
+                       }
+                   }
+                   
+                   // Check uniqueness (using the email field for both)
+                   if (User::where('email', $value)
+                           ->where('user_id', '!=', $id)
+                           ->exists()) {
+                       $fail('This ' . ($request->is_email_field == 1 ? 'email' : 'username') . ' is already taken.');
+                   }
+               }
+           ],
            'barangay_id' => 'required|exists:barangays,id',
            'street' => 'nullable|string|max:255',
            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
            'selectedCategories' => 'required|array',
-           'selectedCategories.*' => 'exists:categories,id'
-       ]);
-   
+           'selectedCategories.*' => 'exists:categories,id',
+           'civil_status' => 'required|string|max:50',
+       ];
+
+       // Validate the request
+       $validated = $request->validate($validationRules);
+
+       // Find the user and transaction
        $user = User::findOrFail($id);
        $transaction = Owner::where('user_id', $user->user_id)->first();
-   
-          if ($request->hasFile('profile_image')) {
-            if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
-            }
-            $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-            // Copy to public/storage for web access
-            copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
-            $user->profile_image = $imagePath;
-        }
-   
-       $user->role = 1;
-       $user->update($request->only([
-           'complete_name',
-           'role',
-           'contact_no',
-           'gender',
-           'birth_date',
-           'status',
-           'email',
-       ]));
-   
+
+       // Handle profile image upload
+       if ($request->hasFile('profile_image')) {
+           if ($user->profile_image) {
+               Storage::disk('public')->delete($user->profile_image);
+           }
+           $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+           // Copy to public/storage for web access
+           copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
+           $user->profile_image = $imagePath;
+       }
+
+       // Update user data
+       $userData = [
+           'complete_name' => $validated['complete_name'],
+           'role' => 1, // Always set to owner
+           'contact_no' => $validated['contact_no'],
+           'gender' => $validated['gender'],
+           'birth_date' => $validated['birth_date'],
+           'status' => $validated['status'],
+           'is_email_field' => $validated['is_email_field'],
+           'email' => $validated['email'], // Use for both email and username
+       ];
+
+       $user->update($userData);
+
        // Update address
        $user->address()->updateOrCreate(
            ['user_id' => $user->user_id],
-           $request->only(['barangay_id', 'street'])
+           [
+               'barangay_id' => $validated['barangay_id'],
+               'street' => $validated['street'] ?? '',
+           ]
        );
-   
+
        // Update owner
        $user->owner()->updateOrCreate(
            ['user_id' => $user->user_id],
            [
-               'civil_status' => $request->civil_status,
+               'civil_status' => $validated['civil_status'],
                'permit' => 1
            ]
        );
-   
+
        // Sync categories (this will remove old categories and add new ones)
-       $user->categories()->sync($request->selectedCategories);
-   
+       $user->categories()->sync($validated['selectedCategories']);
+
        return redirect()->route('owners.profile-owner', ['owner_id' => $transaction->owner_id])
            ->with('message', 'Profile updated successfully.');
    }

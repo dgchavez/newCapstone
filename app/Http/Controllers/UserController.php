@@ -482,7 +482,35 @@ class UserController extends Controller
                 'gender' => 'required|string|max:10',
                 'birth_date' => ['nullable', 'date'],
                 'status' => 'required|integer',
-                'identifier' => 'required|string|max:100|unique:users,email,' . $owner_id . ',user_id',
+                'is_email_field' => 'required|boolean',
+                'identifier' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    function ($attribute, $value, $fail) use ($request, $owner_id) {
+                        if ($request->is_email_field) {
+                            // Email validation
+                            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                                $fail('The email address is invalid.');
+                            }
+                        } else {
+                            // Username validation
+                            if (strlen($value) < 5) {
+                                $fail('The username must be at least 5 characters.');
+                            }
+                            if (!preg_match('/^[a-zA-Z0-9_.]+$/', $value)) {
+                                $fail('The username can only contain letters, numbers, underscore and dot.');
+                            }
+                        }
+                        
+                        // Check uniqueness (using the email field for both)
+                        if (User::where('email', $value)
+                                ->where('user_id', '!=', $owner_id)
+                                ->exists()) {
+                            $fail('This ' . ($request->is_email_field ? 'email' : 'username') . ' is already taken.');
+                        }
+                    }
+                ],
                 'barangay_id' => 'required|exists:barangays,id',
                 'street' => 'nullable|string|max:255',
                 'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -517,9 +545,10 @@ class UserController extends Controller
                 'gender' => $validated['gender'],
                 'birth_date' => $validated['birth_date'],
                 'status' => $validated['status'],
-                'identifier' => $validated['identifier'],
                 'role' => 1,
                 'profile_image' => $user->profile_image,
+                'is_email_field' => $validated['is_email_field'],
+                'email' => $validated['identifier'],
             ]);
 
             // Update address
