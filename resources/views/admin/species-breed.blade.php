@@ -127,26 +127,68 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Auto-submit the form when filters change
-            document.getElementById('speciesFilter').addEventListener('change', function() {
-                document.getElementById('filterForm').submit();
-            });
+        // Function to initialize filters
+        function initializeFilters() {
+            // Get form elements
+            const filterForm = document.getElementById('filterForm');
+            const nameFilter = document.getElementById('nameFilter');
+            const speciesFilter = document.getElementById('speciesFilter');
+            const resetFiltersBtn = document.getElementById('resetFiltersBtn');
             
-            // Add debounce for the name filter (wait 500ms after typing stops)
-            let timeout = null;
-            document.getElementById('nameFilter').addEventListener('input', function() {
-                clearTimeout(timeout);
-                timeout = setTimeout(function() {
-                    document.getElementById('filterForm').submit();
-                }, 500);
-            });
+            if (!filterForm || !nameFilter || !speciesFilter || !resetFiltersBtn) {
+                return; // Exit if elements don't exist
+            }
+
+            // Remove existing event listeners if any
+            nameFilter.removeEventListener('input', nameFilter.inputHandler);
+            speciesFilter.removeEventListener('change', speciesFilter.changeHandler);
+            resetFiltersBtn.removeEventListener('click', resetFiltersBtn.clickHandler);
             
-            // Reset filters button
-            document.getElementById('resetFiltersBtn').addEventListener('click', function() {
-                window.location.href = "{{ route('species.breed') }}";
-            });
-        });
+            // Debounce function
+            function debounce(func, delay) {
+                let timeout;
+                return function() {
+                    const context = this;
+                    const args = arguments;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function() {
+                        func.apply(context, args);
+                    }, delay);
+                };
+            }
+
+            // Create named handlers so we can remove them later if needed
+            nameFilter.inputHandler = debounce(function() {
+                filterForm.submit();
+            }, 500);
+            
+            speciesFilter.changeHandler = function() {
+                filterForm.submit();
+            };
+            
+            resetFiltersBtn.clickHandler = function() {
+                nameFilter.value = '';
+                speciesFilter.value = '';
+                filterForm.submit();
+            };
+            
+            // Add event listeners
+            nameFilter.addEventListener('input', nameFilter.inputHandler);
+            speciesFilter.addEventListener('change', speciesFilter.changeHandler);
+            resetFiltersBtn.addEventListener('click', resetFiltersBtn.clickHandler);
+        }
+
+        // Initialize on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', initializeFilters);
+
+        // Initialize on Livewire page updates
+        document.addEventListener('livewire:navigated', initializeFilters);
+
+        // Initialize on Turbolinks navigation (if using Turbolinks)
+        document.addEventListener('turbolinks:load', initializeFilters);
+
+        // Initialize immediately in case the page is already loaded
+        initializeFilters();
     </script>
     
     
