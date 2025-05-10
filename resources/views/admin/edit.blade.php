@@ -93,7 +93,7 @@
                             @endforeach
                         </select>
                             <x-input-error :messages="$errors->get('designation_id')" class="mt-2 text-sm text-red-500" />
-                        </div>
+                    </div>
                 </div>
 
                 <!-- Status -->
