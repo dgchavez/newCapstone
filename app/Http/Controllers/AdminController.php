@@ -494,6 +494,8 @@ class AdminController extends Controller
                'users.gender',
                'users.birth_date',
                'users.user_id as user_id',
+               'users.status',
+               'users.email',
                'addresses.street',
                'barangays.barangay_name',
                DB::raw('GROUP_CONCAT(transactions.transaction_type_id) as transaction_type_ids'),
@@ -510,7 +512,9 @@ class AdminController extends Controller
                'users.contact_no',
                'users.gender',
                'users.birth_date',
+               'users.status',
                'users.user_id',
+               'users.email',
                'addresses.street',
                'barangays.barangay_name'
            )
