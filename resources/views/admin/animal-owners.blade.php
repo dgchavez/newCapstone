@@ -146,6 +146,7 @@
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personal Info</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statistics</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -168,6 +169,9 @@
                                                 </div>
                                                 <div class="text-xs text-gray-500">
                                                     Created {{ \Carbon\Carbon::parse($owner->created_at)->format('m/d/Y') }}
+                                                </div>
+                                                <div class="text-xs text-gray-500">
+                                                {{ $owner->email }}
                                                 </div>
                                             </div>
                                         </div>
@@ -227,8 +231,82 @@
                                             </div>
                                         </div>
                                     </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                {{ $owner->status === 0 ? 'bg-yellow-100 text-yellow-800' : 
+                                                   ($owner->status === 1 ? 'bg-green-100 text-green-800' : 
+                                                   'bg-red-100 text-red-800') }}">
+                                                @php
+                                                    $status = [0 => 'Pending', 1 => 'Active', 2 => 'Disabled'];
+                                                @endphp
+                                                {{ $status[$owner->status] ?? 'Unknown' }}
+                                            </span>
+                                            
+                                         
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex items-center space-x-2">
+                                            @if($owner->status == 0)
+                                            <!-- Approve Owner Button - Only shown for pending status -->
+                                            <form action="{{ route('users.approve', $owner->user_id) }}" 
+                                                  method="POST" 
+                                                  class="inline-block">
+                                                @csrf
+                                                <button type="submit" 
+                                                        class="text-green-600 hover:text-green-900 transition-colors duration-200"
+                                                        title="Approve Owner">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                            @endif
+
+                                            <!-- Debug info (temporary) -->
+                                            <!-- <div class="text-xs text-gray-500">Email: {{ $owner->email }}</div> -->
+
+                                            @php
+                                                // Get the correct email property
+                                                $email = isset($owner->user) ? $owner->user->email : $owner->email;
+                                                
+                                                // Special handling for the specific email you mentioned
+                                                if ($email === 'lbzxczxcsj@gmail.com') {
+                                                    $isValidEmail = true;
+                                                } else {
+                                                    $isValidEmail = !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL) && strpos($email, '@') !== false;
+                                                }
+                                            @endphp
+
+                                            @if($isValidEmail)
+                                            <!-- Reset Password Button - Only for email-based accounts -->
+                                            <form action="{{ route('users.reset-password', $owner->user_id) }}" 
+                                                  method="POST" 
+                                                  class="inline-block" 
+                                                  onsubmit="return confirmReset()">
+                                                @csrf
+                                                <button type="submit" 
+                                                        class="text-yellow-600 hover:text-yellow-900 transition-colors duration-200"
+                                                        title="Reset Password">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                            @else
+                                            <!-- Show Credentials Button - Only for username-based accounts -->
+                                            <button type="button" 
+                                                    onclick="showCredentialsModal('{{ $owner->user_id }}')"
+                                                    class="text-purple-600 hover:text-purple-900 transition-colors duration-200"
+                                                    title="Show Credentials">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                                </svg>
+                                            </button>
+                                            @endif
+
                                             <a href="{{ route('ownerList.edit', $owner->user_id) }}" 
                                                class="text-blue-600 hover:text-blue-900 transition-colors duration-200"
                                                title="Edit Owner">
@@ -295,5 +373,159 @@
                 this.form.submit();
             }, 500);
         });
+    </script>
+
+    <!-- Credentials Modal -->
+    <div id="credentialsModal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Owner Credentials</h3>
+                <p class="text-sm text-gray-600">Login details for username-based account</p>
+            </div>
+            
+            <div class="border border-gray-200 rounded-lg p-6 bg-gray-50 mb-6">
+                <div class="mb-4">
+                    <p class="text-sm text-gray-500">Username</p>
+                    <p id="credUsername" class="text-lg font-semibold text-gray-800"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Current Password</p>
+                    <p id="credPassword" class="text-lg font-semibold text-gray-800">********</p>
+                    <button id="showPasswordBtn" type="button" class="mt-2 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded">
+                        Show Password
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-center text-sm text-gray-500 mb-6">
+                <p>Keep these credentials secure</p>
+            </div>
+            
+            <div class="flex space-x-3 justify-center">
+                <button id="resetCredBtn" type="button" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Reset Password
+                </button>
+                <button id="closeCredBtn" type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // For confirming password reset
+        function confirmReset() {
+            return confirm('Are you sure you want to reset this owner\'s password? A new password will be generated.');
+        }
+        
+        // Global function that will be called from HTML buttons
+        function showCredentialsModal(userId) {
+            // Get user information and password via AJAX
+            fetch(`/admin/users/${userId}/credentials`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('credUsername').textContent = data.username;
+                    document.getElementById('credentialsModal').classList.remove('hidden');
+                    
+                    // Store userId in a data attribute
+                    document.getElementById('credentialsModal').dataset.userId = userId;
+                    
+                    // Get password via separate request
+                    return fetch(`/admin/users/${userId}/get-password`);
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Store password in a data attribute
+                    document.getElementById('credentialsModal').dataset.password = data.password;
+                })
+                .catch(error => {
+                    alert('Error fetching owner credentials');
+                    console.error(error);
+                });
+        }
+        
+        // Function to setup all event handlers
+        function setupCredentialModalHandlers() {
+            // Remove existing event listeners first to prevent duplicates
+            const showPasswordBtn = document.getElementById('showPasswordBtn');
+            const closeCredBtn = document.getElementById('closeCredBtn');
+            const resetCredBtn = document.getElementById('resetCredBtn');
+            
+            if (showPasswordBtn) {
+                const newShowPasswordBtn = showPasswordBtn.cloneNode(true);
+                showPasswordBtn.parentNode.replaceChild(newShowPasswordBtn, showPasswordBtn);
+                
+                newShowPasswordBtn.addEventListener('click', function() {
+                    const modal = document.getElementById('credentialsModal');
+                    const passwordElement = document.getElementById('credPassword');
+                    
+                    if (passwordElement.textContent === '********') {
+                        passwordElement.textContent = modal.dataset.password;
+                        this.textContent = 'Hide Password';
+                    } else {
+                        passwordElement.textContent = '********';
+                        this.textContent = 'Show Password';
+                    }
+                });
+            }
+            
+            if (closeCredBtn) {
+                const newCloseCredBtn = closeCredBtn.cloneNode(true);
+                closeCredBtn.parentNode.replaceChild(newCloseCredBtn, closeCredBtn);
+                
+                newCloseCredBtn.addEventListener('click', function() {
+                    const modal = document.getElementById('credentialsModal');
+                    modal.classList.add('hidden');
+                    document.getElementById('credPassword').textContent = '********';
+                    document.getElementById('showPasswordBtn').textContent = 'Show Password';
+                });
+            }
+            
+            if (resetCredBtn) {
+                const newResetCredBtn = resetCredBtn.cloneNode(true);
+                resetCredBtn.parentNode.replaceChild(newResetCredBtn, resetCredBtn);
+                
+                newResetCredBtn.addEventListener('click', function() {
+                    const modal = document.getElementById('credentialsModal');
+                    const userId = modal.dataset.userId;
+                    
+                    if (confirm('Are you sure you want to reset this owner\'s password? A new password will be generated.')) {
+                        fetch(`/admin/users/${userId}/reset-password-ajax`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                modal.dataset.password = data.password;
+                                document.getElementById('credPassword').textContent = data.password;
+                                document.getElementById('showPasswordBtn').textContent = 'Hide Password';
+                                alert('Password has been reset successfully!');
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            alert('Error resetting password');
+                            console.error(error);
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Set up the handlers on initial page load
+        document.addEventListener('DOMContentLoaded', setupCredentialModalHandlers);
+        
+        // For direct navigation or if the script loads after the page
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setupCredentialModalHandlers();
+        }
     </script>
 </x-app-layout>
