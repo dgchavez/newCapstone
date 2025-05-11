@@ -2,98 +2,94 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Transaction;
+use App\Models\VeterinaryTechnician; // Import the Species model
+use App\Models\Breed; // Import the Species model
+use App\Models\Vaccine; // Import the Species model
+use App\Models\Technician; // Import the Species model
+use App\Models\Designation;
+use Illuminate\Support\Facades\Storage;
+
+use App\Models\Transaction; // Import the Species model
+use App\Models\TransactionSubtype; // Import the model
+use App\Models\Animal; // Import the Species model
+use App\Models\TransactionType; // Import the model
+use App\Models\Species; // Import the Species model
 use App\Models\Owner;
-use App\Models\Animal;
-use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\Address;
+use App\Models\Barangay;
+use App\Models\City;
+use App\Models\User;
+use DB; 
+use App\Models\Category; // Add this import
+
+use Illuminate\Http\Request;
+
 
 
 class ReceptionistController extends Controller
 {
     public function loadReceptionistDashboard(Request $request)
     {
-        $today = now()->format('Y-m-d');
-    
-        // Apply date range filter if provided
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-    
-        // Fetch recent transactions, clients, and animals with filters
-        $transactions = Transaction::latest()
-            ->when($startDate, function ($query) use ($startDate) {
-                return $query->whereDate('created_at', '>=', $startDate);
-            })
-            ->when($endDate, function ($query) use ($endDate) {
-                return $query->whereDate('created_at', '<=', $endDate);
-            })
-            ->take(5)
-            ->get()
-            ->map(function ($transaction) {
-                $animalName = $transaction->animal->name ?? 'Unknown';
-                $speciesName = $transaction->animal->species->name ?? 'Unknown';
-                return [
-                    'description' => "Handled transaction for <a href='" . route('rec.profile', ['animal_id' => $transaction->animal->animal_id]) . "' class='text-teal-600'>$animalName ($speciesName)</a>.",
-                    'created_at' => $transaction->created_at,
-                    'url' => route('rec.profile', ['animal_id' => $transaction->animal->animal_id]),
-                ];
+        // Retrieve filter and search inputs
+        $search = $request->input('search');
+        $statusFilter = $request->input('status');
+        $veterinarianFilter = $request->input('veterinarian');
+        $technicianFilter = $request->input('technician');
+
+        // Query for transactions with filters
+        $transactionsQuery = Transaction::with(['transactionSubtype', 'owner.user', 'animal', 'vet', 'technician']);
+
+        if ($search) {
+            $transactionsQuery->whereHas('owner.user', function ($query) use ($search) {
+                $query->where('complete_name', 'like', '%' . $search . '%');
+            })->orWhereHas('animal', function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%');
             });
-    
-            $clients = Owner::latest()
-            ->when($startDate, function ($query) use ($startDate) {
-                return $query->whereDate('created_at', '>=', $startDate);
-            })
-            ->when($endDate, function ($query) use ($endDate) {
-                return $query->whereDate('created_at', '<=', $endDate);
-            })
-            ->take(5)
-            ->get()
-            ->map(function ($owner) {
-                $ownerName = $owner->user->complete_name ?? 'Unknown';
-                return [
-                    'description' => "Added a new client: <a href='" . route('rec.profile-owner', ['owner_id' => $owner->owner_id]) . "' class='text-blue-600'>$ownerName</a>.",
-                    'created_at' => $owner->created_at,
-                    'url' => route('rec.profile-owner', ['owner_id' => $owner->owner_id]),  // Correct URL for owner profile
-                ];
-            });
-        
-    
-        $animals = Animal::latest()
-            ->when($startDate, function ($query) use ($startDate) {
-                return $query->whereDate('created_at', '>=', $startDate);
-            })
-            ->when($endDate, function ($query) use ($endDate) {
-                return $query->whereDate('created_at', '<=', $endDate);
-            })
-            ->take(5)
-            ->get()
-            ->map(function ($animal) {
-                $animalName = $animal->name ?? 'Unknown';
-                $speciesName = $animal->species->name ?? 'Unknown';
-                return [
-                    'description' => "Registered a new pet: <a href='" . route('rec.profile', ['animal_id' => $animal->animal_id]) . "' class='text-yellow-600'>$animalName ($speciesName)</a>.",
-                    'created_at' => $animal->created_at,
-                    'url' => route('rec.profile', ['animal_id' => $animal->animal_id]),
-                ];
-            });
-    
-        // Combine all activities and sort by creation date
-        $recent_activities = collect()
-            ->merge($transactions)
-            ->merge($clients)
-            ->merge($animals)
-            ->sortByDesc('created_at');
-    
-        $data = [
-            'appointments_count' => Transaction::whereDate('created_at', $today)->count(),
-            'new_clients_count' => Owner::whereDate('created_at', $today)->count(),
-            'pets_registered_count' => Animal::whereDate('created_at', $today)->count(),
-            'recent_activities' => $recent_activities->values()->all(),
+        }
+
+        // Modified status filter logic
+        if ($statusFilter !== null && $statusFilter !== '') {
+            $transactionsQuery->where('status', (int)$statusFilter);
+        }
+
+        if ($veterinarianFilter) {
+            $transactionsQuery->where('vet_id', $veterinarianFilter);
+        }
+
+        if ($technicianFilter) {
+            $transactionsQuery->where('technician_id', $technicianFilter);
+        }
+
+        $recentTransactions = $transactionsQuery->latest()->paginate(5);
+
+        // Fetch data for filters
+        $veterinarians = User::where('role', 2)->get(); // Veterinarians have role = 2
+        $technicians = VeterinaryTechnician::all(); // Fetch all technicians
+        $statuses = [
+            0 => 'Pending',
+            1 => 'Completed',
+            2 => 'Canceled',
         ];
-    
-        return view('receptionist.dashboard', $data);
+
+        // Dashboard statistics
+        $totalOwners = User::where('role', 1)->count();
+        $successfulTransactions = Transaction::where('status', 1)->count();
+        $totalAnimals = Animal::count();
+        $lastWeekTransactions = Transaction::whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])
+            ->count();
+
+        return view('receptionist.dashboard', compact(
+            'veterinarians',
+            'technicians',
+            'recentTransactions',
+            'statuses',
+            'totalOwners',
+            'successfulTransactions',
+            'totalAnimals',
+            'lastWeekTransactions'
+        ));
     }
-    
+
     
     
     
