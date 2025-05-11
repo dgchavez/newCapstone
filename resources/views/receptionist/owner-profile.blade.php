@@ -22,11 +22,11 @@
                         <i class="fas fa-arrow-left mr-2"></i>
                         Back to List
                     </a>
-                    <a href="{{ route('rec.owner-edit-form', ['id' => $owner->user_id]) }}" 
+                    {{-- <a href="{{ route('rec.owner-edit-form', ['id' => $owner->user_id]) }}" 
                        class="inline-flex items-center px-4 py-2 bg-yellow-500/90 backdrop-blur-sm rounded-lg text-sm font-medium text-white hover:bg-yellow-500 transition-all">
                         <i class="fas fa-edit mr-2"></i>
                         Edit Profile
-                    </a>
+                    </a> --}}
                 </div>
             </div>
 

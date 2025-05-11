@@ -769,7 +769,7 @@ public function destroy_veterinarian($user_id)
 public function getUserCredentials(User $user)
 {
     // Validate that the current user is an admin
-    if (auth()->user()->role !== 0) {
+    if (auth()->user()->role == 1) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
     
@@ -824,7 +824,7 @@ public function approveUser(User $user)
 public function getUserPassword(User $user)
 {
     // Validate that the current user is an admin
-    if (auth()->user()->role !== 0) {
+    if (auth()->user()->role == 1) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
     

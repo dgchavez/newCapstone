@@ -448,6 +448,8 @@ class AdminController extends Controller
        $selectedCategory = $request->input('category');
        $civil_status = $request->input('civil_status', '');
        $barangay_id = $request->input('barangay', '');
+       $fromDate = $request->input('fromDate', '');
+       $toDate = $request->input('toDate', '');
 
        $owners = Owner::with([
                'user',
@@ -482,6 +484,12 @@ class AdminController extends Controller
            })
            ->when($barangay_id, function ($query) use ($barangay_id) {
                return $query->where('barangays.id', $barangay_id);
+           })
+           ->when($fromDate, function ($query) use ($fromDate) {
+               return $query->whereDate('owners.created_at', '>=', $fromDate);
+           })
+           ->when($toDate, function ($query) use ($toDate) {
+               return $query->whereDate('owners.created_at', '<=', $toDate);
            })
            ->select(
                'owners.owner_id', 
@@ -530,7 +538,9 @@ class AdminController extends Controller
            'civil_status',
            'barangays',
            'barangay_id',
-           'categories'
+           'categories',
+           'fromDate',
+           'toDate'
        ));
        
    }

@@ -333,7 +333,8 @@
                                 breedSelect.appendChild(option);
                             });
                             
-                            // Don't auto-submit the form yet, let the user select a breed first
+                            // Auto-submit the form to show all animals of the selected species
+                            this.form.submit();
                         })
                         .catch(error => console.error('Error fetching breeds:', error));
                 } else {
