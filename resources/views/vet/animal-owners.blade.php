@@ -41,7 +41,7 @@
 
             <!-- Filters Section -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
-                <form method="GET" action="{{ route('rec-owners') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                <form method="GET" action="{{ route('vet-owners') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                     <!-- Search -->
                     <div class="col-span-1 sm:col-span-2 xl:col-span-1">
                         <label class="block text-xs font-medium text-gray-700 mb-1">Search</label>

@@ -108,9 +108,9 @@
                                    placeholder="Search animals..."
                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             
-                            <select name="species_id" 
+                            <select name="species_id" id="species_selector"
                                     class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                    onchange="submitForm()">
+                                    onchange="handleSpeciesChange(this.value)">
                                 <option value="">All Species</option>
                                 @foreach($species as $specie)
                                     <option value="{{ $specie->id }}" {{ request('species_id') == $specie->id ? 'selected' : '' }}>
@@ -119,16 +119,14 @@
                                 @endforeach
                             </select>
 
-                            <select name="breed_id"
-                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                    onchange="submitForm()">
-                                <option value="">All Breeds</option>
-                                @foreach($breeds as $breed)
-                                    <option value="{{ $breed->id }}" {{ request('breed_id') == $breed->id ? 'selected' : '' }}>
-                                        {{ $breed->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div id="breed_container" style="{{ request('species_id') ? '' : 'display: none;' }}">
+                                <select name="breed_id" id="breed_selector"
+                                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                        onchange="submitForm()">
+                                    <option value="">All Breeds</option>
+                                    <!-- Breeds will be loaded dynamically -->
+                                </select>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -306,9 +304,72 @@
     </div>
 
    <script>
+        // Function to handle species change
+        function handleSpeciesChange(speciesId) {
+            const breedContainer = document.getElementById('breed_container');
+            const breedSelector = document.getElementById('breed_selector');
+            
+            // Clear existing breed options except the first one
+            breedSelector.innerHTML = '<option value="">All Breeds</option>';
+            
+            if (speciesId) {
+                // Show breed selector
+                breedContainer.style.display = '';
+                
+                // Fetch breeds for selected species
+                fetch(`/get-breeds/${speciesId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Add breeds to dropdown
+                        data.breeds.forEach(breed => {
+                            const option = document.createElement('option');
+                            option.value = breed.id;
+                            option.textContent = breed.name;
+                            breedSelector.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error loading breeds:', error));
+            } else {
+                // Hide breed selector if no species selected
+                breedContainer.style.display = 'none';
+            }
+            
+            // Submit form to update results
+            submitForm();
+        }
+        
+        // Function to submit the form
         function submitForm() {
             document.getElementById('filterForm').submit();
         }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const speciesId = document.getElementById('species_selector').value;
+            if (speciesId) {
+                // Load breeds for the selected species on page load
+                fetch(`/get-breeds/${speciesId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const breedSelector = document.getElementById('breed_selector');
+                        // Clear existing options except the first one
+                        breedSelector.innerHTML = '<option value="">All Breeds</option>';
+                        
+                        // Add breeds to dropdown
+                        data.breeds.forEach(breed => {
+                            const option = document.createElement('option');
+                            option.value = breed.id;
+                            option.textContent = breed.name;
+                            // Select the breed if it matches the current request
+                            if (breed.id == "{{ request('breed_id') }}") {
+                                option.selected = true;
+                            }
+                            breedSelector.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error loading breeds:', error));
+            }
+        });
         
         function openTransactionModal(transactionId) {
             // Show modal
