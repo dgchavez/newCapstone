@@ -103,90 +103,143 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         
-        $request->validate([
+        // Base validation rules
+        $validationRules = [
             'complete_name' => 'required|string|max:100',
             'role' => 'required|integer',
             'contact_no' => 'required|string|max:15',
             'gender' => 'required|string|max:10',
             'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
             'status' => 'required|integer',
-            'email' => 'required|email|max:100|unique:users,email,' . $user->user_id . ',user_id',
             'barangay_id' => 'required|exists:barangays,id',
             'street' => 'nullable|string|max:255',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'designation_id' => 'nullable|exists:designations,designation_id',
             'selectedCategories' => 'required_if:role,1|array',
             'civil_status' => 'required_if:role,1|string|nullable',
-        ]);
-    
-        // Handle profile image upload if a file is provided
-        if ($request->hasFile('profile_image')) {
-            if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
-            }
-            $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-            $user->profile_image = $imagePath;
-        }
-    
-        // Update user data
-        $user->update($request->only([
-            'complete_name',
-            'role',
-            'contact_no',
-            'gender',
-            'birth_date',
-            'status',
-            'email',
-            'designation_id',
-        ]));
-    
-        // Update or create the address
-        $user->address()->updateOrCreate(
-            ['user_id' => $user->user_id],
-            $request->only(['barangay_id', 'street'])
-        );
-    
-        // Handle owner-specific data if role is owner (1)
-        if ($request->role == 1) {
-            // Update or create owner data
-            $user->owner()->updateOrCreate(
-                ['user_id' => $user->user_id],
-                [
-                    'civil_status' => $request->civil_status,
-                    'permit' => 1
-                ]
-            );
-    
-            // Update categories
-            if (isset($request->selectedCategories)) {
-                // Convert all values to integers and filter out invalid ones
-                $categories = [];
-                foreach ($request->selectedCategories as $categoryId) {
-                    // Include the category if it's a valid number (including 0)
-                    if (is_numeric($categoryId) || $categoryId === '0') {
-                        $categories[] = (int)$categoryId;
+            'is_email_field' => 'required|boolean',
+            'identifier' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request, $user) {
+                    if ($request->is_email_field) {
+                        // Email validation
+                        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                            $fail('The email address is invalid.');
+                        }
+                    } else {
+                        // Username validation
+                        if (strlen($value) < 5) {
+                            $fail('The username must be at least 5 characters.');
+                        }
+                        if (!preg_match('/^[a-zA-Z0-9_.]+$/', $value)) {
+                            $fail('The username can only contain letters, numbers, underscore and dot.');
+                        }
+                    }
+                    
+                    // Check uniqueness (using the email field for both)
+                    if (User::where('email', $value)
+                            ->where('user_id', '!=', $user->user_id)
+                            ->exists()) {
+                        $fail('This ' . ($request->is_email_field ? 'email' : 'username') . ' is already taken.');
                     }
                 }
-                
-                // Log the categories being processed
-                Log::info('Categories being synced:', $categories);
-                
-                // Sync the categories
-                $user->categories()->sync($categories);
+            ],
+        ];
+
+        $validated = $request->validate($validationRules);
+
+        try {
+            DB::beginTransaction();
+
+            // Handle profile image upload if a file is provided
+            if ($request->hasFile('profile_image')) {
+                if ($user->profile_image) {
+                    Storage::disk('public')->delete($user->profile_image);
+                }
+                $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+                copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
+                $user->profile_image = $imagePath;
+            }
+
+            // Prepare user data for update
+            $userData = [
+                'complete_name' => $validated['complete_name'],
+                'role' => $validated['role'],
+                'contact_no' => $validated['contact_no'],
+                'gender' => $validated['gender'],
+                'birth_date' => $validated['birth_date'],
+                'status' => $validated['status'],
+                'is_email_field' => $validated['is_email_field'],
+                'email' => $validated['identifier'], // Using email field for both email and username
+            ];
+
+            // Add designation_id if it exists in validated data
+            if (isset($validated['designation_id'])) {
+                $userData['designation_id'] = $validated['designation_id'];
+            }
+
+            // Update user data
+            $user->update($userData);
+
+            // Update or create the address
+            $user->address()->updateOrCreate(
+                ['user_id' => $user->user_id],
+                $request->only(['barangay_id', 'street'])
+            );
+    
+            // Handle owner-specific data if role is owner (1)
+            if ($request->role == 1) {
+                // Update or create owner data
+                $user->owner()->updateOrCreate(
+                    ['user_id' => $user->user_id],
+                    [
+                        'civil_status' => $request->civil_status,
+                        'permit' => 1
+                    ]
+                );
+        
+                // Update categories
+                if (isset($request->selectedCategories)) {
+                    // Convert all values to integers and filter out invalid ones
+                    $categories = [];
+                    foreach ($request->selectedCategories as $categoryId) {
+                        // Include the category if it's a valid number (including 0)
+                        if (is_numeric($categoryId) || $categoryId === '0') {
+                            $categories[] = (int)$categoryId;
+                        }
+                    }
+                    
+                    // Log the categories being processed
+                    Log::info('Categories being synced:', $categories);
+                    
+                    // Sync the categories
+                    $user->categories()->sync($categories);
+                } else {
+                    // If no categories selected, detach all
+                    $user->categories()->detach();
+                }
             } else {
-                // If no categories selected, detach all
+                // If user is not an owner, remove owner data and category associations
+                if ($user->owner) {
+                    $user->owner->delete();
+                }
                 $user->categories()->detach();
             }
-        } else {
-            // If user is not an owner, remove owner data and category associations
-            if ($user->owner) {
-                $user->owner->delete();
-            }
-            $user->categories()->detach();
+
+            DB::commit();
+
+            return redirect()->route('admin-users')
+                ->with('message', 'User details updated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating user: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'An error occurred while updating the user.')
+                ->withInput();
         }
-    
-        return redirect()->route('admin-users')
-            ->with('message', 'User details updated successfully.');
     }
     
 
@@ -206,7 +259,7 @@ class UserController extends Controller
             'contact_no' => 'required|string|max:15',
             'gender' => 'required|string|max:10',
             'birth_date' => 'required|date',
-            'email' => 'required|email|max:100|unique:users,email,' . $id . ',user_id',
+            'identifier' => 'required|string|max:255',
             'barangay_id' => 'required|exists:barangays,id',
             'street' => 'nullable|string|max:255',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Added validation for image
@@ -216,14 +269,14 @@ class UserController extends Controller
         $user = User::findOrFail($id);
     
         // Handle profile image upload if a file is provided
+      // Handle profile image upload if a file is provided
         if ($request->hasFile('profile_image')) {
-            // Delete old image if it exists
             if ($user->profile_image) {
                 Storage::disk('public')->delete($user->profile_image);
             }
-        
-            // Store the new image
             $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+            // Copy to public/storage for web access
+            copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
             $user->profile_image = $imagePath;
         }
     
@@ -233,7 +286,7 @@ class UserController extends Controller
             'contact_no',
             'gender',
             'birth_date',
-            'email',
+            'identifier',
         ]));
     
         // Update the password if provided
@@ -281,9 +334,12 @@ class UserController extends Controller
 
     public function showRegistrationForm()
     {
-        $barangays = Barangay::all();
-        $categories = Category::all();
-        return view('admin.add-owners', compact('barangays', 'categories'));
+        return view('admin.add-owners', [
+            'barangays' => Barangay::all(),
+            'designations' => Designation::all(),
+            'categories' => Category::all(),
+            'is_email_field' => true
+        ]);
     }
 
     /**
@@ -291,101 +347,107 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
+        $validated = $request->validate($this->validationRules($request));
+
         try {
             DB::beginTransaction();
 
-            // Validate inputs
-            $validated = $request->validate([
-                'complete_name' => ['required', 'string', 'max:255'],
-                'contact_no' => ['nullable', 'string', 'max:15'],
-                'gender' => ['required', 'string'],
-                'birth_date' => ['nullable', 'date'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-                'civil_status' => ['required', 'string'],
-                'barangay_id' => ['required', 'exists:barangays,id'],
-                'street' => ['nullable', 'string', 'max:255'],
-                'selectedCategories' => ['sometimes', 'array'],
-                'selectedCategories.*' => ['exists:categories,id'],
-                'profile_image' => ['nullable', 'image', 'max:2048'],
-            ]);
-
-            // Generate random password
+               // Determine email/username value
+    $identifier = $validated['is_email_field'] 
+    ? $validated['email']
+    : $validated['username'];
+            // Generate password
             $randomPassword = Str::random(8);
             
             // Create user
-            $user = new User();
-            $user->complete_name = $validated['complete_name'];
-            $user->role = 1; // Owner
-            $user->contact_no = $validated['contact_no'];
-            $user->gender = $validated['gender'];
-            $user->birth_date = $validated['birth_date'];
-            $user->status = 1; // Active
-            $user->email = $validated['email'];
-            $user->password = Hash::make($randomPassword);
-            $user->save();
-
-            // Handle profile image if uploaded
-            if ($request->hasFile('profile_image')) {
-                $imagePath = $request->file('profile_image')->store('profile-images', 'public');
-                $user->profile_image = $imagePath;
-                $user->save();
-            }
-
-            // Create owner record
-            $owner = new Owner();
-            $owner->user_id = $user->user_id;
-            $owner->civil_status = $validated['civil_status'];
-            $owner->permit = 1; // Default active permit
-            $owner->save();
+            $user = User::create([
+                'complete_name' => $validated['complete_name'],
+                'role' => $validated['role'],
+                'contact_no' => $validated['contact_no'],
+                'gender' => $validated['gender'],
+                'birth_date' => $validated['birth_date'],
+                'status' => 1, // Default active status
+                'email' => $identifier,
+                'password' => Hash::make($randomPassword),
+                'designation_id' => $validated['designation_id'] ?? null,
+            ]);
 
             // Create address
-            $address = new Address();
-            $address->user_id = $user->user_id;
-            $address->barangay_id = $validated['barangay_id'];
-            $address->street = $validated['street'] ?? '';
-            $address->save();
+            $user->address()->create([
+                'barangay_id' => $validated['barangay_id'],
+                'street' => $validated['street'],
+            ]);
 
-            // Attach categories if provided
-            if ($request->has('selectedCategories') && is_array($request->selectedCategories)) {
-                Log::info('Attaching categories:', $request->selectedCategories);
-                
-                // Make sure each category ID is valid
-                $validCategoryIds = [];
-                foreach ($request->selectedCategories as $categoryId) {
-                    if (is_numeric($categoryId)) {
-                        $validCategoryIds[] = (int)$categoryId;
-                    }
+            // If owner, create owner record and attach categories
+            if ($validated['role'] == 1) {
+                $owner = $user->owner()->create([
+                    'civil_status' => $validated['civil_status'],
+                    'permit' => 1, // Default permit status
+                ]);
+
+                if (!empty($validated['selectedCategories'])) {
+                    $user->categories()->attach($validated['selectedCategories']);
                 }
-                
-                if (!empty($validCategoryIds)) {
-                    $user->categories()->attach($validCategoryIds);
-                } else {
-                    Log::warning('No valid category IDs found to attach');
-                }
-            } else {
-                Log::info('No categories selected');
             }
 
             DB::commit();
-
-            // Send welcome email in background
-            dispatch(function () use ($user, $randomPassword) {
-                Mail::to($user->email)->send(new WelcomeEmail($user, $randomPassword));
-            })->afterResponse();
-
-            return redirect()
-                ->route('admin-owners')
-                ->with('message', 'Owner registered successfully!');
-
         } catch (\Exception $e) {
             DB::rollBack();
-            // For debugging
-            // dd($e->getMessage());
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to register owner: ' . $e->getMessage());
+            return back()->with('error', 'Cannot add user due to an issue. Please try again.')
+                         ->withInput();
         }
+    
+        // Email sending outside transaction
+        try {
+            if ($validated['is_email_field']) {
+                Mail::to($user->email)->send(new WelcomeEmail($user, $randomPassword));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Email sending failed: ' . $e->getMessage());
+        }
+    
+        return redirect()->route('admin-owners')->with([
+            'credentials' => [
+                'identifier' => $user->email,
+                'password' => $randomPassword,
+                'is_email' => $validated['is_email_field']
+            ]
+        ])->with('message', 'User registered successfully! Password has been sent to their email.');
+            }
+
+    private function validationRules(Request $request)
+    {
+        $rules = [
+            'complete_name' => 'required|string|max:255',
+            'role' => 'required|integer|in:1,2,3',
+            'contact_no' => 'nullable|string|max:15',
+            'gender' => 'required|string|in:Male,Female',
+            'birth_date' => 'nullable|date|before_or_equal:today',
+            'barangay_id' => 'required|exists:barangays,id',
+            'street' => 'required|string|max:255',
+            'is_email_field' => 'required|boolean',
+        ];
+
+        // Role-specific rules
+        if ($request->role == 1) {
+            $rules['civil_status'] = 'required|string|in:Married,Separated,Single,Widow';
+            $rules['selectedCategories'] = 'required|array|min:1';
+            $rules['selectedCategories.*'] = 'exists:categories,id';
+
+            if ($request->role == 1) {
+                if ($request->is_email_field) {
+                    $rules['email'] = 'required|email|max:255|unique:users,email';
+                    $rules['username'] = 'nullable|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/';
+                } else {
+                    $rules['username'] = 'required|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/|unique:users,email';
+                    $rules['email'] = 'nullable|email';
+                }
+            }
+        
+            return $rules;
     }
+}
+
 
 
     public function ownerList_edit($owner_id)
@@ -407,7 +469,7 @@ class UserController extends Controller
     
     
 
-    public function ownerList_update(Request $request, $owner_id)
+       public function ownerList_update(Request $request, $owner_id)
     {
         try {
             // Log the incoming request data for debugging
@@ -420,7 +482,35 @@ class UserController extends Controller
                 'gender' => 'required|string|max:10',
                 'birth_date' => ['nullable', 'date'],
                 'status' => 'required|integer',
-                'email' => 'required|email|max:100|unique:users,email,' . $owner_id . ',user_id',
+                'is_email_field' => 'required|boolean',
+                'identifier' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    function ($attribute, $value, $fail) use ($request, $owner_id) {
+                        if ($request->is_email_field) {
+                            // Email validation
+                            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                                $fail('The email address is invalid.');
+                            }
+                        } else {
+                            // Username validation
+                            if (strlen($value) < 5) {
+                                $fail('The username must be at least 5 characters.');
+                            }
+                            if (!preg_match('/^[a-zA-Z0-9_.]+$/', $value)) {
+                                $fail('The username can only contain letters, numbers, underscore and dot.');
+                            }
+                        }
+                        
+                        // Check uniqueness (using the email field for both)
+                        if (User::where('email', $value)
+                                ->where('user_id', '!=', $owner_id)
+                                ->exists()) {
+                            $fail('This ' . ($request->is_email_field ? 'email' : 'username') . ' is already taken.');
+                        }
+                    }
+                ],
                 'barangay_id' => 'required|exists:barangays,id',
                 'street' => 'nullable|string|max:255',
                 'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -434,6 +524,20 @@ class UserController extends Controller
             // Find the user
             $user = User::findOrFail($owner_id);
 
+            // Handle profile image upload
+            if ($request->hasFile('profile_image')) {
+                // Delete the old profile image if it exists
+                if ($user->profile_image) {
+                    $oldPath = public_path('storage/' . $user->profile_image);
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+                $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+                $user->profile_image = 'profile_images/' . $filename;
+            }
+
             // Update user
             $user->update([
                 'complete_name' => $validated['complete_name'],
@@ -441,8 +545,10 @@ class UserController extends Controller
                 'gender' => $validated['gender'],
                 'birth_date' => $validated['birth_date'],
                 'status' => $validated['status'],
-                'email' => $validated['email'],
                 'role' => 1,
+                'profile_image' => $user->profile_image,
+                'is_email_field' => $validated['is_email_field'],
+                'email' => $validated['identifier'],
             ]);
 
             // Update address
@@ -554,13 +660,19 @@ class UserController extends Controller
         'street' => $request->street, // Save the street address
     ]);
 
-    // Handle the profile image upload
-    if ($request->hasFile('profile_image')) {
-        $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
-        $user->profile_image = $profileImagePath;
-        $user->save();
+if ($request->hasFile('profile_image')) {
+    // Optionally delete the old profile image if it exists
+    if ($user->profile_image) {
+        $oldPath = public_path('storage/' . $user->profile_image);
+        if (file_exists($oldPath)) {
+            unlink($oldPath);
+        }
     }
-
+    $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+    $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+    $user->profile_image = 'profile_images/' . $filename;
+    $user->save();
+}
     // Send the email with the generated password
     \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\WelcomeEmail($user, $randomPassword));
 
@@ -616,12 +728,18 @@ public function update_veterinarian(Request $request, $id)
     $veterinarian->birth_date = $request->birth_date;
     $veterinarian->designation_id = $request->designation_id;
 
-    // Handle the profile image upload
-    if ($request->hasFile('profile_image')) {
-        $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
-        $veterinarian->profile_image = $profileImagePath;
+if ($request->hasFile('profile_image')) {
+    // Optionally delete the old profile image if it exists
+    if ($veterinarian->profile_image) {
+        $oldPath = public_path('storage/' . $veterinarian->profile_image);
+        if (file_exists($oldPath)) {
+            unlink($oldPath);
+        }
     }
-
+    $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+    $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+    $veterinarian->profile_image = 'profile_images/' . $filename;
+}
     // Save the updated veterinarian information
     $veterinarian->save();
 
@@ -644,14 +762,111 @@ public function destroy_veterinarian($user_id)
     return redirect()->route('admin-veterinarians')->with('message', 'Veterinarian deleted successfully.');
 }
 
+    
+    /**
+ * Get credentials for a user with username (not email)
+ */
+public function getUserCredentials(User $user)
+{
+    // Validate that the current user is an admin
+    if (auth()->user()->role == 1) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+    
+    return response()->json([
+        'username' => $user->email // Your app stores usernames in the email field
+    ]);
+}
+
+/**
+ * Reset a password and return it via AJAX
+ */
+public function resetPasswordAjax(User $user)
+{
+    try {
+        // Generate a random password
+        $randomPassword = \Illuminate\Support\Str::random(8);
+    
+        // Hash the password and update the user's record
+        $user->update([
+            'password' => bcrypt($randomPassword),
+        ]);
+    
+        // For username users, we don't send an email, just return the password
+        return response()->json([
+            'success' => true,
+            'password' => $randomPassword
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Approve a pending user
+ */
+public function approveUser(User $user)
+{
+    if ($user->status === 0) {
+        $user->update(['status' => 1]); // Change from pending (0) to enabled (1)
+        return redirect()->back()->with('message', "User {$user->complete_name} has been approved.");
+    }
+    
+    return redirect()->back()->with('error', "User is not in pending status.");
+}
+
+/**
+ * Get the password for a username-based user (for admin use only)
+ */
+public function getUserPassword(User $user)
+{
+    // Validate that the current user is an admin
+    if (auth()->user()->role == 1) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+    
+    // For security reasons, we need to reset the password first
+    // since we don't store plain text passwords
+    $randomPassword = \Illuminate\Support\Str::random(8);
+    
+    // Hash the password and update the user's record
+    $user->update([
+        'password' => bcrypt($randomPassword),
+    ]);
+    
+    return response()->json([
+        'success' => true,
+        'password' => $randomPassword
+    ]);
+}
+
+/**
+ * Toggle user status between active and disabled
+ */
+public function toggleUserStatus(Request $request, User $user)
+{
+    // Don't allow toggling your own account
+    if ($user->user_id === auth()->id()) {
+        return redirect()->back()->with('error', 'You cannot change your own account status.');
+    }
+    
+    // Validate the status
+    $request->validate([
+        'status' => 'required|in:1,2', // Only allow active (1) or disabled (2)
+    ]);
+    
+    // Update the user status
+    $user->update(['status' => $request->status]);
+    
+    // Get the status name for the message
+    $statusName = $request->status == 1 ? 'enabled' : 'disabled';
+    
+    return redirect()->back()->with('message', "User {$user->complete_name} has been {$statusName}.");
+}
+
    }
 
-    
-    
-    
-    
-        
-
-
-
-
+   

@@ -58,8 +58,8 @@
                     </div>
 
                     <!-- Filter Form -->
-                    <form id="filterForm" class="mb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <form id="filterForm" action="{{ route('species.breed') }}" method="GET" class="mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="relative">
                                 <input type="text" name="name" id="nameFilter" 
                                     placeholder="Search by breed name" 
@@ -76,6 +76,15 @@
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+                            <div class="relative">
+                                <button type="button" id="resetFiltersBtn"
+                                        class="w-full px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200 flex items-center justify-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                    Reset Filters
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -117,14 +126,69 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
-        $(document).ready(function () {
-            // Automatically reload the page when a new species is selected
-            $('#speciesFilter').on('change', function () {
-                $('#filterForm').submit();
-            });
-        });
+        // Function to initialize filters
+        function initializeFilters() {
+            // Get form elements
+            const filterForm = document.getElementById('filterForm');
+            const nameFilter = document.getElementById('nameFilter');
+            const speciesFilter = document.getElementById('speciesFilter');
+            const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+            
+            if (!filterForm || !nameFilter || !speciesFilter || !resetFiltersBtn) {
+                return; // Exit if elements don't exist
+            }
+
+            // Remove existing event listeners if any
+            nameFilter.removeEventListener('input', nameFilter.inputHandler);
+            speciesFilter.removeEventListener('change', speciesFilter.changeHandler);
+            resetFiltersBtn.removeEventListener('click', resetFiltersBtn.clickHandler);
+            
+            // Debounce function
+            function debounce(func, delay) {
+                let timeout;
+                return function() {
+                    const context = this;
+                    const args = arguments;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function() {
+                        func.apply(context, args);
+                    }, delay);
+                };
+            }
+
+            // Create named handlers so we can remove them later if needed
+            nameFilter.inputHandler = debounce(function() {
+                filterForm.submit();
+            }, 500);
+            
+            speciesFilter.changeHandler = function() {
+                filterForm.submit();
+            };
+            
+            resetFiltersBtn.clickHandler = function() {
+                nameFilter.value = '';
+                speciesFilter.value = '';
+                filterForm.submit();
+            };
+            
+            // Add event listeners
+            nameFilter.addEventListener('input', nameFilter.inputHandler);
+            speciesFilter.addEventListener('change', speciesFilter.changeHandler);
+            resetFiltersBtn.addEventListener('click', resetFiltersBtn.clickHandler);
+        }
+
+        // Initialize on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', initializeFilters);
+
+        // Initialize on Livewire page updates
+        document.addEventListener('livewire:navigated', initializeFilters);
+
+        // Initialize on Turbolinks navigation (if using Turbolinks)
+        document.addEventListener('turbolinks:load', initializeFilters);
+
+        // Initialize immediately in case the page is already loaded
+        initializeFilters();
     </script>
     
     

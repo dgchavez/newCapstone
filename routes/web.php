@@ -37,8 +37,32 @@ Route::get('/', function () {
     return view('welcome', compact('veterinarians'));
 });
 
-//Generate ID
+// Clean up temporary PDFs
+Route::delete('storage/temp/{filename}', function ($filename) {
+    if (Storage::exists('public/temp/' . $filename)) {
+        Storage::delete('public/temp/' . $filename);
+        return response()->json(['success' => true]);
+    }
+    return response()->json(['success' => false], 404);
+});
 
+Route::post('/admin/users/{user}/toggle-status', [UserController::class, 'toggleUserStatus'])->name('users.toggle-status');
+    Route::get('/get-breeds/{species_id}', [AdminController::class, 'getBreeds'])->name('getBreeds');
+
+Route::get('/admin/users/{user}/credentials', [UserController::class, 'getUserCredentials'])
+    ->name('users.credentials');
+Route::post('/admin/users/{user}/reset-password-ajax', [UserController::class, 'resetPasswordAjax'])
+    ->name('users.reset-password-ajax');
+Route::post('/admin/users/{user}/approve', [UserController::class, 'approveUser'])
+    ->name('users.approve');
+    Route::get('/admin/users/{user}/get-password', [UserController::class, 'getUserPassword'])->middleware('auth');
+        Route::delete('/admin/users/{user}', [AdminController::class, 'destroy'])->name('users.destroy');
+            Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+
+
+
+//Generate ID
+Route::get('/animals/{animal}/history-pdf', [AnimalController::class, 'historyPdf'])->name('animal.history.pdf');
 Route::get('/animal-id/{animal_id}', [AnimalController::class, 'showID'])->name('animal.id');
 
 Route::get('/animal/{animal_id}/id/pdf', [AnimalController::class, 'downloadIDPdf'])->name('animal.id.pdf');
@@ -106,7 +130,6 @@ Route::group(['middleware' => 'admin'],function(){
     Route::get('/admin/create/users',[AdminController::class,'loadAddUsers']);
 
     //Delete Users
-    Route::delete('/admin/users/{user}', [AdminController::class, 'destroy'])->name('users.destroy');
 
     // Edit User Route
     Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit-form');
@@ -120,7 +143,6 @@ Route::group(['middleware' => 'admin'],function(){
         
     });
     //reset password
-    Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     
     //user profile
     Route::get('/users/{id}/profile', [UserController::class, 'profile'])->name('users.profile-form');
@@ -141,7 +163,6 @@ Route::group(['middleware' => 'admin'],function(){
     Route::post('/owners/{owner_id}/add-animal', [AdminController::class, 'store'])->name('owner.addAnimal');
 
 //GET Breeds
-    Route::get('/get-breeds/{species_id}', [AdminController::class, 'getBreeds'])->name('getBreeds');
 
     //get transaction types
     Route::get('/get-transaction-subtypes/{transactionTypeId}', [AdminController::class, 'getTransactionSubtypes']);

@@ -237,17 +237,20 @@ public function vet_update(Request $request, $user_id)
     $veterinarian->address->street = $request->street;
     $veterinarian->address->save();
 
-    // Update the profile image if a new one is uploaded
-    if ($request->hasFile('profile_image')) {
-        // Delete old image if it exists
-        if ($veterinarian->profile_image) {
-            Storage::disk('public')->delete($veterinarian->profile_image);
+if ($request->hasFile('profile_image')) {
+    // Delete old image if it exists
+    if ($veterinarian->profile_image) {
+        $oldPath = public_path('storage/' . $veterinarian->profile_image);
+        if (file_exists($oldPath)) {
+            unlink($oldPath);
         }
-    
-        // Store the new image
-        $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-        $veterinarian->profile_image = $imagePath;
     }
+
+    // Store the new image directly in public/storage/profile_images
+    $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+    $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+    $veterinarian->profile_image = 'profile_images/' . $filename;
+}
 
     // Save the updated veterinarian details
     $veterinarian->save();

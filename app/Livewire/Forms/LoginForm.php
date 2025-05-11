@@ -12,7 +12,7 @@ use Livewire\Form;
 
 class LoginForm extends Form
 {
-    #[Validate('required|string|email')]
+    #[Validate('required|string')]
     public string $email = '';
 
     #[Validate('required|string')]
@@ -30,8 +30,15 @@ class LoginForm extends Form
     {
         $this->ensureIsNotRateLimited();
 
+        // Determine if the input is an email or username
+        $loginField = filter_var($this->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'email';
+        $credentials = [
+            $loginField => $this->email,
+            'password' => $this->password
+        ];
+
         // Attempt to retrieve the user first
-        $user = Auth::getProvider()->retrieveByCredentials($this->only(['email', 'password']));
+        $user = Auth::getProvider()->retrieveByCredentials($credentials);
 
         if (!$user) {
             RateLimiter::hit($this->throttleKey());
@@ -42,7 +49,7 @@ class LoginForm extends Form
         }
 
         // Check if the user's credentials are valid
-        if (!Auth::validate($this->only(['email', 'password']))) {
+        if (!Auth::validate($credentials)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -73,8 +80,6 @@ class LoginForm extends Form
             ]);
         }
         
-        
-
         // If all checks pass, log the user in
         Auth::login($user, $this->remember);
 

@@ -39,24 +39,21 @@ class ReController extends Controller
     
    public function loadOwnersList(Request $request)
    {
-       // Capture filters from the request
+       // Fetch both categories and barangays
+       $categories = Category::all();
+       $barangays = Barangay::select('id', 'barangay_name')->orderBy('barangay_name')->get();
+       
        $search = $request->input('search', '');
        $gender = $request->input('gender', '');
-       $category = $request->input('category', '');
+       $selectedCategory = $request->input('category');
        $civil_status = $request->input('civil_status', '');
        $barangay_id = $request->input('barangay', '');
-       $fromDate = $request->input('fromDate');
-       $toDate = $request->input('toDate');
-   
-       // Fetch barangays for the dropdown
-       $barangays = Barangay::select('id', 'barangay_name')->orderBy('barangay_name')->get();
-   
-       // Fetch categories for the dropdown
-       $categories = Category::select('id', 'name')->orderBy('name')->get();
-   
-       // Build the query
-       $query = Owner::with([
+       $fromDate = $request->input('fromDate', '');
+       $toDate = $request->input('toDate', '');
+
+       $owners = Owner::with([
                'user',
+               'user.categories',
                'animals.species',
                'animals.breed',
                'transactions',
@@ -67,93 +64,88 @@ class ReController extends Controller
            ->leftJoin('barangays', 'addresses.barangay_id', '=', 'barangays.id')
            ->leftJoin('transactions', 'owners.owner_id', '=', 'transactions.owner_id')
            ->leftJoin('transaction_types', 'transactions.transaction_type_id', '=', 'transaction_types.id')
-           ->leftJoin('category_user', 'users.user_id', '=', 'category_user.user_id')
-           ->leftJoin('categories', 'category_user.category_id', '=', 'categories.id')
-           ->where('users.role', 1);
-   
-       // Apply search filter
-       if ($search) {
-           $query->where(function ($q) use ($search) {
-               $q->where('users.complete_name', 'like', '%' . $search . '%')
-                 ->orWhere('users.contact_no', 'like', '%' . $search . '%')
-                 ->orWhere('addresses.street', 'like', '%' . $search . '%')
-                 ->orWhere('barangays.barangay_name', 'like', '%' . $search . '%');
-           });
-       }
-   
-       // Apply category filter
-       if ($category !== '' && $category !== null) {
-           $query->whereExists(function ($q) use ($category) {
-               $q->select(DB::raw(1))
-                 ->from('category_user')
-                 ->whereColumn('category_user.user_id', 'users.user_id')
-                 ->where('category_user.category_id', $category);
-           });
-       }
-   
-       // Apply other filters
-       if ($gender) {
-           $query->where('users.gender', $gender);
-       }
-       if ($civil_status) {
-           $query->where('owners.civil_status', $civil_status);
-       }
-       if ($barangay_id) {
-           $query->where('barangays.id', $barangay_id);
-       }
-       if ($fromDate) {
-           $query->whereDate('owners.created_at', '>=', $fromDate);
-       }
-       if ($toDate) {
-           $query->whereDate('owners.created_at', '<=', $toDate);
-       }
-   
-       // Select and group the results
-       $owners = $query->select([
+           ->where('users.role', 1)
+           ->where(function ($query) use ($search) {
+               $query->where('users.complete_name', 'like', '%' . $search . '%')
+                     ->orWhere('users.contact_no', 'like', '%' . $search . '%')
+                     ->orWhere('addresses.street', 'like', '%' . $search . '%')
+                     ->orWhere('barangays.barangay_name', 'like', '%' . $search . '%');
+           })
+           ->when($selectedCategory !== '' && $selectedCategory !== null, function ($query) use ($selectedCategory) {
+               return $query->whereHas('user.categories', function ($q) use ($selectedCategory) {
+                   $q->where('categories.id', $selectedCategory);
+               });
+           })
+           ->when($gender, function ($query) use ($gender) {
+               return $query->where('users.gender', $gender);
+           })
+           ->when($civil_status, function ($query) use ($civil_status) {
+               return $query->where('owners.civil_status', $civil_status);
+           })
+           ->when($barangay_id, function ($query) use ($barangay_id) {
+               return $query->where('barangays.id', $barangay_id);
+           })
+           ->when($fromDate, function ($query) use ($fromDate) {
+               return $query->whereDate('owners.created_at', '>=', $fromDate);
+           })
+           ->when($toDate, function ($query) use ($toDate) {
+               return $query->whereDate('owners.created_at', '<=', $toDate);
+           })
+           ->select(
                'owners.owner_id', 
                'owners.civil_status',
+               'owners.category',
                'owners.created_at',
                'users.complete_name',
                'users.profile_image',
                'users.contact_no',
                'users.gender',
                'users.birth_date',
-               'users.user_id',
+               'users.user_id as user_id',
+               'users.status',
+               'users.email',
                'addresses.street',
                'barangays.barangay_name',
-               DB::raw('COALESCE(GROUP_CONCAT(DISTINCT categories.name SEPARATOR ", "), "No Categories") as categories'),
                DB::raw('GROUP_CONCAT(transactions.transaction_type_id) as transaction_type_ids'),
                DB::raw('GROUP_CONCAT(transaction_types.type_name) as transaction_types'),
                DB::raw('MAX(transactions.created_at) as transaction_created_at')
-           ])
-           ->groupBy([
+           )
+           ->groupBy(
                'owners.owner_id',
                'owners.civil_status',
+               'owners.category',
                'owners.created_at',
                'users.complete_name',
                'users.profile_image',
                'users.contact_no',
                'users.gender',
                'users.birth_date',
+               'users.status',
                'users.user_id',
+               'users.email',
                'addresses.street',
                'barangays.barangay_name'
-           ])
+           )
            ->orderBy('users.created_at', 'desc')
            ->paginate(15);
-   
+
+       // Return view with all necessary variables
        return view('receptionist.animal-owners', compact(
            'owners',
            'search',
            'gender',
-           'category',
-           'categories',
+           'selectedCategory',
            'civil_status',
            'barangays',
-           'barangay_id'
+           'barangay_id',
+           'categories',
+           'fromDate',
+           'toDate'
        ));
+       
    }
    
+
    public function loadAnimalsList(Request $request)
 {
     // Fetch filter inputs from the request
@@ -216,89 +208,113 @@ public function showRegistrationForm()
     $barangays = Barangay::all(); // Get all barangays for selection
     return view('receptionist.add-owners', compact('barangays', 'categories'));
 }
+  /**
+     * Handle the user registration.
+     */
+    public function register(Request $request)
+    {
+        $validated = $request->validate($this->validationRules($request));
 
-/**
- * Handle the user registration.
- */
-public function register(Request $request)
-{
-    try {
-        DB::beginTransaction();
-        
-        // Validate incoming request
-        $request->validate([
-            'complete_name' => 'required|string|max:255',
-            'contact_no' => 'required|string|max:15',
-            'gender' => 'required|string|max:10',
-            'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
-            'email' => 'required|email|unique:users,email',
-            'barangay_id' => 'required|integer|exists:barangays,id',
-            'street' => 'required|string|max:255',
-            'civil_status' => 'required|string|max:20',
-            'selectedCategories' => 'nullable|array',
-            'selectedCategories.*' => 'exists:categories,id',
-            'permit' => 'nullable|string|max:255',
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Generate a random password
-        $randomPassword = Str::random(8);
+               // Determine email/username value
+    $identifier = $validated['is_email_field'] 
+    ? $validated['email']
+    : $validated['username'];
+            // Generate password
+            $randomPassword = Str::random(8);
+            
+            // Create user
+            $user = User::create([
+                'complete_name' => $validated['complete_name'],
+                'role' => $validated['role'],
+                'contact_no' => $validated['contact_no'],
+                'gender' => $validated['gender'],
+                'birth_date' => $validated['birth_date'],
+                'status' => 1, // Default active status
+                'email' => $identifier,
+                'password' => Hash::make($randomPassword),
+                'designation_id' => $validated['designation_id'] ?? null,
+            ]);
 
-        // Create the user
-        $user = new User();
-        $user->complete_name = $request->complete_name;
-        $user->contact_no = $request->contact_no;
-        $user->gender = $request->gender;
-        $user->birth_date = $request->birth_date;
-        $user->status = 1;
-        $user->email = $request->email;
-        $user->role = 1;  // Assuming '1' is for owner
-        $user->password = bcrypt($randomPassword);  // Use the random password
-        $user->save();
+            // Create address
+            $user->address()->create([
+                'barangay_id' => $validated['barangay_id'],
+                'street' => $validated['street'],
+            ]);
 
-        // Register the address linked to the user
-        $address = new Address();
-        $address->user_id = $user->user_id;
-        $address->barangay_id = $request->barangay_id;
-        $address->street = $request->street;
-        $address->save();
+            // If owner, create owner record and attach categories
+            if ($validated['role'] == 1) {
+                $owner = $user->owner()->create([
+                    'civil_status' => $validated['civil_status'],
+                    'permit' => 1, // Default permit status
+                ]);
 
-        // Create the owner record linked to the user
-        $owner = new Owner();
-        $owner->user_id = $user->user_id;
-        $owner->civil_status = $request->civil_status;
-        $owner->permit = 1; 
-        $owner->created_by = Auth::id(); // Store the currently logged-in user's ID
-        $owner->save();
-
-        // Attach categories if provided
-        if ($request->has('selectedCategories') && is_array($request->selectedCategories)) {
-            // Make sure each category ID is valid
-            $validCategoryIds = [];
-            foreach ($request->selectedCategories as $categoryId) {
-                if (is_numeric($categoryId)) {
-                    $validCategoryIds[] = (int)$categoryId;
+                if (!empty($validated['selectedCategories'])) {
+                    $user->categories()->attach($validated['selectedCategories']);
                 }
             }
-            
-            if (!empty($validCategoryIds)) {
-                $user->categories()->attach($validCategoryIds);
-            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Cannot add user due to an issue. Please try again.')
+                         ->withInput();
         }
+    
+        // Email sending outside transaction
+        try {
+            if ($validated['is_email_field']) {
+                Mail::to($user->email)->send(new WelcomeEmail($user, $randomPassword));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Email sending failed: ' . $e->getMessage());
+        }
+    
+        return redirect()->route('rec-owners')->with([
+            'credentials' => [
+                'identifier' => $user->email,
+                'password' => $randomPassword,
+                'is_email' => $validated['is_email_field']
+            ]
+        ])->with('message', 'User registered successfully! Password has been sent to their email.');
+            }
 
-        // Send the password to the user's email
-        Mail::to($request->email)->send(new WelcomeEmail($user, $randomPassword));
+    private function validationRules(Request $request)
+    {
+        $rules = [
+            'complete_name' => 'required|string|max:255',
+            'role' => 'required|integer|in:1,2,3',
+            'contact_no' => 'nullable|string|max:15',
+            'gender' => 'required|string|in:Male,Female',
+            'birth_date' => 'nullable|date|before_or_equal:today',
+            'barangay_id' => 'required|exists:barangays,id',
+            'street' => 'required|string|max:255',
+            'is_email_field' => 'required|boolean',
+        ];
 
-        DB::commit();
+        // Role-specific rules
+        if ($request->role == 1) {
+            $rules['civil_status'] = 'required|string|in:Married,Separated,Single,Widow';
+            $rules['selectedCategories'] = 'required|array|min:1';
+            $rules['selectedCategories.*'] = 'exists:categories,id';
 
-        // Redirect with a success message
-        return redirect()->route('rec-owners')->with('success', 'User and owner registered successfully, and password has been emailed!');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()
-            ->withInput()
-            ->with('error', 'Failed to register owner: ' . $e->getMessage());
+            if ($request->role == 1) {
+                if ($request->is_email_field) {
+                    $rules['email'] = 'required|email|max:255|unique:users,email';
+                    $rules['username'] = 'nullable|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/';
+                } else {
+                    $rules['username'] = 'required|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/|unique:users,email';
+                    $rules['email'] = 'nullable|email';
+                }
+            }
+        
+            return $rules;
     }
 }
+
+
 
 
 public function ownerList_edit($owner_id)
@@ -320,87 +336,151 @@ public function ownerList_edit($owner_id)
 
 
 
-public function ownerList_update(Request $request, $owner_id)
-{
-    try {
-        // Log the incoming request data for debugging
-        Log::info('Owner update request data:', $request->all());
-        
-        // Validation
-        $validated = $request->validate([
-            'complete_name' => 'required|string|max:100',
-            'contact_no' => 'required|string|max:15',
-            'gender' => 'required|string|max:10',
-            'birth_date' => ['nullable', 'date'],
-            'status' => 'required|integer',
-            'email' => 'required|email|max:100|unique:users,email,' . $owner_id . ',user_id',
-            'barangay_id' => 'required|exists:barangays,id',
-            'street' => 'nullable|string|max:255',
-            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'selectedCategories' => 'required|array',
-            'selectedCategories.*' => 'exists:categories,id'
-        ]);
 
-        DB::beginTransaction();
+       public function ownerList_update(Request $request, $owner_id)
+    {
+        try {
+            // Log the incoming request data for debugging
+            Log::info('Owner update request data:', $request->all());
+            
+            // Validation
+            $validated = $request->validate([
+                'complete_name' => 'required|string|max:100',
+                'contact_no' => 'required|string|max:15',
+                'gender' => 'required|string|max:10',
+                'birth_date' => ['nullable', 'date'],
+                'status' => 'required|integer',
+                'is_email_field' => 'required|boolean',
+                'identifier' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    function ($attribute, $value, $fail) use ($request, $owner_id) {
+                        if ($request->is_email_field) {
+                            // Email validation
+                            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                                $fail('The email address is invalid.');
+                            }
+                        } else {
+                            // Username validation
+                            if (strlen($value) < 5) {
+                                $fail('The username must be at least 5 characters.');
+                            }
+                            if (!preg_match('/^[a-zA-Z0-9_.]+$/', $value)) {
+                                $fail('The username can only contain letters, numbers, underscore and dot.');
+                            }
+                        }
+                        
+                        // Check uniqueness (using the email field for both)
+                        if (User::where('email', $value)
+                                ->where('user_id', '!=', $owner_id)
+                                ->exists()) {
+                            $fail('This ' . ($request->is_email_field ? 'email' : 'username') . ' is already taken.');
+                        }
+                    }
+                ],
+                'barangay_id' => 'required|exists:barangays,id',
+                'street' => 'nullable|string|max:255',
+                'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'civil_status' => 'nullable|string|max:50',
+                'selectedCategories' => 'nullable|array',
+                'selectedCategories.*' => 'exists:categories,id'
+            ]);
 
-        // Find the user
-        $user = User::findOrFail($owner_id);
+            DB::beginTransaction();
 
-        // Update user
-        $user->update([
-            'complete_name' => $validated['complete_name'],
-            'contact_no' => $validated['contact_no'],
-            'gender' => $validated['gender'],
-            'birth_date' => $validated['birth_date'],
-            'status' => $validated['status'],
-            'email' => $validated['email'],
-            'role' => 1,
-        ]);
+            // Find the user
+            $user = User::findOrFail($owner_id);
 
-        // Update address
-        $user->address()->updateOrCreate(
-            ['user_id' => $user->user_id],
-            [
-                'barangay_id' => $validated['barangay_id'],
-                'street' => $validated['street'] ?? '',
-            ]
-        );
+            // Handle profile image upload
+            if ($request->hasFile('profile_image')) {
+                // Delete the old profile image if it exists
+                if ($user->profile_image) {
+                    $oldPath = public_path('storage/' . $user->profile_image);
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+                $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+                $user->profile_image = 'profile_images/' . $filename;
+            }
 
-        // Update owner
-        $owner = $user->owner()->updateOrCreate(
-            ['user_id' => $user->user_id],
-            [
-                'civil_status' => $validated['civil_status'] ?? '',
-                'permit' => 1,
-            ]
-        );
+            // Update user
+            $user->update([
+                'complete_name' => $validated['complete_name'],
+                'contact_no' => $validated['contact_no'],
+                'gender' => $validated['gender'],
+                'birth_date' => $validated['birth_date'],
+                'status' => $validated['status'],
+                'role' => 1,
+                'profile_image' => $user->profile_image,
+                'is_email_field' => $validated['is_email_field'],
+                'email' => $validated['identifier'],
+            ]);
 
-        // Sync categories (this will remove old categories and add new ones)
-        $user->categories()->sync($validated['selectedCategories']);
+            // Update address
+            $user->address()->updateOrCreate(
+                ['user_id' => $user->user_id],
+                [
+                    'barangay_id' => $validated['barangay_id'],
+                    'street' => $validated['street'] ?? '',
+                ]
+            );
 
-        // Verify that categories were updated correctly
-        $updatedCategories = $user->categories()->pluck('categories.id')->toArray();
-        Log::info('Updated categories for user ' . $user->user_id, [
-            'updated_categories' => $updatedCategories
-        ]);
+            // Update owner
+            $owner = $user->owner()->updateOrCreate(
+                ['user_id' => $user->user_id],
+                [
+                    'civil_status' => $validated['civil_status'] ?? '',
+                    'permit' => 1,
+                ]
+            );
 
-        DB::commit();
-        
-        return redirect()->route('rec-owners')->with('success', 'Profile updated successfully.');
+            // Update categories
+            if (isset($validated['selectedCategories'])) {
+                // Convert all values to integers and filter out invalid ones
+                $categories = [];
+                foreach ($validated['selectedCategories'] as $categoryId) {
+                    // Include the category if it's a valid number (including 0)
+                    if (is_numeric($categoryId) || $categoryId === '0') {
+                        $categories[] = (int)$categoryId;
+                    }
+                }
+                
+                // Log the categories being processed
+                Log::info('Categories being synced:', $categories);
+                
+                // Sync the categories
+                $user->categories()->sync($categories);
+            } else {
+                // If no categories selected, detach all
+                $user->categories()->detach();
+            }
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Error updating owner: ' . $e->getMessage(), [
-            'user_id' => $owner_id,
-            'trace' => $e->getTraceAsString()
-        ]);
-        
-        return redirect()->back()
-            ->withInput()
-            ->withErrors(['error' => 'An error occurred while updating the profile: ' . $e->getMessage()]);
+            // Verify that categories were updated correctly
+            $updatedCategories = $user->categories()->pluck('categories.id')->toArray();
+            Log::info('Updated categories for user ' . $user->user_id, [
+                'updated_categories' => $updatedCategories
+            ]);
+
+            DB::commit();
+            
+            return redirect()->route('rec-owners')->with('success', 'Profile updated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating owner: ' . $e->getMessage(), [
+                'user_id' => $owner_id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'An error occurred while updating the profile: ' . $e->getMessage()]);
+        }
     }
-}
-
+    
 
 
 public function destroy(User $user)
@@ -547,14 +627,18 @@ public function owner_update(Request $request, $id)
     $user = User::findOrFail($id);
     $transaction = Owner::where('user_id', $user->user_id)->first();
 
-    // Handle profile image upload
-    if ($request->hasFile('profile_image')) {
-        if ($user->profile_image) {
-            Storage::disk('public')->delete($user->profile_image);
-        }
-        $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-        $user->profile_image = $imagePath;
-    }
+       if ($request->hasFile('profile_image')) {
+                // Delete the old profile image if it exists
+                if ($user->profile_image) {
+                    $oldPath = public_path('storage/' . $user->profile_image);
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $filename = time() . '_' . $request->file('profile_image')->getClientOriginalName();
+                $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
+                $user->profile_image = 'profile_images/' . $filename;
+            }
 
     $user->role = 1;
     $user->update($request->only([
@@ -670,14 +754,16 @@ public function showAddAnimalForm($owner_id)
 
        ]);
    
-       // Handle file uploads for photos
-       foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-           if ($request->hasFile($photo)) {
-               $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
-           } else {
-               $data[$photo] = null;
-           }
-       }
+           // Handle file uploads for photos
+foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+    if ($request->hasFile($photo)) {
+        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+        $request->file($photo)->move(public_path('storage/animal_photos'), $filename);
+        $data[$photo] = 'animal_photos/' . $filename;
+    } else {
+        $data[$photo] = null;
+    }
+}
    
        try {
            // Save the animal record
@@ -770,19 +856,23 @@ public function showAddAnimalForm($owner_id)
         $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
     
         // Handle photo uploads
-        $photos = [];
-        foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-            if ($request->hasFile($photo)) {
-                // Delete the old photo if it exists
-                if ($animal->$photo) {
-                    \Storage::disk('public')->delete($animal->$photo);
+    $photos = [];
+    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+        if ($request->hasFile($photo)) {
+            // Delete the old photo if it exists
+            if ($animal->$photo) {
+                $oldPath = public_path('storage/' . $animal->$photo);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
                 }
-                // Store the new photo
-                $photos[$photo] = $request->file($photo)->store('animals/photos', 'public');
-            } else {
-                $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
             }
+            $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+            $request->file($photo)->move(public_path('storage/animals/photos'), $filename);
+            $photos[$photo] = 'animals/photos/' . $filename;
+        } else {
+            $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
         }
+    }
     
         // Update the animal record
         Animal::where('animal_id', $animal_id)->update([
@@ -1242,17 +1332,28 @@ public function animalUpdate(Request $request, $animal_id)
         'name', 'owner_id', 'species_id', 'breed_id', 'birth_date', 'gender', 'medical_condition', 'is_group', 'group_count', 'color', 'is_vaccinated',
     ]);
 
-    // Handle photo uploads and update the existing photos
-    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-        if ($request->hasFile($photo)) {
-            // Store new photo and update the animal record
-            $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
-        } else {
-            // Retain old photo if not replaced
-            $data[$photo] = $animal->{$photo}; // Retain the old photo if the user doesn't upload a new one
+  foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+    if ($request->hasFile($photo)) {
+        // Delete the old photo if it exists
+        if ($animal->{$photo}) {
+            $oldPath = public_path('storage/' . $animal->{$photo});
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
         }
+        // Create the directory if it doesn't exist
+        $destinationPath = public_path('storage/animal_photos');
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+        // Move the uploaded file
+        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+        $request->file($photo)->move($destinationPath, $filename);
+        $data[$photo] = 'animal_photos/' . $filename; // Save relative path
+    } else {
+        $data[$photo] = $animal->{$photo};
     }
-
+}
     // If it's a group, handle the group-specific logic
     if ($data['is_group'] == 1) {
         // Set a default value for name (or empty string) when it's a group
@@ -1397,15 +1498,28 @@ public function update(Request $request, $animal_id)
     ]);
 
     // Handle photo uploads and update the existing photos
-    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-        if ($request->hasFile($photo)) {
-            // Store new photo and update the animal record
-            $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
-        } else {
-            // Retain old photo if not replaced
-            $data[$photo] = $animal->{$photo}; // Retain the old photo if the user doesn't upload a new one
+foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+    if ($request->hasFile($photo)) {
+        // Delete the old photo if it exists
+        if ($animal->{$photo}) {
+            $oldPath = public_path('storage/' . $animal->{$photo});
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
         }
+        // Create the directory if it doesn't exist
+        $destinationPath = public_path('storage/animal_photos');
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+        // Move the uploaded file
+        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+        $request->file($photo)->move($destinationPath, $filename);
+        $data[$photo] = 'animal_photos/' . $filename; // Save relative path
+    } else {
+        $data[$photo] = $animal->{$photo};
     }
+}
 
     // If it's a group, handle the group-specific logic
     if ($data['is_group'] == 1) {

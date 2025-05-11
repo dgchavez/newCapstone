@@ -58,30 +58,37 @@
                             </div>
                         </div>
 
-                        <!-- Species Filter -->
-                        <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1">Species</label>
-                            <select name="species_id" 
-                                    class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    id="speciesFilter">
-                                <option value="">All Species</option>
-                                @foreach($species as $specie)
-                                    <option value="{{ $specie->id }}" {{ request('species_id') == $specie->id ? 'selected' : '' }}>{{ $specie->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <!-- Species and Breed Filter Group -->
+                        <div class="col-span-1 sm:col-span-2 lg:col-span-2">
+                            <div class="flex flex-col space-y-3">
+                                <!-- Species Filter -->
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Species</label>
+                                    <select name="species_id" 
+                                            class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            id="speciesFilter">
+                                        <option value="">All Species</option>
+                                        @foreach($species as $specie)
+                                            <option value="{{ $specie->id }}" {{ request('species_id') == $specie->id ? 'selected' : '' }}>{{ $specie->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                        <!-- Breed Filter -->
-                        <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1">Breed</label>
-                            <select name="breed_id" 
-                                    class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    id="breedFilter">
-                                <option value="">All Breeds</option>
-                                @foreach($breeds as $breed)
-                                    <option value="{{ $breed->id }}" {{ request('breed_id') == $breed->id ? 'selected' : '' }}>{{ $breed->name }}</option>
-                                @endforeach
-                            </select>
+                                <!-- Breed Filter -->
+                                <div id="breedFilterContainer" style="{{ request('species_id') ? '' : 'display: none;' }}">
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Breed</label>
+                                    <select name="breed_id" 
+                                            class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            id="breedFilter">
+                                        <option value="">All Breeds</option>
+                                        @foreach($breeds as $breed)
+                                            @if(!request('species_id') || $breed->species_id == request('species_id'))
+                                                <option value="{{ $breed->id }}" {{ request('breed_id') == $breed->id ? 'selected' : '' }}>{{ $breed->name }}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Owner Filter -->
@@ -98,7 +105,7 @@
                         </div>
 
                         <!-- Date Range -->
-                        <div class="col-span-1 sm:col-span-2 xl:col-span-1">
+                        <div class="col-span-1">
                             <label class="block text-xs font-medium text-gray-700 mb-1">Date Range</label>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="date" 
@@ -285,20 +292,63 @@
 
         <script>
             // Auto-submit form when filters change
-            ['speciesFilter', 'breedFilter', 'ownerFilter', 'fromDateFilter', 'toDateFilter'].forEach(function(id) {
+            ['ownerFilter', 'fromDateFilter', 'toDateFilter'].forEach(function(id) {
                 document.getElementById(id)?.addEventListener('change', function() {
                     this.form.submit();
                 });
             });
         
             // Debounce search input
-            var searchTimeout = null; // Changed from 'let' to 'var'
+            var searchTimeout = null;
         
             document.getElementById('searchInput')?.addEventListener('input', function() {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     this.form.submit();
                 }, 500);
+            });
+
+            // Load breeds based on selected species
+            document.getElementById('speciesFilter')?.addEventListener('change', function() {
+                const speciesId = this.value;
+                const breedSelect = document.getElementById('breedFilter');
+                const breedContainer = document.getElementById('breedFilterContainer');
+                
+                // Clear current breed options
+                breedSelect.innerHTML = '<option value="">All Breeds</option>';
+                
+                if (speciesId) {
+                    // Show the breed dropdown
+                    breedContainer.style.display = 'block';
+                    
+                    // Fetch breeds for the selected species
+                    fetch(`/get-breeds/${speciesId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Add the breed options
+                            data.breeds.forEach(breed => {
+                                const option = document.createElement('option');
+                                option.value = breed.id;
+                                option.textContent = breed.name;
+                                breedSelect.appendChild(option);
+                            });
+                            
+                            // Auto-submit the form to show all animals of the selected species
+                            this.form.submit();
+                        })
+                        .catch(error => console.error('Error fetching breeds:', error));
+                } else {
+                    // Hide the breed dropdown if no species is selected
+                    breedContainer.style.display = 'none';
+                    
+                    // If no species selected, submit to show all animals
+                    this.form.submit();
+                }
+            });
+            
+            // Submit form when breed is selected
+            document.getElementById('breedFilter')?.addEventListener('change', function() {
+                this.form.submit();
             });
         </script>
     </x-app-layout>
