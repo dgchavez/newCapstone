@@ -11,7 +11,6 @@
                     <tr>
                         <th class="px-4 py-2 text-left">#</th>
                         <th class="px-4 py-2 text-left">Barangay Name</th>
-                        <th class="px-4 py-2 text-left">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-700">
@@ -21,13 +20,7 @@
                             <td class="px-4 py-2">{{ $barangay->barangay_name }}</td>
                             <td class="px-4 py-2">
                              
-                                <form action="{{ route('destroy-barangay', $barangay->id) }}" method="POST" class="d-inline-block inline ml-2">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 text-sm" onclick="return confirm('Are you sure?')">
-                                        Delete
-                                    </button>
-                                </form>
+                         
                                 
                             </td>
                         </tr>
