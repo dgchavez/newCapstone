@@ -19,7 +19,7 @@ new class extends Component
 
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
@@ -37,12 +37,12 @@ new class extends Component
                                             : route('dashboard'))))) 
                             : route('login') }}"
                        class="transform hover:scale-105 transition-all duration-300">
-                        <img src="{{ asset('assets/logo2.png') }}" alt="Application Logo" class="h-12 w-auto rounded-lg shadow-sm" />
+                        <img src="{{ asset('assets/logo2.png') }}" alt="Application Logo" class="h-9 sm:h-12 w-auto rounded-lg shadow-sm" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden sm:flex sm:items-center sm:space-x-6 sm:ms-10">
+                <div class="hidden sm:flex sm:items-center sm:space-x-3 md:space-x-6 sm:ms-6 md:ms-10">
                     @if(auth()->check() && auth()->user()->role == 0)
                         <x-nav-link :href="route('admin-dashboard')" :active="request()->routeIs('admin-dashboard')" 
                             class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600" wire:navigate>
@@ -213,18 +213,18 @@ new class extends Component
 
             <!-- Settings Dropdown -->
             @if(auth()->check())
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:ms-2 md:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg text-gray-600 hover:bg-green-50 hover:text-green-600 focus:outline-none transition-all duration-300">
+                        <button class="inline-flex items-center px-2 py-2 sm:px-3 sm:py-2 border border-transparent text-sm font-medium rounded-lg text-gray-600 hover:bg-green-50 hover:text-green-600 focus:outline-none transition-all duration-300">
                             <div class="flex items-center gap-2">
                                 <img src="{{ auth()->user()->profile_image ? asset('storage/' . auth()->user()->profile_image) : asset('assets/default-avatar.png') }}" 
                                      alt="{{ auth()->user()->complete_name }}" 
-                                     class="h-8 w-8 rounded-full object-cover ring-2 ring-gray-100" />
+                                     class="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover ring-2 ring-gray-100" />
                                 <div x-data="{{ json_encode(['complete_name' => auth()->user()->complete_name]) }}" 
                                     x-text="complete_name" 
                                     x-on:profile-updated.window="complete_name = $event.detail.complete_name"
-                                    class="max-w-[150px] truncate"></div>
+                                    class="hidden sm:block max-w-[80px] md:max-w-[150px] truncate"></div>
                                 <svg class="h-4 w-4 transition-transform duration-300" 
                                      :class="{'rotate-180': open}"
                                      xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor">
@@ -274,7 +274,7 @@ new class extends Component
             @endif
 
             <!-- Hamburger Menu -->
-            <div class="-me-2 flex items-center sm:hidden">
+            <div class="-me-1 flex items-center sm:hidden">
                 <button @click="open = ! open" 
                     class="inline-flex items-center justify-center p-2 rounded-lg text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none transition duration-300">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -289,23 +289,124 @@ new class extends Component
     </div>
 
     <!-- Mobile Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden max-h-[85vh] overflow-y-auto pb-4">
+        <div class="pt-2 pb-3 space-y-1 px-2">
             @if(auth()->check())
+                <!-- Admin Mobile Links -->
                 @if(auth()->user()->role == 0)
                     <x-responsive-nav-link :href="route('admin-dashboard')" :active="request()->routeIs('admin-dashboard')"
-                        class="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300" wire:navigate>
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
                         {{ __('Dashboard') }}
                     </x-responsive-nav-link>
-                    <!-- Add other admin mobile links -->
+                    <x-responsive-nav-link :href="route('admin-users')" :active="request()->routeIs('admin-users')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Users') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin-owners')" :active="request()->routeIs('admin-owners')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Owners') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin-animals')" :active="request()->routeIs('admin-animals')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Animals') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin-veterinarians')" :active="request()->routeIs('admin-veterinarians')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Veterinarians') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin-technicians')" :active="request()->routeIs('admin-technicians')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Technicians') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('vaccines.load')" :active="request()->routeIs('vaccines.load')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Vaccines') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('barangay.load')" :active="request()->routeIs('barangay.load')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Barangays') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('species.breed')" :active="request()->routeIs('species.breed')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Species & Breeds') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('subtype.index')" :active="request()->routeIs('subtype.index')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Transactions') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('designation.index')" :active="request()->routeIs('designation.index')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Designations') }}
+                    </x-responsive-nav-link>
+                <!-- Owner Mobile Links -->
                 @elseif(auth()->user()->role == 1)
                     <x-responsive-nav-link :href="route('owner-dashboard')" :active="request()->routeIs('owner-dashboard')"
-                        class="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300" wire:navigate>
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
                         {{ __('Dashboard') }}
                     </x-responsive-nav-link>
-                    <!-- Add other owner mobile links -->
+                    <x-responsive-nav-link :href="route('owners.profile', ['owner_id' => auth()->user()->owner->owner_id])"
+                        :active="request()->routeIs('owners.profile')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Profile') }}
+                    </x-responsive-nav-link>
+                <!-- Vet Mobile Links -->
+                @elseif(auth()->user()->role == 2)
+                    <x-responsive-nav-link :href="route('vet-dashboard')" :active="request()->routeIs('vet-dashboard')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Dashboard') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('vet.veterinarian.profile', ['user_id' => auth()->user()->user_id])"
+                        :active="request()->routeIs('vet.veterinarian.profile')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Profile') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.index')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg">
+                        {{ __('Generate Report') }}
+                    </x-responsive-nav-link>
+                <!-- Receptionist Mobile Links -->
+                @elseif(auth()->user()->role == 3)
+                    <x-responsive-nav-link :href="route('receptionist-dashboard')" :active="request()->routeIs('receptionist-dashboard')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Dashboard') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('rec-owners')" :active="request()->routeIs('rec-owners')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Owners') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('rec-animals')" :active="request()->routeIs('rec-animals')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Animals') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('receptionist.reports')" :active="request()->routeIs('receptionist.reports')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg">
+                        {{ __('Generate Report') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('rec-technicians')" :active="request()->routeIs('rec-technicians')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Technicians') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('recvaccines.load')" :active="request()->routeIs('recvaccines.load')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Vaccines') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('newbarangay.load')" :active="request()->routeIs('newbarangay.load')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Barangays') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('recspecies.breed')" :active="request()->routeIs('recspecies.breed')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Species & Breeds') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('recsubtype.index')" :active="request()->routeIs('recsubtype.index')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Transactions') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('recdesignation.index')" :active="request()->routeIs('recdesignation.index')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Designations') }}
+                    </x-responsive-nav-link>
                 @endif
-                <!-- Add other role-specific mobile links -->
             @endif
         </div>
 
@@ -326,13 +427,34 @@ new class extends Component
                 </div>
             </div>
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile')"
-                    class="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300" wire:navigate>
+            <div class="mt-3 space-y-1 px-2">
+                @if(auth()->user()->role == 0)
+                    <x-responsive-nav-link :href="route('users.nav-profile', ['id' => auth()->user()->user_id])"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('users.settings')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Settings') }}
+                    </x-responsive-nav-link>
+                @elseif(auth()->user()->role == 1)
+                    <x-responsive-nav-link :href="route('owners.settings')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Settings') }}
+                    </x-responsive-nav-link>
+                @elseif(auth()->user()->role == 2)
+                    <x-responsive-nav-link :href="route('vet.settings')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Settings') }}
+                    </x-responsive-nav-link>
+                @elseif(auth()->user()->role == 3)
+                    <x-responsive-nav-link :href="route('rec.settings')"
+                        class="block px-4 py-2.5 text-sm hover:bg-green-50 hover:text-green-600 transition-all duration-300 rounded-lg" wire:navigate>
+                        {{ __('Settings') }}
+                    </x-responsive-nav-link>
+                @endif
                 <button wire:click="logout" class="w-full text-start">
-                    <x-responsive-nav-link class="block px-4 py-2 text-sm hover:bg-red-50 hover:text-red-600 transition-all duration-300">
+                    <x-responsive-nav-link class="block px-4 py-2.5 text-sm hover:bg-red-50 hover:text-red-600 transition-all duration-300 rounded-lg">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
                 </button>
