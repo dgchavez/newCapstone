@@ -30,14 +30,7 @@
                                 <a href="{{ route('newvaccines.edit', $vaccine) }}" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 text-sm">
                                     Edit
                                 </a>
-                                <form action="{{ route('newvaccines.destroy', ['newvaccine' => $vaccine->id]) }}" method="POST" class="inline-block">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 text-sm" onclick="return confirm('Are you sure you want to delete this vaccine?')">
-                                        Delete
-                                    </button>
-                                </form>
-                                
+                             
                             </td>
                         </tr>
                     @endforeach
