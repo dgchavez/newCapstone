@@ -396,6 +396,16 @@ Route::get('/vets/{owner_id}/owner_profile', [VetController::class, 'showProfile
 
 Route::get('/vet/{animal_id}/animal_profile', [VetController::class, 'showAnimalProfile'])->name('vet.profile');
 
+ Route::get('/admin/owners',[VetController::class,'loadOwnersList'])
+    ->name('vet-owners');
+
+Route::get('vet-reg-owner', [VetController::class, 'showRegistrationForm'])->name('vet-reg-owner');
+Route::post('vet-reg-owner', [VetController::class, 'register'])->name('vet-regowner.submit');
+
+    Route::get('vet/{owner_id}/edit', [VetController::class, 'ownerList_edit'])->name('ownerVet.edit');
+    Route::put('vet/{owner_id}/update', [VetController::class, 'ownerList_update'])->name('ownerVet.update');
+
+
 //RECEPTIONIST NAV
 
 });
