@@ -370,6 +370,7 @@ new #[Layout('layouts.guest')] class extends Component
             <!-- Categories Selection -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Pet Categories (Select all that apply)</label>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     @foreach($categories as $category)
                         <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer">
@@ -382,7 +383,7 @@ new #[Layout('layouts.guest')] class extends Component
                                 <span class="block text-xs text-gray-500 mt-1">Common pets in this category</span>
                             </div>
                         </label>
-                    @endforeach
+
                 </div>
                 @error('selected_categories') <span class="text-xs text-red-600 mt-1">{{ $message }}</span> @enderror
             </div>
