@@ -31,29 +31,62 @@ use Illuminate\Http\Request;
 class OwnerController extends Controller
 {
     public function loadOwnerDashboard()
- 
     {
         // Fetch the logged-in user
         $user = Auth::user();
-
+        $owner_id = $user->owner->owner_id;
+    
         // Fetch dynamic data
-        $animalsOwned = Animal::where('owner_id', $user->owner->owner_id)->count(); // Count animals owned by the user
-        $successfulTransactions = Transaction::where('owner_id', $user->owner->owner_id)  // Correct relationship access
-        ->where('status', 1)  // Status of 1 for successful transactions
-        ->count(); // Count successful transactions
-
-        $pastTransactions = Transaction::where('owner_id', $user->owner->owner_id)
-                                       ->orderBy('created_at', 'desc') // Sort by most recent
-                                       ->limit(5) // Get only the most recent 5
-                                       ->get();
-
+        $animalsOwned = Animal::where('owner_id', $owner_id)->count(); // Count animals owned by the user
+        
+        $successfulTransactions = Transaction::where('owner_id', $owner_id)
+            ->where('status', 1)  // Status of 1 for successful transactions
+            ->count(); // Count successful transactions
+    
+        $pastTransactions = Transaction::where('owner_id', $owner_id)
+            ->orderBy('created_at', 'desc') // Sort by most recent
+            ->limit(10) // Get more transactions for different sections
+            ->get();
+    
+        // Fetch recent animals for the pets section
+        $recentAnimals = Animal::where('owner_id', $owner_id)
+            ->orderBy('created_at', 'desc')
+            ->limit(4)
+            ->get();
+    
+        // Count vaccinated animals
+        $vaccinatedAnimals = Animal::where('owner_id', $owner_id)
+            ->where('is_vaccinated', 1) // 1 = vaccinated
+            ->count();
+    
+        // Get animals that need vaccination (is_vaccinated = 0)
+        $animalsNeedingVaccination = Animal::where('owner_id', $owner_id)
+            ->where('is_vaccinated', 0) // 0 = not vaccinated
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
+    
+        // Get pending transactions (status = 0)
+        $pendingTransactions = Transaction::where('owner_id', $owner_id)
+            ->where('status', 0) // Status of 0 for pending transactions
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
+            
+        // Get all transaction types for service information
+        $transactionTypes = \App\Models\TransactionType::with('subtypes')->get();
+    
         return view('owner.dashboard', [
             'animalsOwned' => $animalsOwned,
             'successfulTransactions' => $successfulTransactions,
-            'pastTransactions' => $pastTransactions
+            'pastTransactions' => $pastTransactions,
+            'recentAnimals' => $recentAnimals,
+            'vaccinatedAnimals' => $vaccinatedAnimals,
+            'animalsNeedingVaccination' => $animalsNeedingVaccination,
+            'pendingTransactions' => $pendingTransactions,
+            'transactionTypes' => $transactionTypes
         ]);
     }
-
     public function showProfile(Request $request, $owner_id)
     {
         // Ensure the $owner_id is valid
