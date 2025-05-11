@@ -32,6 +32,11 @@ use Illuminate\Support\Facades\Route;
 
 //Routes
 
+// Add this at the top of your routes/web.php file
+Route::get('/403', function () {
+    return redirect('/');
+})->name('403');
+
 Route::get('/', function () {
     $veterinarians = \App\Models\User::where('role', 2)->get(); // Assuming role 2 identifies veterinarians
     return view('welcome', compact('veterinarians'));
@@ -396,7 +401,7 @@ Route::get('/vets/{owner_id}/owner_profile', [VetController::class, 'showProfile
 
 Route::get('/vet/{animal_id}/animal_profile', [VetController::class, 'showAnimalProfile'])->name('vet.profile');
 
- Route::get('/admin/owners',[VetController::class,'loadOwnersList'])
+ Route::get('/admin/ownerstable',[VetController::class,'loadOwnersList'])
     ->name('vet-owners');
 
 Route::get('vet-reg-owner', [VetController::class, 'showRegistrationForm'])->name('vet-reg-owner');

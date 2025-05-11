@@ -169,7 +169,6 @@
                     <!-- Footer -->
                     <div class="w-full bg-gray-100 py-2 px-3 flex justify-between items-center border-t border-gray-300">
                         <span class="font-mono text-gray-600 truncate">Registered: {{ $animal->created_at->format('m/d/y') }}</span>
-                        <span class="text-green-800 font-medium">Valid until: {{ now()->addYear()->format('m/y') }}</span>
                     </div>
             
                     <!-- Security Features -->
