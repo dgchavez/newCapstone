@@ -51,6 +51,16 @@ Route::delete('storage/temp/{filename}', function ($filename) {
     return response()->json(['success' => false], 404);
 });
 
+// Add these lines after the existing animal-id routes
+Route::get('/animal/{animal_id}/vaccination-card', [AnimalController::class, 'showVaccinationCard'])->name('animal.vaccination-card');
+Route::get('/animal/{animal_id}/vaccination-card/pdf', [AnimalController::class, 'downloadVaccinationCardPdf'])->name('animal.vaccination-card.pdf');
+
+Route::get('/animal/{animal_id}/travel-certificate', [AnimalController::class, 'showTravelCertificate'])->name('animal.travel-certificate');
+Route::get('/animal/{animal_id}/travel-certificate/pdf', [AnimalController::class, 'downloadTravelCertificatePdf'])->name('animal.travel-certificate.pdf');
+
+Route::get('/animal/{animal_id}/health-certificate', [AnimalController::class, 'showHealthCertificate'])->name('animal.health-certificate');
+Route::get('/animal/{animal_id}/health-certificate/pdf', [AnimalController::class, 'downloadHealthCertificatePdf'])->name('animal.health-certificate.pdf');
+
 Route::post('/admin/users/{user}/toggle-status', [UserController::class, 'toggleUserStatus'])->name('users.toggle-status');
     Route::get('/get-breeds/{species_id}', [AdminController::class, 'getBreeds'])->name('getBreeds');
 
