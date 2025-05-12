@@ -12,7 +12,8 @@
                         <i class="fas fa-edit mr-2"></i>
                         Update Info
                     </a>
-                    <div class="mt-4">
+                    <!-- Certificate Generation Dropdown -->
+                     <div class="mt-4">
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" type="button" 
                                     class="inline-flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors duration-200 shadow-sm font-medium text-sm">
@@ -38,7 +39,8 @@
                                             ID Card
                                         </div>
                                     </a>
-                                    <a href="{{ route('animal.vaccination-card', $animal->animal_id) }}" 
+                                    <a href="#" 
+                                       onclick="openVaccCardModal('{{ $animal->animal_id }}'); return false;"
                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         <div class="flex items-center">
                                             <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,7 +49,8 @@
                                             Vaccination Card
                                         </div>
                                     </a>
-                                    <a href="{{ route('animal.health-certificate', $animal->animal_id) }}" 
+                                    <a href="#" 
+                                       onclick="openHealthCertModal('{{ $animal->animal_id }}'); return false;"
                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         <div class="flex items-center">
                                             <svg class="w-4 h-4 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,7 +62,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                     </div>
                 </div>
             </div>
 
@@ -454,6 +457,109 @@
         </div>
     </div>
 
+    <!-- Vaccination Card Modal -->
+    <div id="vaccCardModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <!-- Modal panel -->
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                <!-- Close button -->
+                <div class="absolute top-0 right-0 pt-4 pr-4">
+                    <button type="button" onclick="closeVaccCardModal()" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Modal content will be loaded here -->
+                <div id="vaccCardModalContent" class="p-6">
+                    <div class="flex justify-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="text-lg font-medium text-gray-700">Loading vaccination card...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Travel Certificate Modal -->
+    <div id="travelCertModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <!-- Modal panel -->
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                <!-- Close button -->
+                <div class="absolute top-0 right-0 pt-4 pr-4">
+                    <button type="button" onclick="closeTravelCertModal()" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Modal content will be loaded here -->
+                <div id="travelCertModalContent" class="p-6">
+                    <div class="flex justify-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="text-lg font-medium text-gray-700">Loading travel certificate...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Certificate Modal -->
+    <div id="healthCertModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <!-- Modal panel -->
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                <!-- Close button -->
+                <div class="absolute top-0 right-0 pt-4 pr-4">
+                    <button type="button" onclick="closeHealthCertModal()" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Modal content will be loaded here -->
+                <div id="healthCertModalContent" class="p-6">
+                    <div class="flex justify-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="text-lg font-medium text-gray-700">Loading health certificate...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.8.2/dist/alpine.min.js" defer></script>
     <script>
         const transactionSubtypes = @json($transactionSubtypes);
 
@@ -544,7 +650,7 @@
             // Show modal
             document.getElementById('idModal').classList.remove('hidden');
             
-            // Fetch ID card details
+            // Fetch transaction details
             fetch(`/animal-id/${animalId}`)
                 .then(response => response.text())
                 .then(html => {
@@ -553,7 +659,7 @@
                 .catch(error => {
                     document.getElementById('IdModalContent').innerHTML = `
                         <div class="text-center text-red-500">
-                            <p>Error loading ID card details. Please try again.</p>
+                            <p>Error loading transaction details. Please try again.</p>
                         </div>
                     `;
                     console.error('Error:', error);
@@ -564,21 +670,142 @@
             // Hide modal
             document.getElementById('idModal').classList.add('hidden');
             // Reset content to loading state
-            document.getElementById('IdModalContent').innerHTML = `
+            document.getElementById('idModalContent').innerHTML = `
                 <div class="flex justify-center">
                     <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <p class="text-lg font-medium text-gray-700">Loading ID details...</p>
+                    <p class="text-lg font-medium text-gray-700">Loading transaction details...</p>
                 </div>
             `;
         }
         // Close modal when clicking outside
         document.addEventListener('click', function(event) {
-            const idModal = document.getElementById('idModal');
-            if (event.target === idModal) {
+            const modal = document.getElementById('transactionModal');
+            const modalContent = modal.querySelector('.inline-block');
+            if (event.target === modal) {
                 closeIdModal();
+            }
+        });
+
+        function openVaccCardModal(animalId) {
+            // Show modal
+            document.getElementById('vaccCardModal').classList.remove('hidden');
+            
+            // Fetch vaccination card content
+            fetch(`/animal/${animalId}/vaccination-card`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('vaccCardModalContent').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('vaccCardModalContent').innerHTML = `
+                        <div class="text-center text-red-500">
+                            <p>Error loading vaccination card. Please try again.</p>
+                        </div>
+                    `;
+                    console.error('Error:', error);
+                });
+        }
+
+        function closeVaccCardModal() {
+            // Hide modal
+            document.getElementById('vaccCardModal').classList.add('hidden');
+            // Reset content to loading state
+            document.getElementById('vaccCardModalContent').innerHTML = `
+                <div class="flex justify-center">
+                    <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-lg font-medium text-gray-700">Loading vaccination card...</p>
+                </div>
+            `;
+        }
+
+        function openTravelCertModal(animalId) {
+            // Show modal
+            document.getElementById('travelCertModal').classList.remove('hidden');
+            
+            // Fetch travel certificate content
+            fetch(`/animal/${animalId}/travel-certificate`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('travelCertModalContent').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('travelCertModalContent').innerHTML = `
+                        <div class="text-center text-red-500">
+                            <p>Error loading travel certificate. Please try again.</p>
+                        </div>
+                    `;
+                    console.error('Error:', error);
+                });
+        }
+
+        function closeTravelCertModal() {
+            // Hide modal
+            document.getElementById('travelCertModal').classList.add('hidden');
+            // Reset content to loading state
+            document.getElementById('travelCertModalContent').innerHTML = `
+                <div class="flex justify-center">
+                    <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-lg font-medium text-gray-700">Loading travel certificate...</p>
+                </div>
+            `;
+        }
+
+        function openHealthCertModal(animalId) {
+            // Show modal
+            document.getElementById('healthCertModal').classList.remove('hidden');
+            
+            // Fetch health certificate content
+            fetch(`/animal/${animalId}/health-certificate`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('healthCertModalContent').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('healthCertModalContent').innerHTML = `
+                        <div class="text-center text-red-500">
+                            <p>Error loading health certificate. Please try again.</p>
+                        </div>
+                    `;
+                    console.error('Error:', error);
+                });
+        }
+
+        function closeHealthCertModal() {
+            // Hide modal
+            document.getElementById('healthCertModal').classList.add('hidden');
+            // Reset content to loading state
+            document.getElementById('healthCertModalContent').innerHTML = `
+                <div class="flex justify-center">
+                    <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-lg font-medium text-gray-700">Loading health certificate...</p>
+                </div>
+            `;
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            const vaccModal = document.getElementById('vaccCardModal');
+            const travelModal = document.getElementById('travelCertModal');
+            const healthModal = document.getElementById('healthCertModal');
+            
+            if (event.target === vaccModal) {
+                closeVaccCardModal();
+            } else if (event.target === travelModal) {
+                closeTravelCertModal();
+            } else if (event.target === healthModal) {
+                closeHealthCertModal();
             }
         });
     </script>
