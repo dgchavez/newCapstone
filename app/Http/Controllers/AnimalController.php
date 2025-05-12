@@ -533,5 +533,175 @@ public function historyPdf($animal_id)
     return $pdf->download("animal-{$animal->animal_id}-history.pdf");
 }
 
+// Vaccination Card
+public function showVaccinationCard($animal_id)
+{
+    $animal = Animal::with([
+        'owner.user',
+        'species',
+        'breed',
+        'transactions' => function($query) {
+            $query->whereHas('transactionSubtype', function($q) {
+                $q->where('subtype_name', 'like', '%vaccine%');
+            })->with('vaccine', 'vet');
+        }
+    ])->where('animal_id', $animal_id)->first();
 
+    if (!$animal) {
+        abort(404);
+    }
+
+    // Generate QR code with animal information
+    $qrCode = QrCode::size(150)->generate(route('animal.vaccination-card', $animal_id));
+
+    return view('admin.vaccination_card', compact('animal', 'qrCode'));
+}
+
+public function downloadVaccinationCardPdf($animal_id)
+{
+    $animal = Animal::with([
+        'owner.user',
+        'species',
+        'breed',
+        'transactions' => function($query) {
+            $query->whereHas('transactionSubtype', function($q) {
+                $q->where('subtype_name', 'like', '%vaccine%');
+            })->with('vaccine', 'vet');
+        }
+    ])->where('animal_id', $animal_id)->first();
+
+    if (!$animal) {
+        abort(404);
+    }
+
+    // Generate QR code HTML
+    $qrCode = QrCode::size(100)->generate(route('animal.vaccination-card', $animal_id));
+
+    // Load the view for PDF
+    $pdf = Pdf::loadView('pdf.vaccination_card', compact('animal', 'qrCode'))->setPaper('a4', 'portrait');
+
+    return $pdf->download('vaccination-card-' . $animal->animal_id . '.pdf');
+}
+
+// Travel Certificate
+public function showTravelCertificate($animal_id)
+{
+    $animal = Animal::with([
+        'owner.user',
+        'species',
+        'breed',
+        'transactions' => function($query) {
+            $query->whereHas('transactionType', function($q) {
+                $q->where('type_name', 'like', '%vaccination%');
+            })->with('vaccine', 'vet')
+            ->orderBy('created_at', 'desc');
+        }
+    ])->where('animal_id', $animal_id)->first();
+
+    if (!$animal) {
+        abort(404);
+    }
+
+    // Generate QR code with animal information
+    $qrCode = QrCode::size(150)->generate(route('animal.travel-certificate', $animal_id));
+
+    return view('admin.travel_certificate', compact('animal', 'qrCode'));
+}
+
+public function downloadTravelCertificatePdf($animal_id)
+{
+    $animal = Animal::with([
+        'owner.user',
+        'species',
+        'breed',
+        'transactions' => function($query) {
+            $query->whereHas('transactionType', function($q) {
+                $q->where('type_name', 'like', '%vaccination%');
+            })->with('vaccine', 'vet')
+            ->orderBy('created_at', 'desc');
+        }
+    ])->where('animal_id', $animal_id)->first();
+
+    if (!$animal) {
+        abort(404);
+    }
+
+    // Generate QR code HTML
+    $qrCode = QrCode::size(100)->generate(route('animal.travel-certificate', $animal_id));
+
+    // Load the view for PDF
+    $pdf = Pdf::loadView('pdf.travel_certificate', compact('animal', 'qrCode'))->setPaper('a4', 'portrait');
+
+    return $pdf->download('travel-certificate-' . $animal->animal_id . '.pdf');
+}
+
+// Health Certificate
+public function showHealthCertificate($animal_id)
+{
+    $animal = Animal::with([
+        'owner.user',
+        'species',
+        'breed',
+        'transactions' => function($query) {
+            $query->whereHas('transactionType', function($q) {
+                $q->where('type_name', 'like', '%health%');
+            })->with('vet')
+            ->orderBy('created_at', 'desc');
+        }
+    ])->where('animal_id', $animal_id)->first();
+
+    if (!$animal) {
+        abort(404);
+    }
+
+    // Generate QR code
+    $qrCode = QrCode::size(150)->generate(route('animal.health-certificate', $animal_id));
+    
+    // Generate unique OR number (format: YYYY-XXXXXXX)
+    $orNumber = date('Y') . '-' . sprintf('%07d', rand(1, 9999999));
+    
+    // Generate license number for the vet
+    $licenseNumber = '0' . rand(1000, 9999);
+    
+    // Set license validity (1 year from now)
+    $licenseValidUntil = date('m/d/Y', strtotime('+1 year'));
+
+    return view('admin.health_certificate', compact('animal', 'qrCode', 'orNumber', 'licenseNumber', 'licenseValidUntil'));
+}
+
+public function downloadHealthCertificatePdf($animal_id)
+{
+    $animal = Animal::with([
+        'owner.user',
+        'species',
+        'breed',
+        'transactions' => function($query) {
+            $query->whereHas('transactionType', function($q) {
+                $q->where('type_name', 'like', '%health%');
+            })->with('vet')
+            ->orderBy('created_at', 'desc');
+        }
+    ])->where('animal_id', $animal_id)->first();
+
+    if (!$animal) {
+        abort(404);
+    }
+
+    // Generate QR code
+    $qrCode = QrCode::size(100)->generate(route('animal.health-certificate', $animal_id));
+    
+    // Generate unique OR number (format: YYYY-XXXXXXX)
+    $orNumber = date('Y') . '-' . sprintf('%07d', rand(1, 9999999));
+    
+    // Generate license number for the vet
+    $licenseNumber = '0' . rand(1000, 9999);
+    
+    // Set license validity (1 year from now)
+    $licenseValidUntil = date('m/d/Y', strtotime('+1 year'));
+
+    // Load the view for PDF
+    $pdf = Pdf::loadView('pdf.health_certificate', compact('animal', 'qrCode', 'orNumber', 'licenseNumber', 'licenseValidUntil'))->setPaper('a4', 'portrait');
+
+    return $pdf->download('health-certificate-' . $animal->animal_id . '.pdf');
+}
 }
