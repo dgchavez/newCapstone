@@ -6,20 +6,60 @@
             <div class="relative h-48 bg-gradient-to-r from-green-600 to-green-800">
                 <div class="absolute inset-0 bg-black/20"></div>
                 <!-- Action Buttons -->
-                <div class="absolute top-4 right-4 flex space-x-2">
+                <div class="absolute top-4 right-4 ">
                     <a href="{{ route('animals.edit', $animal->animal_id) }}" 
                        class="inline-flex items-center px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-all">
                         <i class="fas fa-edit mr-2"></i>
                         Update Info
                     </a>
-                    <a href="#"
-                       onclick="openIdModal('{{ $animal->animal_id }}')"
-                       class="inline-flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors duration-200 shadow-sm font-medium text-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
-                        </svg>
-                        Generate ID Card
-                    </a>
+                    <div class="mt-4">
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" type="button" 
+                                    class="inline-flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors duration-200 shadow-sm font-medium text-sm">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m-6-8h6M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/>
+                                </svg>
+                                Generate Documents
+                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div x-show="open" 
+                                 @click.away="open = false"
+                                 class="absolute right-0 w-48 mt-2 bg-white rounded-md shadow-lg z-10">
+                                <div class="py-1">
+                                    <a href="#" 
+                                       onclick="openIdModal('{{ $animal->animal_id }}'); return false;"
+                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+                                            </svg>
+                                            ID Card
+                                        </div>
+                                    </a>
+                                    <a href="{{ route('animal.vaccination-card', $animal->animal_id) }}" 
+                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m-6-8h6M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/>
+                                            </svg>
+                                            Vaccination Card
+                                        </div>
+                                    </a>
+                                    <a href="{{ route('animal.health-certificate', $animal->animal_id) }}" 
+                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Health Certificate
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
