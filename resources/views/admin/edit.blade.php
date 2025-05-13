@@ -348,6 +348,8 @@
             const role = document.getElementById('role').value;
             const ownerFields = document.getElementById('ownerFields');
             const designationFields = document.getElementById('designationFields');
+            const civilStatusField = document.getElementById('civil_status');
+            const categoryCheckboxes = document.querySelectorAll('input[name="selectedCategories[]"]');
             const authenticationToggle = document.querySelector('.authentication-toggle-section');
             const identifierLabel = document.getElementById('identifier_label');
             const identifierHelp = document.getElementById('identifier_help');
@@ -356,12 +358,28 @@
             // Toggle Owner Fields for Animal Owners
             if (role == '1') {
                 ownerFields.classList.remove('hidden');
+                // Enable owner-specific fields
+                if (civilStatusField) {
+                    civilStatusField.disabled = false;
+                    civilStatusField.required = true;
+                }
+                categoryCheckboxes.forEach(checkbox => {
+                    checkbox.disabled = false;
+                });
                 // Show authentication toggle for owners
                 if (authenticationToggle) {
                     authenticationToggle.classList.remove('hidden');
                 }
             } else {
                 ownerFields.classList.add('hidden');
+                // Disable owner-specific fields when not visible
+                if (civilStatusField) {
+                    civilStatusField.disabled = true;
+                    civilStatusField.required = false; // Remove required attribute when hidden
+                }
+                categoryCheckboxes.forEach(checkbox => {
+                    checkbox.disabled = true;
+                });
                 // Hide authentication toggle for non-owners
                 if (authenticationToggle) {
                     authenticationToggle.classList.add('hidden');
@@ -378,10 +396,19 @@
             }
 
             // Toggle Designation Fields for Veterinarians
+            const designationField = document.getElementById('designation_id');
             if (role == '2') {
                 designationFields.classList.remove('hidden');
+                if (designationField) {
+                    designationField.disabled = false;
+                    designationField.required = true;
+                }
             } else {
                 designationFields.classList.add('hidden');
+                if (designationField) {
+                    designationField.disabled = true;
+                    designationField.required = false;
+                }
             }
         }
 

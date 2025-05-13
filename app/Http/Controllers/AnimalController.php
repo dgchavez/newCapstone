@@ -141,85 +141,73 @@ class AnimalController extends Controller
     $validationRules = [
         'species_id' => 'required|exists:species,id',
         'breed_id' => 'required|exists:breeds,id',
-        'birth_date' => ['nullable', 'date', 'before_or_equal:today'], // Ensure birthdate is not in the future
-        'color' => 'nullable|string|max:255', // Add validation for color
+        'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
+        'color' => 'nullable|string|max:255',
         'medical_condition' => 'nullable|string|max:255',
-        'photo_front' => 'nullable|image|max:2048',
-        'photo_back' => 'nullable|image|max:2048',
-        'photo_left_side' => 'nullable|image|max:2048',
-        'photo_right_side' => 'nullable|image|max:2048',
-        'is_group' => 'required|boolean', // Add validation for is_group
-        'is_vaccinated' => 'required|in:0,1,2', // Add validation for is_vaccinated
-
+        'photo_front' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo_back' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo_left_side' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo_right_side' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'is_group' => 'required|boolean',
+        'is_vaccinated' => 'required|in:0,1,2',
     ];
 
     // Apply conditional validation based on 'is_group'
     if ($request->is_group == 0) {
-        // If it's not a group, name and gender are required
         $validationRules['name'] = 'required|string|max:255';
         $validationRules['gender'] = 'required|in:Male,Female';
-        $validationRules['group_count'] = 'nullable'; // Don't require group_count for non-groups
+        $validationRules['group_count'] = 'nullable';
     } else {
-        // If it's a group, name and gender are not required
-        $validationRules['name'] = 'nullable|string|max:255'; // Allow name to be null
-        $validationRules['gender'] = 'nullable|in:Male,Female'; // Allow gender to be null
-        $validationRules['group_count'] = 'required|integer|min:1'; // Require group_count for groups
+        $validationRules['name'] = 'nullable|string|max:255';
+        $validationRules['gender'] = 'nullable|in:Male,Female';
+        $validationRules['group_count'] = 'required|integer|min:1';
     }
 
     // Validate the form input
-    $request->validate($validationRules);
+    $validated = $request->validate($validationRules);
 
     // Fetch the existing animal record
     $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
 
-    // Prepare the animal data
-    $data = $request->only([
-        'name', 'species_id', 'breed_id', 'birth_date', 'gender', 'medical_condition', 'is_group', 'group_count', 'color', 'is_vaccinated',
+    // Handle photo uploads
+    $photos = [];
+    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+        if ($request->hasFile($photo)) {
+            // Delete the old photo if it exists
+            if ($animal->$photo) {
+                $oldPath = public_path('storage/' . $animal->$photo);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
+            $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+            $request->file($photo)->move(public_path('storage/animals/photos'), $filename);
+            $photos[$photo] = 'animals/photos/' . $filename;
+        } else {
+            $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
+        }
+    }
+
+    // Update the animal record
+    Animal::where('animal_id', $animal_id)->update([
+        'name' => $request->name,
+        'species_id' => $request->species_id,
+        'breed_id' => $request->breed_id,
+        'color' => $request->color,
+        'birth_date' => $request->birth_date,
+        'gender' => $request->gender,
+        'medical_condition' => $request->medical_condition,
+        'photo_front' => $photos['photo_front'],
+        'photo_back' => $photos['photo_back'],
+        'photo_left_side' => $photos['photo_left_side'],
+        'photo_right_side' => $photos['photo_right_side'],
+        'is_group' => $request->is_group,
+        'group_count' => $request->is_group ? $request->group_count : 1,
+        'is_vaccinated' => $request->is_vaccinated,
     ]);
 
-    // Handle photo uploads and update the existing photos
-       foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-    if ($request->hasFile($photo)) {
-        // Delete the old photo if it exists
-        if ($animal->{$photo}) {
-            $oldPath = public_path('storage/' . $animal->{$photo});
-            if (file_exists($oldPath)) {
-                unlink($oldPath);
-            }
-        }
-        // Create the directory if it doesn't exist
-        $destinationPath = public_path('storage/animal_photos');
-        if (!file_exists($destinationPath)) {
-            mkdir($destinationPath, 0755, true);
-        }
-        // Move the uploaded file
-        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
-        $request->file($photo)->move($destinationPath, $filename);
-        $data[$photo] = 'animal_photos/' . $filename; // Save relative path
-    } else {
-        $data[$photo] = $animal->{$photo};
-    }
-}
-
-    // If it's a group, handle the group-specific logic
-    if ($data['is_group'] == 1) {
-        // Set a default value for name (or empty string) when it's a group
-        $data['name'] = $data['name'] ?? 'Group'; // Use 'Group' or leave it empty
-        $data['gender'] = null; // Groups do not have a gender
-    }
-
-    try {
-        // Update the animal record
-        Animal::where('animal_id', $animal_id)->update($data);
-
-        // Redirect with success message
-        return redirect()->route('animals.profile', ['animal_id' => $animal->animal_id])
-        ->with('success', 'Animal updated successfully.');
-
-    } catch (\Exception $e) {
-        // Handle exceptions and return the error message
-        return back()->withErrors(['error' => $e->getMessage()]);
-    }
+    return redirect()->route('animals.profile', ['animal_id' => $animal_id])
+                     ->with('success', 'Animal updated successfully!');
 }
 
 //DELETE ANIMALS IN ANIMALS TABLE
@@ -351,8 +339,6 @@ foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as
     }
 }
 
-
-
 public function showEditAnimalForm($animal_id)
 {
     // Fetch the existing animal by ID
@@ -393,77 +379,66 @@ public function showEditAnimalForm($animal_id)
 
 public function animalUpdate(Request $request, $animal_id)
 {
-    // Determine the validation rules based on is_group
-    $validationRules = [
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
         'owner_id' => 'required|exists:owners,owner_id',
         'species_id' => 'required|exists:species,id',
         'breed_id' => 'required|exists:breeds,id',
-        'birth_date' => ['nullable', 'date', 'before_or_equal:today'], // Ensure birthdate is not in the future
-        'color' => 'nullable|string|max:255', // Add validation for color
+        'color' => 'nullable|string|max:255',
+        'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
+        'gender' => 'nullable|in:Male,Female',
         'medical_condition' => 'nullable|string|max:255',
-        'photo_front' => 'nullable|image|max:2048',
-        'photo_back' => 'nullable|image|max:2048',
-        'photo_left_side' => 'nullable|image|max:2048',
-        'photo_right_side' => 'nullable|image|max:2048',
-        'is_group' => 'required|boolean', // Add validation for is_group
-        'is_vaccinated' => 'required|in:0,1,2', // Add validation for is_vaccinated
-
-    ];
-
-    // Apply conditional validation based on 'is_group'
-    if ($request->is_group == 0) {
-        // If it's not a group, name and gender are required
-        $validationRules['name'] = 'required|string|max:255';
-        $validationRules['gender'] = 'required|in:Male,Female';
-        $validationRules['group_count'] = 'nullable'; // Don't require group_count for non-groups
-    } else {
-        // If it's a group, name and gender are not required
-        $validationRules['name'] = 'nullable|string|max:255'; // Allow name to be null
-        $validationRules['gender'] = 'nullable|in:Male,Female'; // Allow gender to be null
-        $validationRules['group_count'] = 'required|integer|min:1'; // Require group_count for groups
-    }
-
-    // Validate the form input
-    $request->validate($validationRules);
-
-    // Fetch the existing animal record
-    $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
-
-    // Prepare the animal data
-    $data = $request->only([
-        'name', 'owner_id', 'species_id', 'breed_id', 'birth_date', 'gender', 'medical_condition', 'is_group', 'group_count', 'color', 'is_vaccinated',
+        'photo_front' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo_back' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo_left_side' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo_right_side' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'is_group' => 'nullable|boolean',
+        'group_count' => 'nullable|integer|min:1|required_if:is_group,true',
+        'is_vaccinated' => 'required|in:0,1,2',
     ]);
 
-    // Handle photo uploads and update the existing photos
+    $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
+
+    // Handle photo uploads
+    $photos = [];
     foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
         if ($request->hasFile($photo)) {
-            // Store new photo and update the animal record
-            $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
+            // Delete the old photo if it exists
+            if ($animal->$photo) {
+                $oldPath = public_path('storage/' . $animal->$photo);
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+            }
+            $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+            $request->file($photo)->move(public_path('storage/animals/photos'), $filename);
+            $photos[$photo] = 'animals/photos/' . $filename;
         } else {
-            // Retain old photo if not replaced
-            $data[$photo] = $animal->{$photo}; // Retain the old photo if the user doesn't upload a new one
+            $photos[$photo] = $animal->$photo; // Retain the existing photo if no new upload
         }
     }
 
-    // If it's a group, handle the group-specific logic
-    if ($data['is_group'] == 1) {
-        // Set a default value for name (or empty string) when it's a group
-        $data['name'] = $data['name'] ?? 'Group'; // Use 'Group' or leave it empty
-        $data['gender'] = null; // Groups do not have a gender
-    }
+    // Update the animal record
+    Animal::where('animal_id', $animal_id)->update([
+        'name' => $request->name,
+        'owner_id' => $request->owner_id,
+        'species_id' => $request->species_id,
+        'breed_id' => $request->breed_id,
+        'color' => $request->color,
+        'birth_date' => $request->birth_date,
+        'gender' => $request->gender,
+        'medical_condition' => $request->medical_condition,
+        'photo_front' => $photos['photo_front'],
+        'photo_back' => $photos['photo_back'],
+        'photo_left_side' => $photos['photo_left_side'],
+        'photo_right_side' => $photos['photo_right_side'],
+        'is_group' => $request->is_group,
+        'group_count' => $request->is_group ? $request->group_count : 1,
+        'is_vaccinated' => $request->is_vaccinated,
+    ]);
 
-    try {
-        // Update the animal record
-        Animal::where('animal_id', $animal_id)->update($data);
-
-        // Redirect with success message
-        return redirect()->route('admin-animals')
-            ->with('message', 'Animal updated successfully.');
-
-    } catch (\Exception $e) {
-        // Handle exceptions and return the error message
-        return back()->withErrors(['error' => $e->getMessage()]);
-    }
+    return redirect()->route('admin-animals')
+                     ->with('message', 'Animal updated successfully!');
 }
 
 
