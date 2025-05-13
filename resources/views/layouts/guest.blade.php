@@ -34,6 +34,8 @@
             animation: fadeIn 0.5s ease-out forwards;
         }
     </style>
+
+    
 </head>
 
 <body class="font-sans text-gray-900 antialiased bg-gray-50 h-full">
@@ -133,4 +135,68 @@
         </div>
     </div>
 </body>
+
+<!-- Policy Modal -->
+<div x-data="policyModal()" class="fixed inset-0 z-[60] pointer-events-none">
+    <div x-show="showPolicyModal" 
+         x-transition:enter="ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         x-cloak
+         class="fixed inset-0 overflow-y-auto">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/50" @click="showPolicyModal = false"></div>
+        
+        <!-- Modal Content -->
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-auto relative pointer-events-auto"
+                 @click.stop>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-bold text-gray-900" x-text="currentPolicy?.title"></h3>
+                        <button @click="showPolicyModal = false" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="prose max-w-none max-h-[60vh] overflow-y-auto" x-html="currentPolicy?.content"></div>
+                    <div class="mt-6 flex justify-end">
+                        <button @click="showPolicyModal = false" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('policyModal', () => ({
+        showPolicyModal: false,
+        currentPolicy: null,
+        
+        init() {
+            window.addEventListener('open-policy-modal', (event) => {
+                this.currentPolicy = event.detail;
+                this.showPolicyModal = true;
+                document.body.classList.add('overflow-hidden');
+            });
+        },
+        
+        closePolicyModal() {
+            this.showPolicyModal = false;
+            document.body.classList.remove('overflow-hidden');
+        }
+    }));
+});
+</script>
+
+
 </html>

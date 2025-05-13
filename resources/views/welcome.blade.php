@@ -147,7 +147,7 @@
                             <div class="space-y-8">
                                 <div>
                                     <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                                        Your Pet's Health is 
+                                        Your Animal's Health is 
                                         <span class="gradient-text">Our Priority</span>
                                     </h1>
                                     <p class="mt-6 text-xl text-gray-600 leading-relaxed">
@@ -295,7 +295,7 @@
                     <div class="text-center mb-16">
                         <span class="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 text-green-600 text-sm font-semibold mb-4 shadow-sm">Our Team</span>
                         <h2 class="text-4xl font-bold text-gray-900 mb-6">Meet Our Expert Team</h2>
-                        <p class="text-xl text-gray-600 leading-relaxed">Dedicated professionals committed to your pet's health</p>
+                        <p class="text-xl text-gray-600 leading-relaxed">Dedicated professionals committed to your animal's health</p>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                         @foreach ($veterinarians as $vet)
@@ -340,8 +340,8 @@
                 </div>
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
                     <div class="text-center">
-                        <h2 class="text-3xl font-bold text-white mb-6">Ready to Give Your Pet the Best Care?</h2>
-                        <p class="text-xl text-green-100 mb-8 max-w-2xl mx-auto">Join our family of happy pet owners today and experience the difference in veterinary care</p>
+                        <h2 class="text-3xl font-bold text-white mb-6">Ready to Give Your Animal the Best Care?</h2>
+                        <p class="text-xl text-green-100 mb-8 max-w-2xl mx-auto">Join our family of happy animal owners today and experience the difference in veterinary care</p>
                         <a href="/register" class="inline-flex items-center px-8 py-4 text-lg font-semibold text-green-600 bg-white rounded-xl hover:bg-green-50 transform hover:scale-105 transition-all duration-300 shadow-lg glow-on-hover">
                             Get Started Now
                             <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -667,9 +667,9 @@
                         </script>
                     </div>
                     <h3 class="text-2xl font-semibold mb-2">VCAPIMS</h3>
-                    <p class="text-gray-400 max-w-md mx-auto">Providing exceptional care for your beloved pets with compassion and expertise</p>
+                    <p class="text-gray-400 max-w-md mx-auto">Providing exceptional care for your beloved animals with compassion and expertise</p>
                     <div class="mt-8 flex justify-center space-x-6">
-                        <a href="https://www.facebook.com/groups/1261996167532772" 
+                        <a href="https://www.facebook.com/profile.php?id=100089808807446" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         class="text-gray-400 hover:text-white transition-colors duration-200">
