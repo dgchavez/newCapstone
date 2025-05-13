@@ -404,7 +404,7 @@ public function deleteImage($id)
         } else {
             $attributes['name'] = $request->name; // Use the provided name for individuals
             $attributes['gender'] = $request->gender; // Assign gender for individuals
-            $attributes['group_count'] = null; // Reset group count for individuals
+            $attributes['group_count'] = $request->group_count; // Reset group count for individuals
         }
     
         // Handle file uploads for photos

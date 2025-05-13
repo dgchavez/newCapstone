@@ -93,7 +93,56 @@
                             </div>
                         </div>
                     </div>
-
+                       <!-- Photo Gallery (New) -->
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Animal Photos</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            @if($animal->photo_front)
+                                <div class="relative group overflow-hidden rounded-lg shadow">
+                                    <img src="{{ asset('storage/' . $animal->photo_front) }}" alt="Front view" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
+                                        <span class="text-white text-sm font-medium">Front View</span>
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            @if($animal->photo_back)
+                                <div class="relative group overflow-hidden rounded-lg shadow">
+                                    <img src="{{ asset('storage/' . $animal->photo_back) }}" alt="Back view" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
+                                        <span class="text-white text-sm font-medium">Back View</span>
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            @if($animal->photo_left_side)
+                                <div class="relative group overflow-hidden rounded-lg shadow">
+                                    <img src="{{ asset('storage/' . $animal->photo_left_side) }}" alt="Left side view" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
+                                        <span class="text-white text-sm font-medium">Left Side</span>
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            @if($animal->photo_right_side)
+                                <div class="relative group overflow-hidden rounded-lg shadow">
+                                    <img src="{{ asset('storage/' . $animal->photo_right_side) }}" alt="Right side view" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
+                                        <span class="text-white text-sm font-medium">Right Side</span>
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            @if(!$animal->photo_front && !$animal->photo_back && !$animal->photo_left_side && !$animal->photo_right_side)
+                                <div class="col-span-4 p-6 bg-gray-100 rounded-lg text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">No photos available</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                     <!-- Info Grid -->
                     <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                         <!-- Owner Info -->
