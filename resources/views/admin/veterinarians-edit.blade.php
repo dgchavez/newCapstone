@@ -15,62 +15,85 @@
             @csrf
             @method('PUT')
 
-            <!-- Complete Name -->
-            <div class="mb-6">
-                <label for="complete_name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Complete Name</label>
-                <input type="text" name="complete_name" id="complete_name" value="{{ old('complete_name', $veterinarian->complete_name) }}" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div>
+                    <!-- Complete Name -->
+                    <div class="mb-6">
+                        <label for="complete_name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Complete Name</label>
+                        <input type="text" name="complete_name" id="complete_name" value="{{ old('complete_name', $veterinarian->complete_name) }}" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
+                    </div>
 
-            <!-- Email -->
-            <div class="mb-6">
-                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
-                <input type="email" name="email" id="email" value="{{ old('email', $veterinarian->email) }}" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
-            </div>
+                    <!-- Email -->
+                    <div class="mb-6">
+                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
+                        <input type="email" name="email" id="email" value="{{ old('email', $veterinarian->email) }}" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
+                    </div>
 
-            <!-- Contact No -->
-            <div class="mb-6">
-                <label for="contact_no" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Contact No.</label>
-                <input type="text" name="contact_no" id="contact_no" value="{{ old('contact_no', $veterinarian->contact_no) }}" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
-            </div>
+                    <!-- Contact No -->
+                    <div class="mb-6">
+                        <label for="contact_no" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Contact No.</label>
+                        <input type="text" name="contact_no" id="contact_no" value="{{ old('contact_no', $veterinarian->contact_no) }}" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
+                    </div>
 
-            <!-- Gender -->
-            <div class="mb-6">
-                <label for="gender" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Gender</label>
-                <select name="gender" id="gender" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
-                    <option value="Male" {{ old('gender', $veterinarian->gender) == 'Male' ? 'selected' : '' }}>Male</option>
-                    <option value="Female" {{ old('gender', $veterinarian->gender) == 'Female' ? 'selected' : '' }}>Female</option>
-                </select>
-            </div>
+                    <!-- Gender -->
+                    <div class="mb-6">
+                        <label for="gender" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Gender</label>
+                        <select name="gender" id="gender" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
+                            <option value="Male" {{ old('gender', $veterinarian->gender) == 'Male' ? 'selected' : '' }}>Male</option>
+                            <option value="Female" {{ old('gender', $veterinarian->gender) == 'Female' ? 'selected' : '' }}>Female</option>
+                        </select>
+                    </div>
+                </div>
 
-            <!-- Birth Date -->
-            <div class="mb-6">
-                <label for="birth_date" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Birth Date</label>
-                <input type="date" name="birth_date" id="birth_date" value="{{ old('birth_date', $veterinarian->birth_date->format('Y-m-d')) }}" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
-            </div>
+                <!-- Right Column -->
+                <div>
+                    <!-- Birth Date -->
+                    <div class="mb-6">
+                        <label for="birth_date" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Birth Date</label>
+                        <input type="date" name="birth_date" id="birth_date" value="{{ old('birth_date', $veterinarian->birth_date->format('Y-m-d')) }}" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
+                    </div>
 
-            <!-- Designation -->
-            <div class="mb-6">
-                <label for="designation_id" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Designation</label>
-                <select name="designation_id" id="designation_id" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
-                    @foreach($designations as $designation)
-                        <option value="{{ $designation->designation_id }}" {{ old('designation_id', $veterinarian->designation_id) == $designation->designation_id ? 'selected' : '' }}>
-                            {{ $designation->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+                    <!-- Designation -->
+                    <div class="mb-6">
+                        <label for="designation_id" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Designation</label>
+                        <select name="designation_id" id="designation_id" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200" required>
+                            @foreach($designations as $designation)
+                                <option value="{{ $designation->designation_id }}" {{ old('designation_id', $veterinarian->designation_id) == $designation->designation_id ? 'selected' : '' }}>
+                                    {{ $designation->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-            <!-- Profile Image -->
-            <div class="mb-6">
-                <label for="profile_image" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Profile Image</label>
-                <input type="file" name="profile_image" id="profile_image" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200">
+                    <!-- Profile Image -->
+                    <div class="mb-6">
+                        <label for="profile_image" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Profile Image</label>
+                        
+                        <!-- Current image display -->
+                        @if($veterinarian->profile_image)
+                        <div class="mb-2">
+                            <img src="{{ asset('storage/' . $veterinarian->profile_image) }}" alt="{{ $veterinarian->complete_name }}" class="h-32 w-32 object-cover rounded-lg border border-gray-300">
+                            <p class="text-xs text-gray-500 mt-1">Current profile image</p>
+                        </div>
+                        @endif
+                        
+                        <input type="file" name="profile_image" id="profile_image" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-neutral-700 dark:border-neutral-600 dark:text-gray-200">
+                        <p class="text-xs text-gray-500 mt-1">Leave empty to keep current image</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Update Button -->
             <div class="mt-6">
-                <button type="submit" class="w-full py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
-                    Update Veterinarian
-                </button>
+                <div class="flex items-center justify-between">
+                    <a href="{{ route('admin-veterinarians') }}" class="py-2 px-4 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" class="py-2 px-8 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
+                        Update Veterinarian
+                    </button>
+                </div>
             </div>
         </form>
     </div>

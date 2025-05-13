@@ -86,6 +86,7 @@ class UserController extends Controller
         $barangays = Barangay::all(); // Fetch all barangays
         return view('admin.user-profile', compact('user', 'barangays')); // Pass data to the view
     }
+    
     public function edit($id)
     {
         $user = User::with(['owner', 'address', 'categories'])->findOrFail($id);
@@ -114,7 +115,7 @@ class UserController extends Controller
             'barangay_id' => 'required|exists:barangays,id',
             'street' => 'nullable|string|max:255',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'designation_id' => 'nullable|exists:designations,designation_id',
+            'designation_id' => 'required_if:role,2|exists:designations,designation_id',
             'selectedCategories' => 'required_if:role,1|array',
             'civil_status' => 'required_if:role,1|string|nullable',
             'is_email_field' => 'required|boolean',
@@ -171,26 +172,40 @@ class UserController extends Controller
                 'gender' => $validated['gender'],
                 'birth_date' => $validated['birth_date'],
                 'status' => $validated['status'],
-                'is_email_field' => $validated['is_email_field'],
-                'email' => $validated['identifier'], // Using email field for both email and username
             ];
 
-            // Add designation_id if it exists in validated data
-            if (isset($validated['designation_id'])) {
-                $userData['designation_id'] = $validated['designation_id'];
+            // For non-owners (vets and receptionists), always use email authentication
+            if ($validated['role'] != 1) {
+                $userData['is_email_field'] = true;
+                $userData['email'] = $validated['identifier']; // Must be a valid email address
+            } else {
+                // For owners, use the selected authentication method
+                $userData['is_email_field'] = $validated['is_email_field'];
+                $userData['email'] = $validated['identifier']; // Can be email or username
+            }
+
+            // Handle designation_id based on role
+            if ($validated['role'] == 2) {
+                // For veterinarians, designation is required
+                if (isset($request->designation_id)) {
+                    $userData['designation_id'] = $request->designation_id;
+                }
+            } else {
+                // For non-veterinarians, set designation_id to null
+                $userData['designation_id'] = null;
             }
 
             // Update user data
             $user->update($userData);
 
-            // Update or create the address
+            // Update or create the address for ALL user types
             $user->address()->updateOrCreate(
                 ['user_id' => $user->user_id],
                 $request->only(['barangay_id', 'street'])
             );
     
             // Handle owner-specific data if role is owner (1)
-            if ($request->role == 1) {
+            if ($validated['role'] == 1) {
                 // Update or create owner data
                 $user->owner()->updateOrCreate(
                     ['user_id' => $user->user_id],
@@ -230,14 +245,23 @@ class UserController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin-users')
-                ->with('message', 'User details updated successfully.');
+            // Redirect based on user role
+            if ($validated['role'] == 1) {
+                return redirect()->route('admin-owners')
+                    ->with('message', 'Owner details updated successfully.');
+            } else if ($validated['role'] == 2) {
+                return redirect()->route('admin-veterinarians')
+                    ->with('message', 'Veterinarian details updated successfully.');
+            } else {
+                return redirect()->route('admin-users')
+                    ->with('message', 'User details updated successfully.');
+            }
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating user: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'An error occurred while updating the user.')
+                ->with('error', 'An error occurred while updating the user: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -259,7 +283,6 @@ class UserController extends Controller
             'contact_no' => 'required|string|max:15',
             'gender' => 'required|string|max:10',
             'birth_date' => 'required|date',
-            'identifier' => 'required|string|max:255',
             'barangay_id' => 'required|exists:barangays,id',
             'street' => 'nullable|string|max:255',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Added validation for image
@@ -304,7 +327,7 @@ class UserController extends Controller
             $request->only(['civil_status', 'category']) + ['permit' => 1] // Data to update, with permit added
         );
     
-        return redirect()->route('users.profile-form', ['id' => $user->user_id])
+        return redirect()->route('users.nav-profile', ['id' => $user->user_id])
             ->with('message', 'Profile updated successfully.');
     }
     
