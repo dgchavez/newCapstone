@@ -16,36 +16,21 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
     <!-- Custom Background Style -->
     <style>
         body {
-            background-image: url('{{ asset('assets/bg6.jpg') }}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-
-        /* Footer Collapse/Expand Styles */
-        .collapsible-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            z-index: 40;
-        }
-
-        /* Ensure main content doesn't get hidden behind footer */
-        main {
-            padding-bottom: 50px;
+            background-image: url('{{ asset('assets/bg6.jpg') }}'); /* Path to your background image */
+            background-size: cover; /* Makes the image cover the entire background */
+            background-position: center; /* Centers the image */
+            background-repeat: no-repeat; /* Prevents tiling */
+            background-attachment: fixed; /* Keeps the background fixed on scroll */
         }
     </style>
 </head>
 
 <body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100 bg-opacity-80 flex flex-col">
+    <div class="min-h-screen bg-gray-100 bg-opacity-80">
         <livewire:layout.navigation />
 
         <!-- Page Heading -->
@@ -58,7 +43,7 @@
         @endif
 
         <!-- Page Content -->
-        <main class="flex-grow">
+        <main>
             {{ $slot }}
         </main>
 
@@ -109,37 +94,29 @@
                 </div>
             </div>
             
-            <!-- Policy Modal with Top Padding -->
+            <!-- Policy View Modal -->
             <div x-show="showPolicyModal" 
-                x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                x-cloak
-                class="fixed inset-0 z-[60] overflow-y-auto">
-                <!-- Backdrop -->
-                <div class="fixed inset-0 bg-gray-900 bg-opacity-75" @click="showPolicyModal = false"></div>
-                
-                <!-- Modal Container with Top Padding -->
-                <div class="flex items-start justify-center min-h-screen pt-16 pb-4 px-4 text-center"> <!-- Added pt-16 for top padding -->
-                    <!-- Modal Content -->
-                    <div class="inline-block align-middle bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 x-cloak
+                 class="fixed inset-0 z-50 overflow-y-auto">
+                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 transition-opacity" @click="showPolicyModal = false">
+                        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                    </div>
+                    
+                    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full"
                         @click.stop>
-                        <div class="bg-white px-4 pt-4 pb-4 sm:p-6">
-                            <div class="flex justify-between items-start">
-                                <h3 class="text-lg font-medium text-gray-900" x-text="currentPolicy?.title"></h3>
-                                <button @click="showPolicyModal = false" class="text-gray-400 hover:text-gray-500">
-                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="mt-4 prose-sm max-h-[60vh] overflow-y-auto" x-html="currentPolicy?.content"></div>
+                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" x-text="currentPolicy?.title"></h3>
+                            <div class="prose max-w-none text-gray-800" x-html="currentPolicy?.content"></div>
                         </div>
-                        <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse">
-                            <button @click="showPolicyModal = false" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                            <button @click="showPolicyModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                                 Close
                             </button>
                         </div>
@@ -148,22 +125,5 @@
             </div>
         </footer>
     </div>
-
-    <!-- Alpine.js Components -->
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('policyModal', () => ({
-                showPolicyModal: false,
-                currentPolicy: null,
-                
-                openPolicyModal(policy) {
-                    this.currentPolicy = policy;
-                    this.showPolicyModal = true;
-                }
-            }));
-        });
-    </script>
-    
-    @livewireScripts
 </body>
 </html>
