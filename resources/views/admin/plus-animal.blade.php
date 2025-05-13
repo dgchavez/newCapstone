@@ -191,7 +191,7 @@
             <!-- Submit Buttons -->
             <div class="mt-8 pt-5 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex justify-between">
-                    <a href="{{ route('admin-animals.index') }}" class="px-5 py-2.5 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 transition duration-200">
+                    <a href="{{ route('admin-animals') }}" class="px-5 py-2.5 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 transition duration-200">
                         Cancel
                     </a>
                     <button type="submit" class="px-8 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition duration-200">
