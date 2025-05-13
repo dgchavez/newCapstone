@@ -1212,13 +1212,13 @@ public function animalStore(Request $request)
         $data['group_count'] = 1; // Individual animals do not have a group count
     }
 
-    // Handle photo uploads
-    foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
-        if ($request->hasFile($photo)) {
-            $data[$photo] = $request->file($photo)->store('animal_photos', 'public');
-        }
+foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as $photo) {
+    if ($request->hasFile($photo)) {
+        $filename = time() . '_' . $request->file($photo)->getClientOriginalName();
+        $request->file($photo)->move(public_path('storage/animal_photos'), $filename);
+        $data[$photo] = 'animal_photos/' . $filename;
     }
-
+}
     try {
         // Save the animal record and get the created instance
         $animal = Animal::create([
