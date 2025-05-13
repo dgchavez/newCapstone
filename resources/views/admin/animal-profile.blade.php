@@ -622,7 +622,6 @@
         </div>
     </div>
 
-
     <script>
         const transactionSubtypes = @json($transactionSubtypes);
 
