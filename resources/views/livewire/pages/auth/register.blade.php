@@ -516,14 +516,14 @@ new #[Layout('layouts.guest')] class extends Component
             </div>
 
             <!-- Agreement Checkbox -->
-            <div class="mt-4">
+            <!-- <div class="mt-4">
                 <label class="flex items-start">
                     <input type="checkbox" class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" required>
                     <span class="ml-2 text-sm text-gray-600">
                         I agree to the <a href="#" class="text-blue-600 hover:underline font-medium">Terms and Conditions</a> and <a href="#" class="text-blue-600 hover:underline font-medium">Privacy Policy</a>
                     </span>
                 </label>
-            </div>
+            </div> -->
         </div>
         @endif
 
@@ -571,3 +571,4 @@ new #[Layout('layouts.guest')] class extends Component
         </p>
     </div>
 </div>
+
