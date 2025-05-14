@@ -231,7 +231,7 @@ Route::group(['middleware' => 'admin'],function(){
     Route::delete('/transactions/{transaction_id}', [TransactionsController::class, 'destroy'])->name('transactions.destroy');
     Route::get('transactions/{transaction_id}/edit', [TransactionsController::class, 'edit'])->name('transactions.edit');
     Route::put('transactions/{transaction_id}', [TransactionsController::class, 'update'])->name('transactions.update');
-    Route::get('/animals/{animal_id}/edit', [AnimalController::class, 'edit'])->name('animals.edit');
+    Route::get('/animals/{animal_id}/edit', [AnimalController::class, 'edit_animal'])->name('animals.edit');
     Route::put('/animals/{animal_id}', [AnimalController::class, 'update'])->name('animals.update');
     Route::delete('/animals/{animal_id})', [AnimalController::class, 'destroy'])->name('animals.delete');
     Route::get('/animals/add', [AnimalController::class, 'showAddAnimalForm'])->name('animals.add-animal-form');
