@@ -11,6 +11,8 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
         <!-- Styles -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.12.0/cdn.min.js" defer></script>
         <style>
             .gradient-text {
                 background: linear-gradient(90deg, #059669 0%, #10b981 100%);
@@ -40,7 +42,7 @@
             }
         </style>
     </head>
-    <body class="antialiased font-sans min-h-screen flex flex-col bg-gray-50">
+    <body class="antialiased">
         <!-- Background with parallax effect -->
         <div class="fixed inset-0 -z-10 parallax-bg" style="background-image: url('{{ asset('assets/bg.jpg') }}');"></div>
         <div class="fixed inset-0 -z-10 bg-black/20 backdrop-blur-sm"></div>
@@ -63,9 +65,6 @@
 
                     <!-- Desktop Navigation -->
                     <div class="hidden md:flex md:items-center md:space-x-1">
-                        <a href="#" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200" aria-current="page">
-                            Home
-                        </a>
                         <a href="#team" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200">
                             Team
                         </a>
@@ -231,60 +230,160 @@
                     </div>
 
                     <!-- Gallery Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        @foreach ([
-                            [
-                                'icon' => 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10',
-                                'title' => 'Modern Treatment Room',
-                                'description' => 'State-of-the-art equipment for precise diagnosis and treatment'
-                            ],
-                            [
-                                'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-                                'title' => 'Professional Care',
-                                'description' => 'Expert veterinary care with a compassionate touch'
-                            ],
-                            [
-                                'icon' => 'M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z',
-                                'title' => 'Advanced Equipment',
-                                'description' => 'Latest medical technology for optimal treatment'
-                            ],
-                            [
-                                'icon' => 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
-                                'title' => 'Recovery Area',
-                                'description' => 'Comfortable spaces for post-treatment care'
-                            ],
-                            [
-                                'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-                                'title' => 'Consultation Room',
-                                'description' => 'Private spaces for thorough medical consultations'
-                            ],
-                            [
-                                'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
-                                'title' => 'Emergency Care Unit',
-                                'description' => 'Ready for immediate medical attention'
-                            ]
-                        ] as $item)
-                        <div class="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                            <div class="aspect-w-16 aspect-h-12 bg-gradient-to-br from-green-50 to-emerald-50 p-8 flex flex-col items-center justify-center">
-                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md mb-6 group-hover:scale-110 transition-transform duration-300">
-                                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/>
-                                    </svg>
+                    <style>
+                        .modal-backdrop {
+                            background-color: rgba(0, 0, 0, 0.5);
+                            transition: opacity 0.3s ease;
+                        }
+                        .modal-content {
+                            transform: translateY(-50px);
+                            transition: transform 0.3s ease;
+                        }
+                        .modal-open .modal-content {
+                            transform: translateY(0);
+                        }
+                        [x-cloak] { display: none !important; }
+                        .aspect-w-16 { position: relative; padding-bottom: 75%; }
+                        .aspect-w-16 > * { position: absolute; height: 100%; width: 100%; top: 0; right: 0; bottom: 0; left: 0; display: flex; justify-content: center; align-items: center; }
+                    </style>
+
+                    <div x-data="{
+                        facilities: [
+                            {
+                                icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10',
+                                title: 'Treatment Room',
+                                description: 'State-of-the-art equipment for precise diagnosis and treatment',
+                                image: '/assets/stakeholder/r/r1.jpg' 
+                            },
+                            {
+                                icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+                                title: 'Professional Care',
+                                description: 'Expert veterinary care with a compassionate touch',
+                                image: '/assets/stakeholder/ds/ds3.jpg' 
+                            },
+                            {
+                                icon: 'M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z',
+                                title: 'Advanced Equipment',
+                                description: 'Latest medical technology for optimal treatment',
+                                image: '/assets/stakeholder/e/e1.jpg' 
+                            },
+                            {
+                                icon: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
+                                title: 'Recovery Area',
+                                description: 'Comfortable spaces for post-treatment care',
+                                image: '/assets/stakeholder/r/r2.jpg' 
+                            },
+                            {
+                                icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+                                title: 'Consultation Room',
+                                description: 'Private spaces for thorough medical consultations',
+                                image: '/assets/stakeholder/r/1.png' 
+                            },
+                            {
+                                icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
+                                title: 'Emergency Care Unit',
+                                description: 'Ready for immediate medical attention',
+                                image: '/assets/stakeholder/t/t5.jpg' 
+                            }
+                        ],
+                        selectedFacility: null,
+                        showModal: false,
+                        openModal(facility) {
+                            this.selectedFacility = facility;
+                            this.showModal = true;
+                            document.body.classList.add('overflow-hidden');
+                        },
+                        closeModal() {
+                            this.showModal = false;
+                            document.body.classList.remove('overflow-hidden');
+                        }
+                    }">
+                        <!-- Facility Cards Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <template x-for="(facility, index) in facilities" :key="index">
+                                <div 
+                                    class="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer"
+                                    @click="openModal(facility)"
+                                >
+                                    <div class="aspect-w-16 bg-gradient-to-br from-green-50 to-emerald-50 p-8">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md mb-6 group-hover:scale-110 transition-transform duration-300">
+                                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x-bind:d="facility.icon"/>
+                                                </svg>
+                                            </div>
+                                            <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors duration-200" x-text="facility.title"></h3>
+                                            <p class="text-gray-600 text-center text-sm" x-text="facility.description"></p>
+                                        </div>
+                                    </div>
+                                    <div class="absolute inset-0 bg-gradient-to-t from-green-600/80 via-green-500/0 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        <div class="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                            <p class="text-sm font-medium">Click to view more</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors duration-200">
-                                    {{ $item['title'] }}
-                                </h3>
-                                <p class="text-gray-600 text-center text-sm">
-                                    {{ $item['description'] }}
-                                </p>
-                            </div>
-                            <div class="absolute inset-0 bg-gradient-to-t from-green-600/80 via-green-500/0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                <div class="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                    <p class="text-sm font-medium">Click to view more</p>
+                            </template>
+                        </div>
+
+                        <!-- Modal for Image Popup -->
+                        <div 
+                            x-show="showModal" 
+                            x-cloak 
+                            class="fixed inset-0 z-50 overflow-y-auto" 
+                            @click.away="closeModal()" 
+                            @keydown.escape.window="closeModal()"
+                        >
+                            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                                <div 
+                                    x-show="showModal" 
+                                    x-transition:enter="ease-out duration-300" 
+                                    x-transition:enter-start="opacity-0" 
+                                    x-transition:enter-end="opacity-100" 
+                                    x-transition:leave="ease-in duration-200" 
+                                    x-transition:leave-start="opacity-100" 
+                                    x-transition:leave-end="opacity-0" 
+                                    class="fixed inset-0 transition-opacity modal-backdrop"
+                                >
+                                </div>
+
+                                <div 
+                                    x-show="showModal" 
+                                    x-transition:enter="ease-out duration-300" 
+                                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                                    x-transition:leave="ease-in duration-200" 
+                                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+                                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                                    class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 modal-content"
+                                >
+                                    <div class="absolute top-0 right-0 pt-4 pr-4">
+                                        <button @click="closeModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="sm:flex sm:items-start">
+                                        <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                                            <h3 class="text-xl leading-6 font-bold text-gray-900 mb-4" x-text="selectedFacility?.title"></h3>
+                                            <div class="mt-2">
+                                                <img x-bind:src="selectedFacility?.image" alt="Facility Image" class="w-full h-auto rounded-lg">
+                                                <p class="mt-4 text-sm text-gray-600" x-text="selectedFacility?.description"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                        <button 
+                                            type="button" 
+                                            @click="closeModal()" 
+                                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        @endforeach
                     </div>
                 </div>
             </section>
@@ -335,9 +434,16 @@
             
             <!-- Call to Action Section -->
             <div class="relative bg-gradient-to-r from-green-600 to-emerald-500 py-20">
+                <!-- Background image with 50% opacity -->
                 <div class="absolute inset-0 overflow-hidden">
-                    <div class="absolute inset-0 bg-[url('{{ asset('assets/pattern.svg') }}'] opacity-10"></div>
+                    <img src="{{ asset('assets/stakeholder/t/t8.jpg') }}" 
+                        alt="Background" 
+                        class="w-full h-full object-cover opacity-20">
                 </div>
+                
+                <!-- Pattern overlay -->
+                <div class="absolute inset-0 bg-[url('{{ asset('assets/pattern.svg') }}')] opacity-10"></div>
+                
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
                     <div class="text-center">
                         <h2 class="text-3xl font-bold text-white mb-6">Ready to Give Your Animal the Best Care?</h2>
@@ -350,7 +456,7 @@
                         </a>
                     </div>
                 </div>
-            </div>
+            </div>        
         </main>
         <!-- ========== END HERO ========== -->
         
@@ -513,88 +619,241 @@
                         </div>
 
                         <!-- Services Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            @foreach ([
-                                [
-                                    'title' => 'Surveillance & Investigation',
-                                    'description' => 'Monitoring and investigation of animal health issues',
-                                    'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-                                    'color' => 'emerald'
-                                ],
-                                [
-                                    'title' => 'Farm Visit',
-                                    'description' => 'On-site evaluation and consultation services',
-                                    'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-                                    'color' => 'green'
-                                ],
-                                [
-                                    'title' => 'Vaccination',
-                                    'description' => 'Preventive care and immunization programs',
-                                    'icon' => 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z',
-                                    'color' => 'teal'
-                                ],
-                                [
-                                    'title' => 'Treatment',
-                                    'description' => 'Professional medical care for all conditions',
-                                    'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
-                                    'color' => 'green'
-                                ],
-                                [
-                                    'title' => 'Vitamin Supplementation',
-                                    'description' => 'Essential nutrients for optimal health',
-                                    'icon' => 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z',
-                                    'color' => 'emerald'
-                                ],
-                                [
-                                    'title' => 'Health Certificate',
-                                    'description' => 'Official documentation for transport',
-                                    'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-                                    'color' => 'teal'
-                                ]
-                            ] as $service)
-                            <div class="group relative bg-white rounded-xl p-6 hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-green-100">
-                                <div class="flex items-start space-x-4">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg flex items-center justify-center group-hover:from-green-100 group-hover:to-emerald-100 transition-colors duration-200 shadow-sm">
-                                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $service['icon'] }}"/>
+                        <style>
+                            .modal-backdrop {
+                                background-color: rgba(0, 0, 0, 0.5);
+                                transition: opacity 0.3s ease;
+                            }
+                            .modal-content {
+                                transform: translateY(-50px);
+                                transition: transform 0.3s ease;
+                            }
+                            .modal-open .modal-content {
+                                transform: translateY(0);
+                            }
+                        </style>
+
+                        <div x-data="{
+                            selectedService: null,
+                            showModal: false,
+                            openModal(service) {
+                                this.selectedService = service;
+                                this.showModal = true;
+                                document.body.classList.add('overflow-hidden');
+                            },
+                            closeModal() {
+                                this.showModal = false;
+                                document.body.classList.remove('overflow-hidden');
+                            }
+                        }">
+                            <!-- Service Cards Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                @foreach ([
+                                    [
+                                        'title' => 'Surveillance & Investigation',
+                                        'description' => 'Monitoring and investigation of animal health issues',
+                                        'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+                                        'color' => 'emerald',
+                                        'image' => '/assets/stakeholder/t/t9.jpg' 
+                                    ],
+                                    [
+                                        'title' => 'Farm Visit',
+                                        'description' => 'On-site evaluation and consultation services',
+                                        'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+                                        'color' => 'green',
+                                        'image' => '/assets/stakeholder/t/t2.jpg'
+                                    ],
+                                    [
+                                        'title' => 'Vaccination',
+                                        'description' => 'Preventive care and immunization programs',
+                                        'icon' => 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z',
+                                        'color' => 'teal',
+                                        'image' => '/assets/stakeholder/ra/ra1.jpg'
+                                    ],
+                                    [
+                                        'title' => 'Treatment',
+                                        'description' => 'Professional medical care for all conditions',
+                                        'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
+                                        'color' => 'green',
+                                        'image' => '/assets/stakeholder/ai/ai16.jpg'
+                                    ],
+                                    [
+                                        'title' => 'Vitamin Supplementation',
+                                        'description' => 'Essential nutrients for optimal health',
+                                        'icon' => 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+                                        'color' => 'emerald',
+                                        'image' => '/assets/stakeholder/ai/ai1.jpg'
+                                    ],
+                                    [
+                                        'title' => 'Health Certificate',
+                                        'description' => 'Official documentation for transport',
+                                        'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                                        'color' => 'teal',
+                                        'image' => '/assets/stakeholder/ai/ai16.jpg'
+                                    ]
+                                ] as $index => $service)
+                                <div 
+                                    class="group relative bg-white rounded-xl p-6 hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-green-100 cursor-pointer"
+                                    @click="openModal({
+                                        title: '{{ $service['title'] }}',
+                                        description: '{{ $service['description'] }}',
+                                        image: '{{ $service['image'] }}'
+                                    })"
+                                >
+                                    <div class="flex items-start space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-12 h-12 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg flex items-center justify-center group-hover:from-green-100 group-hover:to-emerald-100 transition-colors duration-200 shadow-sm">
+                                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $service['icon'] }}"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors duration-200">
+                                                {{ $service['title'] }}
+                                            </h4>
+                                            <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+                                                {{ $service['description'] }}
+                                            </p>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-gray-400 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                             </svg>
                                         </div>
                                     </div>
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors duration-200">
-                                            {{ $service['title'] }}
-                                        </h4>
-                                        <p class="mt-2 text-sm text-gray-500 leading-relaxed">
-                                            {{ $service['description'] }}
-                                        </p>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Modal for Image Popup -->
+                            <div 
+                                x-show="showModal" 
+                                x-cloak 
+                                class="fixed inset-0 z-50 overflow-y-auto" 
+                                @click.away="closeModal()" 
+                                @keydown.escape.window="closeModal()"
+                            >
+                                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                                    <div 
+                                        x-show="showModal" 
+                                        x-transition:enter="ease-out duration-300" 
+                                        x-transition:enter-start="opacity-0" 
+                                        x-transition:enter-end="opacity-100" 
+                                        x-transition:leave="ease-in duration-200" 
+                                        x-transition:leave-start="opacity-100" 
+                                        x-transition:leave-end="opacity-0" 
+                                        class="fixed inset-0 transition-opacity modal-backdrop"
+                                    >
                                     </div>
-                                    <div class="flex-shrink-0">
-                                        <svg class="w-5 h-5 text-gray-400 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                        </svg>
+
+                                    <div 
+                                        x-show="showModal" 
+                                        x-transition:enter="ease-out duration-300" 
+                                        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                                        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                                        x-transition:leave="ease-in duration-200" 
+                                        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+                                        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                                        class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 modal-content"
+                                    >
+                                        <div class="absolute top-0 right-0 pt-4 pr-4">
+                                            <button @click="closeModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="sm:flex sm:items-start">
+                                            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" x-text="selectedService?.title"></h3>
+                                                <div class="mt-2">
+                                                    <img x-bind:src="selectedService?.image" alt="Service Image" class="w-full h-auto rounded-lg">
+                                                    <p class="mt-4 text-sm text-gray-500" x-text="selectedService?.description"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                            <button 
+                                                type="button" 
+                                                @click="closeModal()" 
+                                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            @endforeach
-                        </div>
-
-                        <!-- Action Button -->
-                        <div class="mt-12 text-center">
-                            <a href="#contact" class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 transition-all duration-300 shadow-lg glow-on-hover">
-                                Contact Us Today
-                                <svg class="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                                </svg>
-                            </a>
                         </div>
                     </div>
-                </div>
-            </div>
-        </section>
+                
 
-        <!-- ========== FOOTER ========== -->
-        <footer class="bg-gray-900 text-white pt-20 pb-12">
+        <!-- ========== HERO SECTION ========== -->
+        <section class="relative">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6">                
+            </div>
+        </div>
+        </section>
+        </div>
+
+        <!-- Back to top button -->
+        <button id="backToTop" class="fixed bottom-8 right-8 bg-green-600 text-white p-3 rounded-full shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-green-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+            </svg>
+        </button>
+
+        <script>
+            function toggleMobileMenu() {
+                const mobileMenu = document.getElementById('mobileMenu');
+                const menuOpen = document.getElementById('menuOpen');
+                const menuClose = document.getElementById('menuClose');
+                
+                mobileMenu.classList.toggle('hidden');
+                menuOpen.classList.toggle('hidden');
+                menuClose.classList.toggle('hidden');
+            }
+
+            // Close mobile menu when clicking on a link
+            document.querySelectorAll('#mobileMenu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    document.getElementById('mobileMenu').classList.add('hidden');
+                    document.getElementById('menuOpen').classList.remove('hidden');
+                    document.getElementById('menuClose').classList.add('hidden');
+                });
+            });
+
+            // Back to top button
+            const backToTopButton = document.getElementById('backToTop');
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.remove('opacity-0', 'invisible');
+                    backToTopButton.classList.add('opacity-100', 'visible');
+                } else {
+                    backToTopButton.classList.remove('opacity-100', 'visible');
+                    backToTopButton.classList.add('opacity-0', 'invisible');
+                }
+            });
+
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        </script>
+    </body>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="bg-gray-900 text-white pt-20 pb-12">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
                     <div class="flex justify-center mb-8">
@@ -688,58 +947,5 @@
         </footer>
         <!-- ========== END FOOTER ========== -->
 
-        <!-- Back to top button -->
-        <button id="backToTop" class="fixed bottom-8 right-8 bg-green-600 text-white p-3 rounded-full shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-green-700">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-            </svg>
-        </button>
-
-        <script>
-            function toggleMobileMenu() {
-                const mobileMenu = document.getElementById('mobileMenu');
-                const menuOpen = document.getElementById('menuOpen');
-                const menuClose = document.getElementById('menuClose');
-                
-                mobileMenu.classList.toggle('hidden');
-                menuOpen.classList.toggle('hidden');
-                menuClose.classList.toggle('hidden');
-            }
-
-            // Close mobile menu when clicking on a link
-            document.querySelectorAll('#mobileMenu a').forEach(link => {
-                link.addEventListener('click', () => {
-                    document.getElementById('mobileMenu').classList.add('hidden');
-                    document.getElementById('menuOpen').classList.remove('hidden');
-                    document.getElementById('menuClose').classList.add('hidden');
-                });
-            });
-
-            // Back to top button
-            const backToTopButton = document.getElementById('backToTop');
-            window.addEventListener('scroll', () => {
-                if (window.pageYOffset > 300) {
-                    backToTopButton.classList.remove('opacity-0', 'invisible');
-                    backToTopButton.classList.add('opacity-100', 'visible');
-                } else {
-                    backToTopButton.classList.remove('opacity-100', 'visible');
-                    backToTopButton.classList.add('opacity-0', 'invisible');
-                }
-            });
-
-            backToTopButton.addEventListener('click', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-
-            // Smooth scrolling for anchor links
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    document.querySelector(this.getAttribute('href')).scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                });
-            });
-        </script>
-    </body>
+    
 </html>

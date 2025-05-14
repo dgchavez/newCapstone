@@ -14,7 +14,7 @@
     <!-- Preload critical assets -->
     <link rel="preload" href="{{ asset('assets/bg.jpg') }}" as="image">
     <link rel="preload" href="{{ asset('assets/logo2.png') }}" as="image">
-    <link rel="preload" href="{{ asset('assets/login.jpg') }}" as="image">
+    <link rel="preload" href="{{ asset('assets/login2.png') }}" as="image">
     <link rel="preload" href="{{ asset('assets/reg.jpg') }}" as="image">
     <link rel="preload" href="{{ asset('assets/forgot-password.jpg') }}" as="image">
 
@@ -38,7 +38,7 @@
     
 </head>
 
-<body class="font-sans text-gray-900 antialiased bg-gray-50 h-full">
+<body class="font-sans text-gray-300 antialiased bg-gray-50 h-full">
     <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-cover bg-center bg-no-repeat bg-fixed" 
          style="background-image: url('{{ asset('assets/bg.jpg') }}');">
         
@@ -46,7 +46,7 @@
         <div class="text-center mb-8 animate-fade-in" style="animation-delay: 0.1s;">
             <a href="/" wire:navigate class="inline-block transition-transform hover:scale-105 active:scale-95">
                 <img class="h-24 w-auto mx-auto drop-shadow-lg" src="{{ asset('assets/logo2.png') }}" alt="Veterinary Office Logo">
-                <h1 class="mt-2 text-xl font-bold text-white bg-green-600/90 px-4 py-1 rounded-full shadow-md">
+                <h1 class="mt-2 text-xl font-bold text-white bg-green-600 px-4 py-1 rounded-full shadow-md">
                     {{ config('app.name', 'Veterinary Office') }}
                 </h1>
             </a>
@@ -59,7 +59,7 @@
                 <div class="hidden md:block md:w-1/2 relative rounded-lg overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-t from-blue-600/20 to-transparent"></div>
                     <img src="@if(request()->routeIs('password.request')){{ asset('assets/forgot.jpg') }}
-                             @elseif(request()->routeIs('login')){{ asset('assets/login.jpg') }}
+                             @elseif(request()->routeIs('login')){{ asset('assets/login2.png') }}
                              @else{{ asset('assets/reg.jpg') }}@endif" 
                          alt="@if(request()->routeIs('password.request'))Password Reset
                              @elseif(request()->routeIs('login'))Login
