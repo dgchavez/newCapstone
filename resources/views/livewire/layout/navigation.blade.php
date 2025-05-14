@@ -64,6 +64,12 @@ new class extends Component
                             class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600" wire:navigate>
                             {{ __('Veterinarians') }}
                         </x-nav-link>
+                           <x-nav-link :href="route('admin.documents.index')"
+                            :active="request()->routeIs('admin.documents.*')"
+                            class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600" wire:navigate>
+                            {{ __('My Documents') }}
+                        </x-nav-link>
+
                         
                         <!-- Manage Dropdown -->
                         <div class="hidden sm:flex sm:items-center">
@@ -139,11 +145,17 @@ new class extends Component
                             class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600" wire:navigate>
                             {{ __('Profile') }}
                         </x-nav-link>
-                           <x-nav-link :href="route('vet-owners')" :active="request()->routeIs('vet-owners')" 
+                        <x-nav-link :href="route('vet-owners')" :active="request()->routeIs('vet-owners')" 
                             class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600" wire:navigate>
                             {{ __('Owners') }}
                         </x-nav-link>
                         
+                        <x-nav-link :href="route('vet.documents.index')"
+                            :active="request()->routeIs('vet.documents.*')"
+                            class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600" wire:navigate>
+                            {{ __('My Documents') }}
+                        </x-nav-link>
+
                         <x-nav-link :href="route('reports.index')"
                             :active="request()->routeIs('reports.index')"
                             class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600">
@@ -165,6 +177,12 @@ new class extends Component
                             class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600" wire:navigate>
                             {{ __('Animals') }}
                         </x-nav-link>
+                             <x-nav-link :href="route('rec.documents.index')"
+                            :active="request()->routeIs('rec.documents.*')"
+                            class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600" wire:navigate>
+                            {{ __('My Documents') }}
+                        </x-nav-link>
+
                         <x-nav-link :href="route('receptionist.reports')"
                         :active="request()->routeIs('receptionist.reports')"
                         class="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:bg-green-50 hover:text-green-600">
