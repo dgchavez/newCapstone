@@ -25,7 +25,6 @@
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
-            padding-bottom: 80px; /* Space for fixed footer */
         }
         
         /* Ensure proper modal display */
@@ -82,9 +81,27 @@
             {{ $slot }}
         </main>
 
-        <!-- Fixed Footer with Policy Links -->
-        <div x-data="{ policyData: $store.policyStore }">
-            <footer class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white shadow-lg">
+        <!-- Footer with Policy Links -->
+        <div x-data="{ 
+            policyData: $store.policyStore,
+            showFooter: false,
+            checkScroll() {
+                // Show footer when scrolled to bottom (with small threshold)
+                const threshold = 20;
+                const bottomReached = (window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - threshold;
+                this.showFooter = bottomReached;
+            }
+        }" 
+        x-init="window.addEventListener('scroll', () => checkScroll())"
+        @resize.window="checkScroll()">
+            <footer x-show="showFooter"
+                   x-transition:enter="transition ease-out duration-300"
+                   x-transition:enter-start="opacity-0 transform translate-y-full"
+                   x-transition:enter-end="opacity-100 transform translate-y-0"
+                   x-transition:leave="transition ease-in duration-200"
+                   x-transition:leave-start="opacity-100 transform translate-y-0"
+                   x-transition:leave-end="opacity-0 transform translate-y-full"
+                   class="fixed bottom-0 left-0 right-0 bg-gray-800 text-white shadow-lg">
                 <div class="container mx-auto px-4 py-3">
                     <div class="flex flex-wrap justify-center space-x-4 mb-2">
                         @foreach(\App\Models\Policy::where('is_published', true)->get() as $policy)
