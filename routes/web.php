@@ -3,6 +3,7 @@ use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\TransactionSubtypeController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\NewOwnerController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ReController;
 use App\Http\Controllers\VetReportController;
 use App\Http\Controllers\NewVaccineController;
@@ -109,6 +110,11 @@ Route::get('/transaction/{transaction}/pdf', [TransactionsController::class, 'do
 
 Route::group(['middleware' => 'admin'],function(){
     
+
+    Route::get('/admin/documents', [AdminController::class, 'index'])->name('admin.documents.index');
+        Route::post('/admin/documents', [AdminController::class, 'storeDoc'])->name('admin.documents.store');
+        Route::delete('/admin/documents/{document}', [AdminController::class, 'destroyDoc'])->name('admin.documents.destroy');
+        Route::get('/admin/documents/{document}/download', [AdminController::class, 'download'])->name('admin.documents.download');
     // Legal Policies
     Route::resource('policies', \App\Http\Controllers\Admin\PolicyController::class)
         ->except(['show']);
@@ -225,7 +231,7 @@ Route::group(['middleware' => 'admin'],function(){
     Route::delete('/transactions/{transaction_id}', [TransactionsController::class, 'destroy'])->name('transactions.destroy');
     Route::get('transactions/{transaction_id}/edit', [TransactionsController::class, 'edit'])->name('transactions.edit');
     Route::put('transactions/{transaction_id}', [TransactionsController::class, 'update'])->name('transactions.update');
-    Route::get('/animals/{animal_id}/edit', [AnimalController::class, 'edit'])->name('animals.edit');
+    Route::get('/animals/{animal_id}/edit', [AnimalController::class, 'edit_animal'])->name('animals.edit');
     Route::put('/animals/{animal_id}', [AnimalController::class, 'update'])->name('animals.update');
     Route::delete('/animals/{animal_id})', [AnimalController::class, 'destroy'])->name('animals.delete');
     Route::get('/animals/add', [AnimalController::class, 'showAddAnimalForm'])->name('animals.add-animal-form');
@@ -385,6 +391,10 @@ Route::group(['middleware' => 'vet'], function () {
     // ... existing code ...
 
     });
+        Route::get('/vet/documents', [DocumentController::class, 'index'])->name('vet.documents.index');
+        Route::post('/vet/documents', [DocumentController::class, 'store'])->name('vet.documents.store');
+        Route::delete('/vet/documents/{document}', [DocumentController::class, 'destroy'])->name('vet.documents.destroy');
+        Route::get('/vet/documents/{document}/download', [DocumentController::class, 'download'])->name('vet.documents.download');
     // Replace or add this route outside of any route groups
 Route::post('/api/reports/preview', [App\Http\Controllers\ReportController::class, 'preview'])
 ->middleware('auth')
@@ -433,6 +443,10 @@ Route::group(['middleware' => 'receptionist'], function () {
         Route::get('/receptionist/reports', [App\Http\Controllers\VetReportController::class, 'index'])
         ->name('receptionist.reports');
     
+     Route::get('/rec/documents', [ReceptionistController::class, 'index'])->name('rec.documents.index');
+        Route::post('/rec/documents', [ReceptionistController::class, 'store'])->name('rec.documents.store');
+        Route::delete('/rec/documents/{document}', [ReceptionistController::class, 'destroy'])->name('rec.documents.destroy');
+        Route::get('/rec/documents/{document}/download', [ReceptionistController::class, 'download'])->name('rec.documents.download');
 
     // API for report previews
     Route::post('/api/receptionist/reports/preview', [App\Http\Controllers\VetReportController::class, 'preview'])
