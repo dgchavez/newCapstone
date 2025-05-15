@@ -1,35 +1,157 @@
-<!-- resources/views/admin/species/create.blade.php -->
 <x-app-layout>
-    <div class="max-w-2xl mx-auto p-8 bg-white rounded-lg shadow-md mt-10">
-        <div class="mb-8">
-            <h1 class="text-3xl font-semibold text-gray-800">Add New Species</h1>
-            <p class="text-gray-600 mt-2">Enter the details for the new species below</p>
+    <div class="bg-gradient-to-b from-green-50 to-white min-h-screen">
+        <div class="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <!-- Header Section -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-green-600 to-green-400 h-16"></div>
+                <div class="px-6 py-5 -mt-1">
+                    <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-plus-circle text-blue-500 mr-3"></i>Add New Species
+                    </h1>
+                    <p class="text-gray-600 mt-2">Enter the details for the new species below</p>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <form action="{{ route('species.store') }}" method="POST">
+                        @csrf
+                        
+                        <!-- Form introduction -->
+                        <div class="mb-6 pb-4 border-b border-gray-200">
+                            <div class="flex items-center">
+                                <div class="h-12 w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-4">
+                                    <i class="fas fa-paw text-xl"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-medium text-gray-800">Species Information</h2>
+                                    <p class="text-sm text-gray-500">Each species can have multiple breeds</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Color Preview -->
+                        <div class="mb-6">
+                            <label class="text-sm font-medium text-gray-700 block mb-2">Color Preview</label>
+                            <div class="flex items-center">
+                                <div id="colorPreview" class="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
+                                    A
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    Preview of how this species will appear in the list
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Species Name Field -->
+                        <div class="mb-6">
+                            <label for="name" class="text-sm font-medium text-gray-700 block mb-2">Species Name</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-tag text-gray-400"></i>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    name="name" 
+                                    id="name" 
+                                    class="pl-10 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 py-3 @error('name') border-red-500 @enderror" 
+                                    placeholder="Enter species name"
+                                    required
+                                    oninput="updateColorPreview(this.value)"
+                                >
+                            </div>
+                            @error('name')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="mt-8 flex items-center justify-between">
+                            <a href="{{ route('species.breed') }}" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                <span>Back to list</span>
+                            </a>
+                            
+                            <div class="flex gap-3">
+                                <button 
+                                    type="reset" 
+                                    class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200"
+                                >
+                                    Reset
+                                </button>
+                                
+                                <button 
+                                    type="submit" 
+                                    class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 flex items-center gap-2"
+                                >
+                                    <i class="fas fa-save"></i>
+                                    <span>Create Species</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-
-        <form action="{{ route('species.store') }}" method="POST" class="space-y-6">
-            @csrf
-            <div>
-                <label for="name" class="text-sm font-medium text-gray-700 block mb-2">
-                    Species Name
-                </label>
-                <input 
-                    type="text" 
-                    name="name" 
-                    id="name" 
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
-                    placeholder="Enter species name"
-                    required
-                >
-            </div>
-
-            <div class="pt-4">
-                <button 
-                    type="submit" 
-                    class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out"
-                >
-                    Create Species
-                </button>
-            </div>
-        </form>
     </div>
+    
+    <!-- Add Font Awesome CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    
+    <script>
+        // Array of color classes to match the same ones used in the index page
+        const colors = [
+            'bg-blue-500',
+            'bg-green-500',
+            'bg-purple-500',
+            'bg-red-500',
+            'bg-yellow-500',
+            'bg-indigo-500'
+        ];
+        
+        function updateColorPreview(name) {
+            const preview = document.getElementById('colorPreview');
+            
+            // Clear existing background color classes
+            colors.forEach(color => {
+                preview.classList.remove(color);
+            });
+            
+            if (name.length > 0) {
+                // Use the same color algorithm as the index page
+                const hash = stringToNumber(name);
+                const colorIndex = hash % colors.length;
+                
+                // Add the new color class
+                preview.classList.add(colors[colorIndex]);
+                
+                // Update the letter
+                preview.innerText = name.charAt(0).toUpperCase();
+            } else {
+                // Default if no name
+                preview.classList.add('bg-blue-500');
+                preview.innerText = 'A';
+            }
+        }
+        
+        // Convert string to number using a simple hash function
+        function stringToNumber(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return Math.abs(hash);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const nameInput = document.getElementById('name');
+            if (nameInput && nameInput.value) {
+                updateColorPreview(nameInput.value);
+            }
+        });
+    </script>
 </x-app-layout>

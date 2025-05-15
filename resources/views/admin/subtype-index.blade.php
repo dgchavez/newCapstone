@@ -1,62 +1,117 @@
-<!-- resources/views/admin/transaction-subtypes/index.blade.php -->
 <x-app-layout>
-    <div class="container mx-auto p-8 bg-white shadow-lg rounded-lg">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">Transaction Subtypes</h1>
-            <a href="{{ route('transaction-subtypes.create') }}" 
-                class="flex items-center bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3H6a1 1 0 000 2h3v3a1 1 0 102 0v-3h3a1 1 0 000-2h-3V7z" clip-rule="evenodd" />
-                </svg>
-                Add New Subtype
-            </a>
-        </div>
+    <div class="bg-gradient-to-b from-green-50 to-white min-h-screen">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Header Section -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-green-600 to-green-400 h-16"></div>
+                <div class="px-6 py-5 -mt-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-list-alt text-blue-500 mr-3"></i>Transaction Subtypes
+                    </h1>
+                    <a href="{{ route('transaction-subtypes.create') }}" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition duration-200 flex items-center gap-2 shadow-md">
+                        <i class="fas fa-plus text-sm"></i>
+                        <span>Add New Subtype</span>
+                    </a>
+                </div>
+            </div>
 
-        <div class="overflow-x-auto bg-gray-50 rounded-xl shadow-sm">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Transaction Type</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @foreach($transactionSubtypes as $subtype)
-                        <tr class="hover:bg-gray-50 transition duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $subtype->subtype_name }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $subtype->transactionType->type_name }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <div class="flex justify-center items-center space-x-4">
-                                    <a href="{{ route('transaction-subtypes.edit', $subtype) }}" 
-                                       class="text-blue-600 hover:text-blue-800 flex items-center transition duration-150">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M17.414 2.586a2 2 0 010 2.828L15 7.828l-4-4 2.414-2.414a2 2 0 012.828 0l1.172 1.172zM14 6l-4 4H9l1-1v-1H8l-4 4v1h1v1H5v-1H4v1a1 1 0 001 1h1a1 1 0 001-1v-1h1v-1h1v-1h1l4-4V6z"/>
-                                        </svg>
-                                        <span class="font-medium">Edit</span>
-                                    </a>
-                                    <form action="{{ route('transaction-subtypes.destroy', $subtype) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                            class="text-red-600 hover:text-red-800 flex items-center transition duration-150"
-                                            onclick="return confirm('Are you sure you want to delete this subtype?')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd" d="M7 4V3a1 1 0 112 0v1h2V3a1 1 0 112 0v1h3a1 1 0 110 2h-1v11a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 110-2h3zM5 6v11a1 1 0 001 1h6a1 1 0 001-1V6H5zm2 3a1 1 0 012 0v5a1 1 0 11-2 0V9zm4 0a1 1 0 012 0v5a1 1 0 11-2 0V9z" clip-rule="evenodd" />
-                                            </svg>
-                                            <span class="font-medium">Delete</span>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <!-- Table Section -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Type</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @forelse($transactionSubtypes as $subtype)
+                                    <tr class="hover:bg-blue-50 transition-colors duration-200">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-10 w-10 mr-3">
+                                                    <div class="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                                        <i class="fas fa-clipboard-list"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm font-medium text-gray-900">{{ $subtype->subtype_name }}</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <span class="px-3 py-1 text-sm inline-flex items-center rounded-full text-white
+                                                    @php
+                                                        // Use the first 8 characters of MD5 hash converted to integer
+                                                        $hash = hexdec(substr(md5($subtype->transactionType->type_name), 0, 8));
+                                                        $colorIndex = $hash % 6; // Use 6 distinct colors
+                                                        
+                                                        // Array of distinct color classes
+                                                        $colors = [
+                                                            'bg-blue-500',
+                                                            'bg-green-500',
+                                                            'bg-purple-500',
+                                                            'bg-red-500',
+                                                            'bg-yellow-500',
+                                                            'bg-indigo-500'
+                                                        ];
+                                                        
+                                                        echo $colors[$colorIndex];
+                                                    @endphp">
+                                                    {{ $subtype->transactionType->type_name }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <div class="flex justify-center gap-3">
+                                                <a href="{{ route('transaction-subtypes.edit', $subtype) }}" 
+                                                   class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-lg inline-flex items-center">
+                                                    <i class="fas fa-edit mr-1"></i> Edit
+                                                </a>
+                                                
+                                                <form action="{{ route('transaction-subtypes.destroy', $subtype) }}" method="POST" class="inline-block">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" 
+                                                            class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-lg inline-flex items-center" 
+                                                            onclick="return confirm('Are you sure you want to delete this subtype?')">
+                                                        <i class="fas fa-trash-alt mr-1"></i> Delete
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-8 text-center text-gray-500">
+                                            <div class="flex flex-col items-center">
+                                                <i class="fas fa-list-alt text-gray-400 text-3xl mb-2"></i>
+                                                <p>No transaction subtypes found.</p>
+                                                <a href="{{ route('transaction-subtypes.create') }}" class="mt-4 text-blue-600 hover:text-blue-800">
+                                                    Add your first transaction subtype
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination (if available) -->
+                    @if(method_exists($transactionSubtypes, 'links') && $transactionSubtypes->hasPages())
+                    <div class="mt-4 border-t border-gray-200 pt-4">
+                        {{ $transactionSubtypes->links() }}
+                    </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
+    
+    <!-- Add Font Awesome CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 </x-app-layout>

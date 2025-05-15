@@ -80,7 +80,7 @@
                 <!-- Birth Date -->
                 <div>
                     <x-input-label for="birth_date" :value="__('Birth Date')" class="text-lg font-semibold text-gray-800"/>
-                    <x-text-input type="date" name="birth_date" id="birth_date" value="{{ old('birth_date', $user->birth_date = \Carbon\Carbon::parse($user->birth_date)->format('Y-m-d')); }}" class="mt-1 block w-full rounded-lg border-green-600 shadow-sm focus:ring-2 focus:ring-green-500" required />
+                    <x-text-input type="date" name="birth_date" id="birth_date" value="{{ old('birth_date', $user->birth_date = \Carbon\Carbon::parse($user->birth_date)->format('Y-m-d')) }}" class="mt-1 block w-full rounded-lg border-green-600 shadow-sm focus:ring-2 focus:ring-green-500" required />
                 </div>
 
 
