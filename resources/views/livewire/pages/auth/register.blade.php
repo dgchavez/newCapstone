@@ -43,6 +43,10 @@ new #[Layout('layouts.guest')] class extends Component
     // New properties
     public bool $is_email_field = true; // Flag to track if the email field contains an email or username
 
+    // Add these properties to your component class
+    public $selected_special_category = null;
+    public $selected_regular_categories = [];
+
     /**
      * Mount function to initialize data
      */
@@ -176,6 +180,25 @@ new #[Layout('layouts.guest')] class extends Component
             // If active, login the user and redirect
             Auth::login($user);
             redirect()->intended(route('dashboard', absolute: false));
+        }
+    }
+
+    // Add this method to your component class
+    public function updatedSelectedSpecialCategory()
+    {
+        // When a special category is selected, add it to the main categories array
+        $this->selected_categories = $this->selected_regular_categories;
+        if (!is_null($this->selected_special_category)) {
+            $this->selected_categories[] = $this->selected_special_category;
+        }
+    }
+
+    public function updatedSelectedRegularCategories()
+    {
+        // When regular categories are updated, update the main categories array
+        $this->selected_categories = $this->selected_regular_categories;
+        if (!is_null($this->selected_special_category)) {
+            $this->selected_categories[] = $this->selected_special_category;
         }
     }
 }
@@ -366,23 +389,53 @@ new #[Layout('layouts.guest')] class extends Component
 
             <!-- Categories Selection -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Pet Categories (Select all that apply)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Owner Categories</label>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    @foreach($categories as $category)
-                        <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer">
-                            <input type="checkbox" 
-                                wire:model="selected_categories" 
-                                value="{{ $category->id }}" 
-                                class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <div class="ml-3">
-                                <span class="block text-sm font-medium text-gray-700">{{ $category->name }}</span>
-                                <span class="block text-xs text-gray-500 mt-1">Common pets in this category</span>
-                            </div>
-                        </label>
-                    @endforeach
+                <!-- Special Categories (Radio) -->
+                <div class="mb-4">
+                    <p class="text-xs text-gray-500 mb-2">Select one of these special categories:</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        @foreach($categories as $category)
+                            @if(in_array($category->id, [0, 8, 9]))
+                                <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer">
+                                    <input type="radio" 
+                                        wire:model="selected_special_category" 
+                                        value="{{ $category->id }}" 
+                                        name="special_category"
+                                        class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                    <div class="ml-3">
+                                        <span class="block text-sm font-medium text-gray-700">{{ $category->name }}</span>
+                                        <span class="block text-xs text-gray-500 mt-1">Select if this applies to you</span>
+                                    </div>
+                                </label>
+                            @endif
+                        @endforeach
+                    </div>
                 </div>
+
+                <!-- Regular Categories (Checkboxes) -->
+                <div>
+                    <p class="text-xs text-gray-500 mb-2">Select all other applicable categories:</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        @foreach($categories as $category)
+                            @if(!in_array($category->id, [0, 8, 9]) && !($gender == 'Male' && in_array($category->id, [4, 6])))
+                                <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer">
+                                    <input type="checkbox" 
+                                        wire:model="selected_regular_categories" 
+                                        value="{{ $category->id }}" 
+                                        class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <div class="ml-3">
+                                        <span class="block text-sm font-medium text-gray-700">{{ $category->name }}</span>
+                                        <span class="block text-xs text-gray-500 mt-1">Common pets in this category</span>
+                                    </div>
+                                </label>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+                
                 @error('selected_categories') <span class="text-xs text-red-600 mt-1">{{ $message }}</span> @enderror
+                @error('selected_special_category') <span class="text-xs text-red-600 mt-1">{{ $message }}</span> @enderror
             </div>
         </div>
         @endif
