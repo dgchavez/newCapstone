@@ -60,6 +60,23 @@
             background-color: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(2px);
         }
+        
+        .min-h-screen {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1 0 auto;
+            padding-bottom: 5rem; /* Add space for footer */
+        }
+        
+        .site-footer {
+            flex-shrink: 0;
+            width: 100%;
+            background-color: rgba(31, 41, 55, 0.95); /* bg-gray-800/95 */
+            backdrop-filter: blur(8px);
+        }
     </style>
 
     <!-- Initialize Alpine.js Store -->
@@ -107,7 +124,7 @@
 </head>
 
 <body class="font-sans antialiased">
-    <div class="min-h-screen content-overlay flex flex-col">
+    <div class="min-h-screen bg-gray-100 bg-opacity-80">
         <livewire:layout.navigation />
 
         <!-- Page Heading -->
@@ -120,89 +137,61 @@
         @endif
 
         <!-- Main Content -->
-        <main class="flex-grow">
+        <main class="main-content">
             {{ $slot }}
         </main>
 
-        <!-- Enhanced Footer -->
-        <div x-data="{ 
-            showFooter: false,
-            checkScroll() {
-                // Get the total height of the document
-                const documentHeight = document.documentElement.scrollHeight;
-                // Get the viewport height
-                const windowHeight = window.innerHeight;
-                // Get the current scroll position
-                const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-                
-                // Show footer when user has scrolled more than 100px
-                this.showFooter = scrollPosition > 100;
-            }
-        }" 
-        x-init="
-            checkScroll();
-            window.addEventListener('scroll', () => checkScroll());
-            window.addEventListener('resize', () => checkScroll());
-        "
-        class="relative">
-            <footer x-show="showFooter"
-                   x-transition:enter="transition ease-out duration-300"
-                   x-transition:enter-start="opacity-0 transform translate-y-full"
-                   x-transition:enter-end="opacity-100 transform translate-y-0"
-                   x-transition:leave="transition ease-in duration-200"
-                   x-transition:leave-start="opacity-100"
-                   x-transition:leave-end="opacity-0 transform translate-y-full"
-                   class="fixed bottom-0 inset-x-0 bg-gray-800/95 backdrop-blur-sm text-white shadow-lg z-40">
-                <div class="container mx-auto px-4 py-3">
-                    <div class="flex flex-wrap justify-center gap-4 mb-2">
-                        @foreach(\App\Models\Policy::where('is_published', true)->get() as $policy)
-                            <button 
-                                @click="$store.policyData.openPolicyModal(@js($policy))"
-                                class="text-gray-300 hover:text-white hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white rounded-md px-2 py-1">
-                                {{ ucfirst($policy->type) }} Policy
-                            </button>
-                        @endforeach
-                    </div>
-                    <p class="text-center text-gray-400 text-xs">&copy; {{ date('Y') }} {{ config('app.name') }}</p>
+        <!-- Footer (now part of the main layout flow) -->
+        <footer class="site-footer shadow-lg">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex flex-wrap justify-center gap-4 mb-2">
+                    @foreach(\App\Models\Policy::where('is_published', true)->get() as $policy)
+                        <button 
+                            @click="$store.policyData.openPolicyModal(@js($policy))"
+                            class="text-gray-300 hover:text-white hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white rounded-md px-2 py-1">
+                            {{ ucfirst($policy->type) }} Policy
+                        </button>
+                    @endforeach
                 </div>
-            </footer>
+                <p class="text-center text-gray-400 text-xs">&copy; {{ date('Y') }} {{ config('app.name') }}</p>
+            </div>
+        </footer>
 
-            <!-- Accessible Modal -->
-            <div x-show="$store.policyData.showPolicyModal" 
-                 x-transition
-                 @keydown.escape.window="$store.policyData.closePolicyModal()"
-                 role="dialog"
-                 aria-modal="true"
-                 x-cloak
-                 class="fixed inset-0 z-50 overflow-y-auto">
-                <div class="modal-overlay fixed inset-0" @click="$store.policyData.closePolicyModal()"></div>
-                
-                <div class="flex min-h-screen items-center justify-center p-4">
-                    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-                        <div class="sticky top-0 bg-white px-6 py-4 border-b rounded-t-xl flex items-center justify-between">
-                            <h3 class="text-lg font-medium text-gray-900" x-text="$store.policyData.currentPolicy?.title"></h3>
-                            <button @click="$store.policyData.closePolicyModal()" 
-                                    class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg p-1"
-                                    aria-label="Close modal">
-                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <div class="flex-1 overflow-y-auto p-6">
-                            <template x-if="$store.policyData.currentPolicy">
-                                <div class="prose max-w-none" x-html="$store.policyData.currentPolicy.content"></div>
-                            </template>
-                        </div>
-                        
-                        <div class="sticky bottom-0 bg-white px-6 py-3 border-t rounded-b-xl flex justify-end">
-                            <button @click="$store.policyData.closePolicyModal()" 
-                                    type="button" 
-                                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                Close
-                            </button>
-                        </div>
+        <!-- Policy Modal (moved outside the footer but still in the main container) -->
+        <div x-data x-show="$store.policyData.showPolicyModal" 
+             x-transition
+             @keydown.escape.window="$store.policyData.closePolicyModal()"
+             role="dialog"
+             aria-modal="true"
+             x-cloak
+             class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="modal-overlay fixed inset-0" @click="$store.policyData.closePolicyModal()"></div>
+            
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+                    <div class="sticky top-0 bg-white px-6 py-4 border-b rounded-t-xl flex items-center justify-between">
+                        <h3 class="text-lg font-medium text-gray-900" x-text="$store.policyData.currentPolicy?.title"></h3>
+                        <button @click="$store.policyData.closePolicyModal()" 
+                                class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg p-1"
+                                aria-label="Close modal">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto p-6">
+                        <template x-if="$store.policyData.currentPolicy">
+                            <div class="prose max-w-none" x-html="$store.policyData.currentPolicy.content"></div>
+                        </template>
+                    </div>
+                    
+                    <div class="sticky bottom-0 bg-white px-6 py-3 border-t rounded-b-xl flex justify-end">
+                        <button @click="$store.policyData.closePolicyModal()" 
+                                type="button" 
+                                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Close
+                        </button>
                     </div>
                 </div>
             </div>
