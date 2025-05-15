@@ -280,9 +280,51 @@
                         .modal-open .modal-content {
                             transform: translateY(0);
                         }
-                        [x-cloak] { display: none !important; }
-                        .aspect-w-16 { position: relative; padding-bottom: 75%; }
-                        .aspect-w-16 > * { position: absolute; height: 100%; width: 100%; top: 0; right: 0; bottom: 0; left: 0; display: flex; justify-content: center; align-items: center; }
+                        /* Updated image preview styles with blur */
+                        .image-preview {
+                            height: 200px;
+                            overflow: hidden;
+                            position: relative;
+                        }
+                        .image-preview img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                            transform: scale(1.1);
+                            transition: all 0.5s ease;
+                            filter: blur(5px);
+                        }
+                        .facility-card:hover .image-preview img {
+                            transform: scale(1);
+                            filter: blur(0);
+                        }
+                        .image-overlay {
+                            position: absolute;
+                            inset: 0;
+                            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%);
+                            opacity: 0;
+                            transition: all 0.5s ease;
+                        }
+                        .facility-card:hover .image-overlay {
+                            opacity: 1;
+                        }
+                        /* Add text overlay for "Click to view" */
+                        .preview-text {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            color: white;
+                            font-weight: 600;
+                            text-align: center;
+                            opacity: 1;
+                            transition: opacity 0.5s ease;
+                            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                            z-index: 2;
+                        }
+                        .facility-card:hover .preview-text {
+                            opacity: 0;
+                        }
                     </style>
 
                     <div x-data="{
@@ -340,23 +382,28 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <template x-for="(facility, index) in facilities" :key="index">
                                 <div 
-                                    class="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer"
+                                    class="facility-card group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer"
                                     @click="openModal(facility)"
                                 >
-                                    <div class="aspect-w-16 bg-gradient-to-br from-green-50 to-emerald-50 p-8">
-                                        <div class="flex flex-col items-center justify-center">
-                                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md mb-6 group-hover:scale-110 transition-transform duration-300">
-                                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <!-- Image Preview Section -->
+                                    <div class="image-preview">
+                                        <div class="preview-text">Click to view full image</div>
+                                        <img :src="facility.image" :alt="facility.title" class="w-full h-full object-cover">
+                                        <div class="image-overlay flex items-end p-4">
+                                            <span class="text-white text-sm font-medium" x-text="facility.title"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Facility Info Section -->
+                                    <div class="p-6 bg-white">
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform duration-300">
+                                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x-bind:d="facility.icon"/>
                                                 </svg>
                                             </div>
                                             <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors duration-200" x-text="facility.title"></h3>
                                             <p class="text-gray-600 text-center text-sm" x-text="facility.description"></p>
-                                        </div>
-                                    </div>
-                                    <div class="absolute inset-0 bg-gradient-to-t from-green-600/80 via-green-500/0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                        <div class="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                            <p class="text-sm font-medium">Click to view more</p>
                                         </div>
                                     </div>
                                 </div>
@@ -403,10 +450,10 @@
                                     </div>
                                     <div class="sm:flex sm:items-start">
                                         <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                                            <h3 class="text-xl leading-6 font-bold text-gray-900 mb-4" x-text="selectedFacility?.title"></h3>
+                                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" x-text="selectedFacility?.title"></h3>
                                             <div class="mt-2">
                                                 <img x-bind:src="selectedFacility?.image" alt="Facility Image" class="w-full h-auto rounded-lg">
-                                                <p class="mt-4 text-sm text-gray-600" x-text="selectedFacility?.description"></p>
+                                                <p class="mt-4 text-sm text-gray-500" x-text="selectedFacility?.description"></p>
                                             </div>
                                         </div>
                                     </div>
@@ -669,6 +716,51 @@
                             .modal-open .modal-content {
                                 transform: translateY(0);
                             }
+                            /* New styles for service cards with blur effect */
+                            .service-card {
+                                position: relative;
+                                overflow: hidden;
+                            }
+                            .service-image {
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                z-index: 0;
+                            }
+                            .service-image img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                filter: blur(5px);
+                                transform: scale(1.1);
+                                transition: all 0.5s ease;
+                                opacity: 0.15;
+                            }
+                            .service-card:hover .service-image img {
+                                filter: blur(0);
+                                transform: scale(1);
+                                opacity: 0.25;
+                            }
+                            .service-content {
+                                position: relative;
+                                z-index: 1;
+                                background: transparent;
+                            }
+                            .preview-hint {
+                                position: absolute;
+                                bottom: 10px;
+                                right: 10px;
+                                color: #059669;
+                                font-size: 0.875rem;
+                                font-weight: 500;
+                                opacity: 0;
+                                transition: opacity 0.3s ease;
+                            }
+                            .service-card:hover .preview-hint {
+                                opacity: 1;
+                            }
                         </style>
 
                         <div x-data="{
@@ -731,34 +823,38 @@
                                     ]
                                 ] as $index => $service)
                                 <div 
-                                    class="group relative bg-white rounded-xl p-6 hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-green-100 cursor-pointer"
+                                    class="service-card group relative bg-white rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-green-100 cursor-pointer"
                                     @click="openModal({
                                         title: '{{ $service['title'] }}',
                                         description: '{{ $service['description'] }}',
                                         image: '{{ $service['image'] }}'
                                     })"
                                 >
-                                    <div class="flex items-start space-x-4">
-                                        <div class="flex-shrink-0">
-                                            <div class="w-12 h-12 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg flex items-center justify-center group-hover:from-green-100 group-hover:to-emerald-100 transition-colors duration-200 shadow-sm">
-                                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $service['icon'] }}"/>
-                                                </svg>
+                                    <!-- Background Image with Blur -->
+                                    <div class="service-image">
+                                        <img src="{{ $service['image'] }}" alt="{{ $service['title'] }}">
+                                    </div>
+
+                                    <!-- Service Content -->
+                                    <div class="service-content p-6">
+                                        <div class="flex items-start space-x-4">
+                                            <div class="flex-shrink-0">
+                                                <div class="w-12 h-12 bg-gradient-to-r from-green-50/90 to-emerald-50/90 backdrop-blur-sm rounded-lg flex items-center justify-center group-hover:from-green-100/90 group-hover:to-emerald-100/90 transition-colors duration-200 shadow-sm">
+                                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $service['icon'] }}"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <h4 class="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors duration-200">
+                                                    {{ $service['title'] }}
+                                                </h4>
+                                                <p class="mt-2 text-sm text-gray-700 leading-relaxed backdrop-blur-sm bg-white/50 p-2 rounded">
+                                                    {{ $service['description'] }}
+                                                </p>
                                             </div>
                                         </div>
-                                        <div class="flex-1 min-w-0">
-                                            <h4 class="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors duration-200">
-                                                {{ $service['title'] }}
-                                            </h4>
-                                            <p class="mt-2 text-sm text-gray-500 leading-relaxed">
-                                                {{ $service['description'] }}
-                                            </p>
-                                        </div>
-                                        <div class="flex-shrink-0">
-                                            <svg class="w-5 h-5 text-gray-400 group-hover:text-green-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                            </svg>
-                                        </div>
+                                        <span class="preview-hint">Click to view details →</span>
                                     </div>
                                 </div>
                                 @endforeach
