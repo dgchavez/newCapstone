@@ -39,16 +39,13 @@
 </head>
 
 <body class="font-sans text-gray-300 antialiased bg-gray-50 h-full">
-    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-cover bg-center bg-no-repeat bg-fixed" 
+    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt- bg-cover bg-center bg-no-repeat bg-fixed" 
          style="background-image: url('{{ asset('assets/bg.jpg') }}');">
         
         <!-- Logo with animation -->
         <div class="text-center mb-8 animate-fade-in" style="animation-delay: 0.1s;">
             <a href="/" wire:navigate class="inline-block transition-transform hover:scale-105 active:scale-95">
-                <img class="h-24 w-auto mx-auto drop-shadow-lg" src="{{ asset('assets/logo2.png') }}" alt="Veterinary Office Logo">
-                <h1 class="mt-2 text-xl font-bold text-white bg-green-600 px-4 py-1 rounded-full shadow-md">
-                    {{ config('app.name', 'Veterinary Office') }}
-                </h1>
+                <img class="h-32 w-auto mx-auto drop-shadow-lg" src="{{ asset('assets/logo2.png') }}" alt="Veterinary Office Logo"> 
             </a>
         </div>
 

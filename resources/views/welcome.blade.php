@@ -53,12 +53,15 @@
                 <div class="flex items-center justify-between h-20">
                     <!-- Logo -->
                     <div class="flex-shrink-0">
-                        <a href="/" class="flex items-center group" aria-label="Brand">
+                        <a href="/" class="flex items-center group gap-3" aria-label="Brand">
                             <div class="relative">
-                                <img class="w-30 h-12 object-cover transition-all duration-300 group-hover:scale-110" 
-                                    src="{{ asset('assets/vet_header.png') }}" 
+                                <img class="w-30 h-12 object-cover transition-all duration-300 group-hover:scale-110"
+                                    src="{{ asset('assets/vet_logo.png') }}"
                                     alt="Brand Image">
-                                <div class="absolute inset-0 border-2 border-white/30  transition-colors duration-300"></div>
+                                <div class="absolute inset-0 border-2 border-white/30 transition-colors duration-300"></div>
+                            </div>
+                            <div class="flex flex-col justify-center">
+                                <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-300 group-hover:scale-110">VCAPIMS</span>
                             </div>
                         </a>
                     </div>
@@ -139,41 +142,76 @@
 
         <!-- ========== HERO ========== -->
         <main class="flex-1">
-            <section class="relative pt-24 pb-32 overflow-hidden">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="bg-white/90 backdrop-blur-sm overflow-hidden shadow-2xl rounded-3xl p-8 lg:p-12">
-                        <div class="grid lg:grid-cols-2 gap-12 items-center">
-                            <div class="space-y-8">
-                                <div>
-                                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                                        Your Animal's Health is 
-                                        <span class="gradient-text">Our Priority</span>
-                                    </h1>
-                                    <p class="mt-6 text-xl text-gray-600 leading-relaxed">
-                                    "Tracking for Good — Enhancing Animal Welfare."
-                                    </p>
-                                </div>
-                                <div class="flex flex-col sm:flex-row gap-4">
-                                    <a href="/register" class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-500 rounded-xl hover:from-green-700 hover:to-emerald-600 transform hover:scale-105 transition-all duration-300 shadow-lg glow-on-hover">
-                                        Get Started
-                                        <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </a>
-                                    <a href="#services" class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-green-600 bg-green-50 rounded-xl hover:bg-green-100 transform hover:scale-105 transition-all duration-300 shadow-md">
-                                        Our Services
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="hidden lg:block floating">
-                                <img class="w-full rounded-2xl shadow-2xl" 
-                                     src="{{ asset('assets/vet_logo-2.3.png') }}" 
-                                     alt="Animal Care Image">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+        <section class="relative py-16 sm:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-gray-50 via-white to-green-50">
+  <div class="absolute inset-0 bg-pattern opacity-5 z-0"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="bg-white/90 backdrop-blur-xl overflow-hidden shadow-2xl rounded-3xl border border-green-100">
+      <div class="grid lg:grid-cols-2 items-center">
+        <!-- Left Column Content -->
+        <div class="p-8 lg:p-12 lg:pl-16 space-y-8">
+          <div class="space-y-4">
+            <div class="inline-block px-3 py-1 bg-blue-100 text-green-700 rounded-full text-sm font-medium">
+              Animal Welfare Initiative
+            </div>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+              Your Animal's Health is 
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600">
+                Our Priority
+              </span>
+            </h1>
+            <p class="mt-6 text-xl text-gray-600 leading-relaxed">
+              "Tracking for Good — Enhancing Animal Welfare."
+            </p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-4 pt-4">
+            <a href="/register" class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-500 rounded-xl hover:from-green-700 hover:to-emerald-600 transform hover:scale-105 transition-all duration-300 shadow-lg">
+              Get Started
+              <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="#services" class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-green-600 bg-green-50 rounded-xl hover:bg-green-100 transform hover:scale-105 transition-all duration-300 shadow-md">
+              Our Services
+            </a>
+          </div>
+        </div>
+        
+        <!-- Right Column Content -->
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-8 lg:p-16 h-full flex flex-col items-center justify-center relative overflow-hidden">
+          <!-- Decorative Elements -->
+          <div class="absolute top-0 right-0 w-24 h-24 bg-green-200 rounded-full opacity-20 -mt-8 -mr-8"></div>
+          <div class="absolute bottom-0 left-0 w-32 h-32 bg-emerald-200 rounded-full opacity-20 -mb-12 -ml-12"></div>
+          
+          <!-- VCAPIMS Content -->
+          <h2 class="text-6xl lg:text-7xl xl:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600 tracking-wider text-center mb-4">
+            VCAPIMS
+          </h2>
+          
+          <div class="h-1 w-48 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mb-6"></div>
+          
+          <p class="text-xl text-gray-700 leading-relaxed text-center max-w-md">
+            Valencia City Animal Profiling Information Management System
+          </p>
+          
+          <!-- Decorative Icons -->
+          <div class="grid grid-cols-3 gap-8 w-full mt-8 opacity-20">
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.bg-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%2322c55e' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.glow-on-hover:hover {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+}
+</style>
 
             <!-- Features Section -->
             <section id="features" class="relative bg-white py-24">
