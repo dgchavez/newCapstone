@@ -127,17 +127,24 @@
         <!-- Enhanced Footer -->
         <div x-data="{ 
             showFooter: false,
-            checkScroll: function() {
-                const threshold = 20;
-                this.showFooter = (window.innerHeight + window.scrollY) >= 
-                    document.documentElement.scrollHeight - threshold;
+            checkScroll() {
+                // Get the total height of the document
+                const documentHeight = document.documentElement.scrollHeight;
+                // Get the viewport height
+                const windowHeight = window.innerHeight;
+                // Get the current scroll position
+                const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Show footer when user has scrolled more than 100px
+                this.showFooter = scrollPosition > 100;
             }
         }" 
         x-init="
             checkScroll();
-            window.addEventListener('scroll', checkScroll);
-            window.addEventListener('resize', checkScroll);
-        ">
+            window.addEventListener('scroll', () => checkScroll());
+            window.addEventListener('resize', () => checkScroll());
+        "
+        class="relative">
             <footer x-show="showFooter"
                    x-transition:enter="transition ease-out duration-300"
                    x-transition:enter-start="opacity-0 transform translate-y-full"
