@@ -16,6 +16,8 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
     <!-- Custom Background Style -->
     <style>
@@ -64,7 +66,7 @@
 </head>
 
 <body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100 bg-opacity-80">
+    <div class="min-h-screen bg-gray-100 bg-opacity-80 flex flex-col">
         <livewire:layout.navigation />
 
         <!-- Page Heading -->
@@ -77,7 +79,7 @@
         @endif
 
         <!-- Page Content -->
-        <main>
+        <main class="flex-grow">
             {{ $slot }}
         </main>
 
@@ -162,32 +164,5 @@
             </div>
         </div>
     </div>
-
-    <!-- Scripts at the end of body -->
-    <script>
-        // Handle Livewire/Alpine conflicts
-        document.addEventListener('livewire:init', () => {
-            Livewire.hook('element.initialized', (el) => {
-                Alpine.initTree(el);
-            });
-        });
-
-        // Use Alpine store pattern instead
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('policyStore', {
-                showPolicyModal: false,
-                currentPolicy: null,
-                openPolicyModal(policy) {
-                    this.currentPolicy = policy;
-                    this.showPolicyModal = true;
-                    document.body.style.overflow = 'hidden';
-                },
-                closePolicyModal() {
-                    this.showPolicyModal = false;
-                    document.body.style.overflow = '';
-                }
-            });
-        });
-    </script>
 </body>
 </html>

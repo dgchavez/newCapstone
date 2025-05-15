@@ -1,60 +1,110 @@
-    <x-app-layout>
-        <div class="min-h-screen">
-            <div class="max-w-[95%] mx-auto py-8">
-                <!-- Alert Messages -->
-                @if (session()->has('message'))
-                    <div class="mb-4 flex items-center p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg" role="alert">
-                        <svg class="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <span class="text-green-800">{{ session('message') }}</span>
-                    </div>
-                @endif
+<x-app-layout>
+    <div class="bg-gradient-to-b from-green-50 to-white min-h-screen">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <!-- Alert Messages -->
+            @if (session()->has('message'))
+                <div class="mb-6 flex items-center p-4 bg-green-50 border-l-4 border-green-500 rounded-lg shadow-sm animate-fadeIn" role="alert">
+                    <i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i>
+                    <span class="text-green-800 font-medium">{{ session('message') }}</span>
+                </div>
+            @endif
 
-                <!-- Page Header -->
-                <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900">
-                        Animals Management
+            <!-- Header Section -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-green-600 to-green-400 h-16"></div>
+                <div class="px-6 py-5 -mt-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-paw text-blue-500 mr-3"></i>Animals Management
                     </h1>
-                    <p class="mt-2 text-sm text-gray-600">
+                    <p class="text-gray-600 mt-1 sm:mt-0">
                         Manage and monitor all animals in the veterinary system
                     </p>
                 </div>
-
-                <!-- Action Buttons -->
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center space-x-3">
-                        <a href="{{ route('animals.add-animal-form') }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            Add Animal
-                        </a>
-                        <a href="{{ route('admin-animals') }}" class="inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
-                            Reset Filters
-                        </a>
+            </div>
+            
+            <!-- Stats Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-5 flex items-center">
+                        <div class="flex-shrink-0 bg-blue-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-paw text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Total Animals</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $animals->total() }}</p>
+                        </div>
                     </div>
                 </div>
+                
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-5 flex items-center">
+                        <div class="flex-shrink-0 bg-green-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-syringe text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Vaccinated</p>
+                            <p class="text-2xl font-bold text-gray-900">
+                                {{ $animals->where('is_vaccinated', 1)->count() }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-5 flex items-center">
+                        <div class="flex-shrink-0 bg-purple-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-calendar-plus text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Recent Additions</p>
+                            <p class="text-2xl font-bold text-gray-900">
+                                {{ $animals->where('created_at', '>=', \Carbon\Carbon::now()->subDays(30))->count() }}
+                            </p>
+                            <p class="text-xs text-gray-500">in the last 30 days</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                <!-- Filters Section -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
-                    <form method="GET" action="{{ route('admin-animals') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4" id="filterForm">
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="{{ route('animals.add-animal-form') }}" 
+                       class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 shadow-md">
+                        <i class="fas fa-plus text-sm mr-2"></i>
+                        Add Animal
+                    </a>
+                    <a href="{{ route('admin-animals') }}" 
+                       class="inline-flex items-center justify-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200 shadow-sm">
+                        <i class="fas fa-sync-alt text-sm mr-2"></i>
+                        Reset Filters
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-medium text-gray-800 flex items-center">
+                        <i class="fas fa-filter text-blue-500 mr-2"></i>
+                        <span>Filter Animals</span>
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <form method="GET" action="{{ route('admin-animals') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="filterForm">
                         <!-- Search -->
-                        <div class="col-span-1 sm:col-span-2 xl:col-span-2">
-                            <label class="block text-xs font-medium text-gray-700 mb-1">Search</label>
-                            <div class="relative">
+                        <div class="col-span-1 sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
                                 <input type="text" 
                                        name="search" 
                                        value="{{ request('search') }}" 
-                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                       placeholder="Search animals..." 
+                                       class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
+                                       placeholder="Search animal name..." 
                                        id="searchInput">
-                                <svg class="absolute left-3 top-2.5 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
                             </div>
                         </div>
 
@@ -63,121 +113,187 @@
                             <div class="flex flex-col space-y-3">
                                 <!-- Species Filter -->
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-700 mb-1">Species</label>
-                                    <select name="species_id" 
-                                            class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                            id="speciesFilter">
-                                        <option value="">All Species</option>
-                                        @foreach($species as $specie)
-                                            <option value="{{ $specie->id }}" {{ request('species_id') == $specie->id ? 'selected' : '' }}>{{ $specie->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Species</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-paw text-gray-400"></i>
+                                        </div>
+                                        <select name="species_id" 
+                                                class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm appearance-none"
+                                                id="speciesFilter">
+                                            <option value="">All Species</option>
+                                            @foreach($species as $specie)
+                                                <option value="{{ $specie->id }}" {{ request('species_id') == $specie->id ? 'selected' : '' }}>{{ $specie->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Breed Filter -->
                                 <div id="breedFilterContainer" style="{{ request('species_id') ? '' : 'display: none;' }}">
-                                    <label class="block text-xs font-medium text-gray-700 mb-1">Breed</label>
-                                    <select name="breed_id" 
-                                            class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                            id="breedFilter">
-                                        <option value="">All Breeds</option>
-                                        @foreach($breeds as $breed)
-                                            @if(!request('species_id') || $breed->species_id == request('species_id'))
-                                                <option value="{{ $breed->id }}" {{ request('breed_id') == $breed->id ? 'selected' : '' }}>{{ $breed->name }}</option>
-                                            @endif
-                                        @endforeach
-                                    </select>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Breed</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-tag text-gray-400"></i>
+                                        </div>
+                                        <select name="breed_id" 
+                                                class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm appearance-none"
+                                                id="breedFilter">
+                                            <option value="">All Breeds</option>
+                                            @foreach($breeds as $breed)
+                                                @if(!request('species_id') || $breed->species_id == request('species_id'))
+                                                    <option value="{{ $breed->id }}" {{ request('breed_id') == $breed->id ? 'selected' : '' }}>{{ $breed->name }}</option>
+                                                @endif
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Owner Filter -->
                         <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1">Owner</label>
-                            <select name="owner_id" 
-                                    class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    id="ownerFilter">
-                                <option value="">All Owners</option>
-                                @foreach($owners as $owner)
-                                    <option value="{{ $owner->owner_id }}" {{ request('owner_id') == $owner->owner_id ? 'selected' : '' }}>{{ $owner->user->complete_name }}</option>
-                                @endforeach
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Owner</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-user text-gray-400"></i>
+                                </div>
+                                <select name="owner_id" 
+                                        class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm appearance-none"
+                                        id="ownerFilter">
+                                    <option value="">All Owners</option>
+                                    @foreach($owners as $owner)
+                                        <option value="{{ $owner->owner_id }}" {{ request('owner_id') == $owner->owner_id ? 'selected' : '' }}>{{ $owner->user->complete_name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Date Range -->
-                        <div class="col-span-1">
-                            <label class="block text-xs font-medium text-gray-700 mb-1">Date Range</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="date" 
-                                       name="fromDate" 
-                                       id="fromDateFilter"
-                                       class="block w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
-                                       value="{{ request('fromDate') }}"
-                                       placeholder="From date">
-                                <input type="date" 
-                                       name="toDate" 
-                                       id="toDateFilter"
-                                       class="block w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
-                                       value="{{ request('toDate') }}"
-                                       placeholder="To date">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Registration Date</label>
+                            <div class="mt-1 grid grid-cols-2 gap-2">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-calendar-alt text-gray-400"></i>
+                                    </div>
+                                    <input type="date" 
+                                           name="fromDate" 
+                                           id="fromDateFilter"
+                                           class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm" 
+                                           value="{{ request('fromDate') }}"
+                                           placeholder="From date">
+                                </div>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-calendar-alt text-gray-400"></i>
+                                    </div>
+                                    <input type="date" 
+                                           name="toDate" 
+                                           id="toDateFilter"
+                                           class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm" 
+                                           value="{{ request('toDate') }}"
+                                           placeholder="To date">
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Filter Buttons -->
+                        <!-- <div class="col-span-1 sm:col-span-2 lg:col-span-4 flex justify-end">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition duration-200 shadow-sm">
+                                <i class="fas fa-search mr-2"></i>
+                                Apply Filters
+                            </button>
+                        </div> -->
                     </form>
                 </div>
+            </div>
 
-                <!-- Animals Table -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Animals Table -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-800 flex items-center">
+                        <i class="fas fa-list text-blue-500 mr-2"></i>
+                        <span>Animals List</span>
+                    </h2>
+                    <span class="text-sm text-gray-500">{{ $animals->total() }} results found</span>
+                </div>
+                
+                <div class="p-6">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr class="bg-gray-50">
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Animal</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner Info</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Species & Breed</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Latest Veterinarian</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Latest Transaction</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Animal</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner Info</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Species & Breed</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Latest Veterinarian</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Latest Transaction</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse($animals as $animal)
-                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                    <tr class="hover:bg-blue-50 transition-colors duration-200">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-10 w-10">
-                                                    <img class="h-10 w-10 rounded-full object-cover" 
+                                                <div class="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
+                                                    <img class="h-10 w-10 object-cover" 
                                                          src="{{ asset($animal->photo_front ? 'storage/' . $animal->photo_front : 'assets/default-avatar.png') }}" 
-                                                         alt="Animal Photo">
+                                                         alt="{{ $animal->name }}">
                                                 </div>
                                                 <div class="ml-4">
-                                                    <div class="text-sm font-medium text-blue-900">
+                                                    <div class="text-sm font-medium text-gray-900">
                                                         <a href="{{ route('animals.profile', ['animal_id' => $animal->animal_id]) }}" 
-                                                           class="hover:text-green-600 transition-colors duration-200">
+                                                           class="hover:text-blue-600 transition-colors duration-200">
                                                             {{ $animal->name }}
                                                         </a>
                                                     </div>
                                                     <div class="text-xs text-gray-500">
-                                                        Created {{ $animal->created_at->format('m/d/Y') }}
+                                                        Created {{ $animal->created_at->format('M d, Y') }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-blue-900">
+                                            <div class="text-sm font-medium text-gray-900">
                                                 <a href="{{ route('owners.profile-owner', ['owner_id' => $animal->owner->owner_id]) }}" 
-                                                   class="hover:text-green-600 transition-colors duration-200">
+                                                   class="hover:text-blue-600 transition-colors duration-200 flex items-center">
+                                                    <i class="fas fa-user-circle text-gray-400 mr-1.5"></i>
                                                     {{ $animal->owner->user->complete_name }}
                                                 </a>
                                             </div>
-                                            <div class="text-xs text-gray-500">
-                                                {{ $animal->owner->user->contact_no }}<br>
-                                                {{ $animal->owner->user->address && $animal->owner->user->address->barangay ? $animal->owner->user->address->barangay->barangay_name : 'No Barangay Available' }}
+                                            <div class="text-xs text-gray-500 ml-5 mt-1">
+                                                <div class="flex items-center">
+                                                    <i class="fas fa-phone-alt text-gray-400 mr-1.5"></i>
+                                                    {{ $animal->owner->user->contact_no }}
+                                                </div>
+                                                <div class="flex items-center mt-1">
+                                                    <i class="fas fa-map-marker-alt text-gray-400 mr-1.5"></i>
+                                                    {{ $animal->owner->user->address && $animal->owner->user->address->barangay ? $animal->owner->user->address->barangay->barangay_name : 'No Barangay Available' }}
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">{{ $animal->species->name ?? 'Species not specified' }}</div>
-                                            <div class="text-xs text-gray-500">{{ $animal->breed->name ?? 'Breed not specified' }}</div>
+                                            <div class="flex items-center">
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-blue-100 text-blue-800">
+                                                    {{ $animal->species->name ?? 'Species not specified' }}
+                                                </span>
+                                            </div>
+                                            <div class="mt-1 text-xs text-gray-500">
+                                                <i class="fas fa-tag text-gray-400 mr-1.5"></i>
+                                                {{ $animal->breed->name ?? 'Breed not specified' }}
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @if($animal->transactions->isNotEmpty())
@@ -185,23 +301,36 @@
                                                     $latestTransaction = $animal->transactions->sortByDesc('created_at')->first();
                                                 @endphp
                                                 @if($latestTransaction && $latestTransaction->vet)
-                                                    <div class="text-sm text-blue-900">
+                                                    <div class="text-sm font-medium text-gray-900">
                                                         <a href="{{ route('admin.veterinarian.profile', $latestTransaction->vet->user_id) }}" 
-                                                           class="hover:text-green-600 transition-colors duration-200">
+                                                           class="hover:text-blue-600 transition-colors duration-200 flex items-center">
+                                                            <i class="fas fa-user-md text-gray-400 mr-1.5"></i>
                                                             {{ $latestTransaction->vet->complete_name }}
                                                         </a>
                                                     </div>
-                                                    <div class="text-xs text-gray-500">{{ $latestTransaction->vet->contact_no }}</div>
-                                                    @if($latestTransaction->technician)
-                                                        <div class="text-xs text-gray-500 mt-1">
-                                                            Tech: {{ $latestTransaction->technician->full_name }}
+                                                    <div class="text-xs text-gray-500 ml-5 mt-1">
+                                                        <div class="flex items-center">
+                                                            <i class="fas fa-phone-alt text-gray-400 mr-1.5"></i>
+                                                            {{ $latestTransaction->vet->contact_no }}
                                                         </div>
-                                                    @endif
+                                                        @if($latestTransaction->technician)
+                                                            <div class="flex items-center mt-1">
+                                                                <i class="fas fa-user-nurse text-gray-400 mr-1.5"></i>
+                                                                {{ $latestTransaction->technician->full_name }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                 @else
-                                                    <span class="text-sm text-gray-500">No veterinarian assigned</span>
+                                                    <span class="text-sm text-gray-500 flex items-center">
+                                                        <i class="fas fa-exclamation-circle text-gray-400 mr-1.5"></i>
+                                                        No veterinarian assigned
+                                                    </span>
                                                 @endif
                                             @else
-                                                <span class="text-sm text-gray-500">No transactions</span>
+                                                <span class="text-sm text-gray-500 flex items-center">
+                                                    <i class="fas fa-exclamation-circle text-gray-400 mr-1.5"></i>
+                                                    No transactions
+                                                </span>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -211,12 +340,18 @@
                                                 @endphp
                                                 <div class="text-sm text-gray-900">
                                                     @if($latestTransaction->transactionSubtype && $latestTransaction->transactionSubtype->id == 8)
-                                                        {{ $latestTransaction->transactionSubtype->subtype_name }}
-                                                        <div class="text-xs text-gray-500">
+                                                        <span class="flex items-center">
+                                                            <i class="fas fa-syringe text-gray-400 mr-1.5"></i>
+                                                            {{ $latestTransaction->transactionSubtype->subtype_name }}
+                                                        </span>
+                                                        <div class="text-xs text-gray-500 ml-5 mt-1">
                                                             {{ $latestTransaction->vaccine ? $latestTransaction->vaccine->vaccine_name : 'No Vaccine Selected' }}
                                                         </div>
                                                     @else
-                                                        {{ $latestTransaction->transactionSubtype ? $latestTransaction->transactionSubtype->subtype_name : 'N/A' }}
+                                                        <span class="flex items-center">
+                                                            <i class="fas fa-clipboard-list text-gray-400 mr-1.5"></i>
+                                                            {{ $latestTransaction->transactionSubtype ? $latestTransaction->transactionSubtype->subtype_name : 'N/A' }}
+                                                        </span>
                                                     @endif
                                                 </div>
                                                 <span class="inline-flex mt-1 items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -226,7 +361,10 @@
                                                     {{ ['Pending', 'Completed', 'Canceled'][$latestTransaction->status] ?? 'Unknown' }}
                                                 </span>
                                             @else
-                                                <span class="text-sm text-gray-500">No transactions</span>
+                                                <span class="text-sm text-gray-500 flex items-center">
+                                                    <i class="fas fa-exclamation-circle text-gray-400 mr-1.5"></i>
+                                                    No transactions
+                                                </span>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -234,18 +372,18 @@
                                                 {{ $animal->is_vaccinated == 1 ? 'bg-green-100 text-green-800' : 
                                                    ($animal->is_vaccinated == 2 ? 'bg-gray-100 text-gray-800' : 
                                                    'bg-red-100 text-red-800') }}">
+                                                <i class="fas {{ $animal->is_vaccinated == 1 ? 'fa-check-circle' : 
+                                                              ($animal->is_vaccinated == 2 ? 'fa-ban' : 'fa-times-circle') }} mr-1"></i>
                                                 {{ $animal->is_vaccinated == 1 ? 'Vaccinated' : 
                                                    ($animal->is_vaccinated == 2 ? 'Not Required' : 'Not Vaccinated') }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex items-center space-x-2">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex justify-center gap-3">
                                                 <a href="{{ route('admin-animals.edit', ['animal_id' => $animal->animal_id]) }}" 
-                                                   class="text-blue-600 hover:text-blue-900 transition-colors duration-200"
-                                                   title="Edit Animal">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                                    </svg>
+                                                   class="text-blue-600 hover:text-blue-900 flex items-center gap-1">
+                                                    <i class="fas fa-edit"></i>
+                                                    <span>Edit</span>
                                                 </a>
 
                                                 <form action="{{ route('animals.delete', ['animal_id' => $animal->animal_id]) }}" 
@@ -255,25 +393,31 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" 
-                                                            class="text-red-600 hover:text-red-900 transition-colors duration-200"
-                                                            title="Delete Animal">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                        </svg>
+                                                            class="text-red-600 hover:text-red-900 flex items-center gap-1">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                        <span>Delete</span>
                                                     </button>
                                                 </form>
+                                                
+                                                <a href="{{ route('animals.profile', ['animal_id' => $animal->animal_id]) }}" 
+                                                   class="text-green-600 hover:text-green-900 flex items-center gap-1">
+                                                    <i class="fas fa-eye"></i>
+                                                    <span>View</span>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-6 py-10 text-center">
+                                        <td colspan="7" class="px-6 py-8 whitespace-nowrap text-sm text-gray-500 text-center">
                                             <div class="flex flex-col items-center">
-                                                <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                                                </svg>
-                                                <p class="text-gray-500 text-sm">No animals found</p>
-                                                <p class="text-gray-400 text-xs mt-1">Try adjusting your search filters</p>
+                                                <i class="fas fa-paw text-gray-400 text-3xl mb-2"></i>
+                                                <p>No animals found.</p>
+                                                <p class="text-gray-400 text-xs mt-1">Try adjusting your search filters or adding a new animal</p>
+                                                <a href="{{ route('animals.add-animal-form') }}" class="mt-4 text-blue-600 hover:text-blue-800 flex items-center">
+                                                    <i class="fas fa-plus mr-1"></i>
+                                                    Add your first animal
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
@@ -281,8 +425,7 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-
+                    
                 <!-- Pagination -->
                 <div class="mt-5">
                     {{ $animals->appends(request()->query())->links() }}

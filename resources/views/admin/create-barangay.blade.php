@@ -1,50 +1,88 @@
-<!-- resources/views/barangays/create.blade.php -->
-
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <div class="mb-6">
-                        <h2 class="text-2xl font-semibold text-gray-800">Create New Barangay</h2>
-                        <p class="text-gray-600 mt-1">Enter the details for the new barangay below.</p>
-                    </div>
+    <div class="bg-gradient-to-b from-green-50 to-white min-h-screen">
+        <div class="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <!-- Header Section -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-green-600 to-green-400 h-16"></div>
+                <div class="px-6 py-5 -mt-1">
+                    <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-map-marker-alt text-red-500 mr-3"></i>Create New Barangay
+                    </h1>
+                    <p class="text-gray-600 mt-2">Enter the details for the new barangay below.</p>
+                </div>
+            </div>
 
-                    <form action="{{ route('barangays.store') }}" method="POST" class="space-y-6">
+            <!-- Form Card -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <form action="{{ route('barangays.store') }}" method="POST">
                         @csrf
                         
-                        <div class="space-y-2">
-                            <label for="barangay_name" class="block text-sm font-medium text-gray-700">
-                                Barangay Name
-                            </label>
-                            <input 
-                                type="text" 
-                                name="barangay_name" 
-                                id="barangay_name" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('barangay_name') border-red-500 @enderror"
-                                required
-                                placeholder="Enter barangay name"
-                                value="{{ old('barangay_name') }}"
-                            >
+                        <!-- Form introduction -->
+                        <div class="mb-6 pb-4 border-b border-gray-200">
+                            <div class="flex items-center">
+                                <div class="h-12 w-12 rounded-full bg-yellow-100 text-red-600 flex items-center justify-center mr-4">
+                                    <i class="fas fa-map-pin text-xl"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-medium text-gray-800">Barangay Information</h2>
+                                    <p class="text-sm text-gray-500">Please provide all required information</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Barangay Name Field -->
+                        <div>
+                            <label for="barangay_name" class="block text-sm font-medium text-gray-700 mb-1">Barangay Name</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-map-marked-alt text-gray-400"></i>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    name="barangay_name" 
+                                    id="barangay_name" 
+                                    value="{{ old('barangay_name') }}"
+                                    placeholder="Enter barangay name"
+                                    class="pl-10 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 py-3 @error('barangay_name') border-red-500 @enderror" 
+                                    required
+                                >
+                            </div>
                             @error('barangay_name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-
-                        <div class="flex items-center justify-end mt-6">
-                            <a href="{{ route('barangays.index') }}" class="text-sm text-gray-600 hover:text-gray-900 mr-4">
-                                Cancel
+                        
+                        <!-- Form Actions -->
+                        <div class="mt-8 flex items-center justify-between">
+                            <a href="#" onclick="history.back(); return false;" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                <span>Back</span>
                             </a>
-                            <button 
-                                type="submit" 
-                                class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                            >
-                                Create Barangay
-                            </button>
+                            
+                            <div class="flex gap-3">
+                                <button 
+                                    type="reset" 
+                                    class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200"
+                                >
+                                    Reset
+                                </button>
+                                
+                                <button 
+                                    type="submit" 
+                                    class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 flex items-center gap-2"
+                                >
+                                    <i class="fas fa-save"></i>
+                                    <span>Create Barangay</span>
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Add Font Awesome CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 </x-app-layout>
