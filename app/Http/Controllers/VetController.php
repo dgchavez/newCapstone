@@ -738,9 +738,6 @@ public function ownerList_edit($owner_id)
     return view('vet.owner-edit', compact('user', 'barangays', 'owner','categories'));
 }
 
-
-
-
        public function ownerList_update(Request $request, $owner_id)
     {
         try {
@@ -841,16 +838,49 @@ public function ownerList_edit($owner_id)
                 ]
             );
 
-            // Update categories
+            // Handle categories with special rules
             if (isset($validated['selectedCategories'])) {
-                // Convert all values to integers and filter out invalid ones
-                $categories = [];
-                foreach ($validated['selectedCategories'] as $categoryId) {
-                    // Include the category if it's a valid number (including 0)
-                    if (is_numeric($categoryId) || $categoryId === '0') {
-                        $categories[] = (int)$categoryId;
+                $selectedCategories = $validated['selectedCategories'];
+                
+                // If gender is Male, remove categories 4 and 6 (pregnancy and lactating related)
+                if ($validated['gender'] === 'Male') {
+                    $selectedCategories = array_values(array_filter($selectedCategories, function($categoryId) {
+                        return !in_array((int)$categoryId, [4, 6]);
+                    }));
+                }
+                
+                // Handle special categories (0, 8, 9) - ensure only one is selected
+                $specialCategoryIds = [0, 8, 9];
+                $hasSpecialCategory = false;
+                $selectedSpecialCategory = null;
+                
+                // Check if any special category is selected
+                foreach ($selectedCategories as $categoryId) {
+                    if (in_array((int)$categoryId, $specialCategoryIds)) {
+                        if (!$hasSpecialCategory) {
+                            $hasSpecialCategory = true;
+                            $selectedSpecialCategory = (int)$categoryId;
+                        } else {
+                            // If multiple special categories are found, keep only the last one
+                            $selectedSpecialCategory = (int)$categoryId;
+                        }
                     }
                 }
+                
+                // Filter out all special categories
+                $filteredCategories = array_values(array_filter($selectedCategories, function($categoryId) use ($specialCategoryIds) {
+                    return !in_array((int)$categoryId, $specialCategoryIds);
+                }));
+                
+                // Add back the selected special category if one was chosen
+                if ($selectedSpecialCategory !== null) {
+                    $filteredCategories[] = (string)$selectedSpecialCategory;
+                }
+                
+                // Convert all values to integers
+                $categories = array_map(function($categoryId) {
+                    return (int)$categoryId;
+                }, $filteredCategories);
                 
                 // Log the categories being processed
                 Log::info('Categories being synced:', $categories);

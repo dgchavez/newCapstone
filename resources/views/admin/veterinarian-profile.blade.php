@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="bg-gradient-to-b from-green-50 to-white min-h-screen">
+    <div class=" from-green-50 to-white min-h-screen">
         <div class="container mx-auto px-4 py-8">
             <!-- Profile Section -->
             <div class="bg-white rounded-xl shadow-xl overflow-hidden mb-8 transition-all duration-300 hover:shadow-2xl">

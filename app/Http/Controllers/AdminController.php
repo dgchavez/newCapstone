@@ -806,8 +806,47 @@ public function getBreeds($species_id)
            ]
        );
 
-       // Sync categories (this will remove old categories and add new ones)
-       $user->categories()->sync($validated['selectedCategories']);
+       // Handle categories with special rules
+       $selectedCategories = $validated['selectedCategories'];
+       
+       // If gender is Male, remove categories 4 and 6 (pregnancy and lactating related)
+       if ($validated['gender'] === 'Male') {
+           $selectedCategories = array_values(array_filter($selectedCategories, function($categoryId) {
+               return !in_array((int)$categoryId, [4, 6]);
+           }));
+       }
+
+       // Handle special categories (0, 8, 9) - ensure only one is selected
+       $specialCategoryIds = [0, 8, 9];
+       $hasSpecialCategory = false;
+       $selectedSpecialCategory = null;
+       
+       // Check if any special category is selected
+       foreach ($selectedCategories as $categoryId) {
+           if (in_array((int)$categoryId, $specialCategoryIds)) {
+               if (!$hasSpecialCategory) {
+                   $hasSpecialCategory = true;
+                   $selectedSpecialCategory = (int)$categoryId;
+               } else {
+                   // If multiple special categories are found, keep only the last one
+                   // This shouldn't happen with the radio button UI, but we handle it just in case
+                   $selectedSpecialCategory = (int)$categoryId;
+               }
+           }
+       }
+       
+       // Filter out all special categories
+       $filteredCategories = array_values(array_filter($selectedCategories, function($categoryId) use ($specialCategoryIds) {
+           return !in_array((int)$categoryId, $specialCategoryIds);
+       }));
+       
+       // Add back the selected special category if one was chosen
+       if ($selectedSpecialCategory !== null) {
+           $filteredCategories[] = (string)$selectedSpecialCategory;
+       }
+
+       // Sync the filtered categories
+       $user->categories()->sync($filteredCategories);
 
        return redirect()->route('owners.profile-owner', ['owner_id' => $transaction->owner_id])
            ->with('message', 'Profile updated successfully.');

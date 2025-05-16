@@ -181,20 +181,49 @@
             <!-- Categories Selection -->
             <div class="mt-4">
                 <x-input-label for="categories" :value="__('Pet Categories')" class="text-gray-700 font-medium" />
-                <div class="mt-2 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                
+                <!-- Special Categories (Radio buttons) -->
+                <div class="mt-2 mb-4">
+                    <p class="text-sm text-gray-500 mb-2">Select one of these special categories (choose only one):</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
                         @foreach($categories as $category)
-                            <div class="flex items-center">
-                                <input 
-                                    type="checkbox" 
-                                    id="category_{{ $category->id }}" 
-                                    name="selectedCategories[]" 
-                                    value="{{ $category->id }}" 
-                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    {{ in_array($category->id, $user->categories->pluck('id')->toArray()) ? 'checked' : '' }}
-                                >
-                                <label for="category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
-                            </div>
+                            @if(in_array($category->id, [0, 8, 9]))
+                                <div class="flex items-center">
+                                    <input 
+                                        type="radio" 
+                                        id="special_category_{{ $category->id }}" 
+                                        name="special_category" 
+                                        value="{{ $category->id }}" 
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        {{ in_array($category->id, $user->categories->pluck('id')->toArray()) ? 'checked' : '' }}
+                                    >
+                                    <label for="special_category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+                
+                <!-- Regular Categories (Checkboxes) -->
+                <div>
+                    <p class="text-sm text-gray-500 mb-2">Select all other applicable categories:</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
+                        @foreach($categories as $category)
+                            @if(!in_array($category->id, [0, 8, 9]))
+                                <div class="flex items-center female-specific-category-{{ $category->id }}" 
+                                     {{ in_array($category->id, [4, 6]) && $user->gender == 'Male' ? 'style=display:none;' : '' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        id="category_{{ $category->id }}" 
+                                        name="selectedCategories[]" 
+                                        value="{{ $category->id }}" 
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        {{ in_array($category->id, $user->categories->pluck('id')->toArray()) ? 'checked' : '' }}
+                                        {{ in_array($category->id, [4, 6]) && $user->gender == 'Male' ? 'disabled' : '' }}
+                                    >
+                                    <label for="category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
+                                </div>
+                            @endif
                         @endforeach
                     </div>
                 </div>
@@ -334,7 +363,54 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Nothing else needed for this form
+            // Handle form submission to combine special category radio with regular checkboxes
+            document.querySelector('form').addEventListener('submit', function(e) {
+                // Get selected special category
+                const selectedSpecialCategory = document.querySelector('input[name="special_category"]:checked');
+                
+                if (selectedSpecialCategory) {
+                    // Create a hidden input to include the special category in the form data
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'selectedCategories[]';
+                    hiddenInput.value = selectedSpecialCategory.value;
+                    this.appendChild(hiddenInput);
+                }
+            });
+            
+            // Handle gender changes to toggle female-only categories
+            document.querySelectorAll('input[name="gender"]').forEach(radio => {
+                radio.addEventListener('change', toggleFemaleOnlyCategories);
+            });
+            
+            // Initial toggle based on current gender
+            toggleFemaleOnlyCategories();
         });
+
+        function toggleFemaleOnlyCategories() {
+            const isFemale = document.querySelector('input[name="gender"][value="Female"]').checked;
+            
+            // Toggle categories 4 and 6 (pregnant and lactating mother)
+            const category4Element = document.querySelector('.female-specific-category-4');
+            const category6Element = document.querySelector('.female-specific-category-6');
+            
+            if (category4Element) {
+                category4Element.style.display = isFemale ? 'flex' : 'none';
+                const checkbox4 = document.getElementById('category_4');
+                if (checkbox4) {
+                    checkbox4.disabled = !isFemale;
+                    if (!isFemale) checkbox4.checked = false;
+                }
+            }
+            
+            if (category6Element) {
+                category6Element.style.display = isFemale ? 'flex' : 'none';
+                const checkbox6 = document.getElementById('category_6');
+                if (checkbox6) {
+                    checkbox6.disabled = !isFemale;
+                    if (!isFemale) checkbox6.checked = false;
+                }
+            }
+        }
     </script>
 </x-app-layout>

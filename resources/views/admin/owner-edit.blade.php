@@ -181,20 +181,58 @@
             <!-- Categories Selection -->
             <div class="mt-4">
                 <x-input-label for="categories" :value="__('Pet Categories')" class="text-gray-700 font-medium" />
+                
+                <!-- Special Categories (Radio Buttons) -->
+                <div class="mt-2 mb-4">
+                    <p class="text-sm font-medium text-gray-600 mb-2">Select one of the following:</p>
+                    <div class="flex flex-wrap gap-4 p-3 border border-gray-300 rounded-lg bg-gray-50">
+                        @foreach($categories as $category)
+                                @if(in_array($category->id, [0, 8, 9]))
+                                <div class="flex items-center">
+                                    <input 
+                                        type="radio" 
+                                        id="special_category_{{ $category->id }}" 
+                                        name="specialCategories" 
+                                        value="{{ $category->id }}" 
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-full"
+                                        {{ in_array($category->id, $user->categories->pluck('id')->toArray()) ? 'checked' : '' }}
+                                        onchange="handleSpecialCategorySelection({{ $category->id }})"
+                                    >
+                                    <input 
+                                        type="checkbox" 
+                                        id="hidden_category_{{ $category->id }}" 
+                                        name="selectedCategories[]" 
+                                        value="{{ $category->id }}" 
+                                        class="hidden"
+                                        {{ in_array($category->id, $user->categories->pluck('id')->toArray()) ? 'checked' : '' }}
+                                    >
+                                    <label for="special_category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+                
+                <!-- Regular Categories (Checkboxes) -->
                 <div class="mt-2 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
+                    <p class="text-sm font-medium text-gray-600 mb-2">Select all that apply:</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         @foreach($categories as $category)
-                            <div class="flex items-center">
-                                <input 
-                                    type="checkbox" 
-                                    id="category_{{ $category->id }}" 
-                                    name="selectedCategories[]" 
-                                    value="{{ $category->id }}" 
-                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    {{ in_array($category->id, $user->categories->pluck('id')->toArray()) ? 'checked' : '' }}
-                                >
-                                <label for="category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
-                            </div>
+                            @if(!in_array($category->id, [0, 8, 9]))
+                                <div class="flex items-center category-item" 
+                                     id="category_container_{{ $category->id }}"
+                                     style="{{ in_array($category->id, [4, 6]) && $user->gender == 'Male' ? 'display: none;' : '' }}">
+                                    <input 
+                                        type="checkbox" 
+                                        id="category_{{ $category->id }}" 
+                                        name="selectedCategories[]" 
+                                        value="{{ $category->id }}" 
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        {{ in_array($category->id, $user->categories->pluck('id')->toArray()) ? 'checked' : '' }}
+                                    >
+                                    <label for="category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
+                                </div>
+                            @endif
                         @endforeach
                     </div>
                 </div>
@@ -338,6 +376,61 @@
             if (ownerFields) {
                 ownerFields.classList.remove('hidden');
             }
+
+            // Handle gender selection and category visibility
+            const genderInputs = document.querySelectorAll('input[name="gender"]');
+            
+            function updateCategoryVisibility() {
+                const isMale = document.querySelector('input[name="gender"]:checked')?.value === 'Male';
+                
+                // Hide/show categories 4 and 6 based on gender
+                document.querySelectorAll('.category-item').forEach(item => {
+                    const categoryId = parseInt(item.id.replace('category_container_', ''));
+                    if (categoryId === 4 || categoryId === 6) {
+                        item.style.display = isMale ? 'none' : 'flex';
+                        
+                        // Uncheck if hidden
+                        if (isMale) {
+                            const checkbox = document.getElementById(`category_${categoryId}`);
+                            if (checkbox) checkbox.checked = false;
+                        }
+                    }
+                });
+            }
+
+            genderInputs.forEach(input => {
+                input.addEventListener('change', updateCategoryVisibility);
+            });
+
+            // Initial check
+            updateCategoryVisibility();
+            
+            // Initialize special categories
+            const specialCategories = document.querySelectorAll('input[name="specialCategories"]');
+            specialCategories.forEach(radio => {
+                if (radio.checked) {
+                    handleSpecialCategorySelection(radio.value);
+                }
+            });
         });
+
+        // Handle radio button selection for special categories
+        function handleSpecialCategorySelection(categoryId) {
+            const specialCategoryIds = [0, 8, 9];
+            
+            // Uncheck all hidden checkboxes for special categories
+            specialCategoryIds.forEach(id => {
+                const hiddenCheckbox = document.getElementById(`hidden_category_${id}`);
+                if (hiddenCheckbox) {
+                    hiddenCheckbox.checked = false;
+                }
+            });
+            
+            // Check only the selected one
+            const selectedHiddenCheckbox = document.getElementById(`hidden_category_${categoryId}`);
+            if (selectedHiddenCheckbox) {
+                selectedHiddenCheckbox.checked = true;
+            }
+        }
     </script>
 </x-app-layout>
