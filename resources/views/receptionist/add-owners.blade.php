@@ -1,4 +1,5 @@
 <x-app-layout>
+    <div class="mb-9 "></div>
     <div class="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-lg relative">
         @if(session('credentials'))
         <div class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50">
@@ -49,17 +50,11 @@
             <p class="text-lg text-red-500">{{ session('error') }}</p>
         </div>
         @endif
+        
             <!-- Title with Gradient Background -->
-    <div class="text-center mb-6 bg-gradient-to-r from-blue-600 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
+    <div class=" mb-6 bg-gradient-to-r from-green-800 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
         <h2 class="text-3xl font-bold text-white">Owner Registration Form</h2>
         <p class="text-lg text-blue-100">Add a new animal owner to the system</p>
-    </div>
-
-    <!-- Logo -->
-    <div class="text-center mb-8">
-        <a href="/">
-            <img class="h-24 w-auto mx-auto hover:scale-105 transition-transform duration-300" src="{{ asset('assets/1.jpg') }}" alt="Your Logo">
-        </a>
     </div>
 
     
@@ -247,63 +242,66 @@
                 </div>
             </div>
     
-<!-- Authentication Section -->
-<div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300">
-    <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center border-b pb-2">
-        Authentication
-    </h3>
+            <!-- Authentication Section -->
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center border-b pb-2">
+                    Authentication
+                </h3>
 
-    <!-- Email/Username Toggle -->
-    <div id="auth-toggle" class="mb-6">
-        <div id="auth-toggle" class="mb-6">
-            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div class="flex items-center justify-between">
-                    <span class="{{ old('is_email_field', true) ? 'font-semibold text-blue-600' : 'text-gray-500' }}">Email</span>
-                    <button type="button" onclick="toggleAuthMethod()" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ old('is_email_field', true) ? 'bg-blue-600' : 'bg-gray-200' }}">
-                        <span class="sr-only">Toggle email/username</span>
-                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ old('is_email_field', true) ? 'translate-x-6' : 'translate-x-1' }}"></span>
-                    </button>
-                    <span class="{{ !old('is_email_field', true) ? 'font-semibold text-blue-600' : 'text-gray-500' }}">Username</span>
+                <!-- Email/Username Toggle -->
+                <div id="auth-toggle" class="mb-6">
+                    <div id="auth-toggle" class="mb-6">
+                        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <span class="{{ old('is_email_field', true) ? 'font-semibold text-blue-600' : 'text-gray-500' }}">Email</span>
+                                <button type="button" onclick="toggleAuthMethod()" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ old('is_email_field', true) ? 'bg-blue-600' : 'bg-gray-200' }}">
+                                    <span class="sr-only">Toggle email/username</span>
+                                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ old('is_email_field', true) ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                                </button>
+                                <span class="{{ !old('is_email_field', true) ? 'font-semibold text-blue-600' : 'text-gray-500' }}">Username</span>
+                            </div>
+                        </div>
+                        <input type="hidden" name="is_email_field" id="is_email_field" value="{{ old('is_email_field', 1) }}">
+                    </div>
+                </div>
+
+                <!-- Email Field -->
+                <div id="email-field" style="{{ old('is_email_field', true) ? '' : 'display: none;' }}">
+                    <label for="email" class="text-gray-700 font-medium">Email</label>
+                    <div class="relative">
+                        <input type="email" 
+                            name="email" 
+                            id="email" 
+                            value="{{ old('email') }}"
+                            class="block mt-1 w-full pl-10 border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="email@example.com"
+                            {{ old('is_email_field', true) ? 'required' : '' }}>
+                    </div>
+                    @error('email')
+                        <span class="mt-2 text-sm text-red-500">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <!-- Username Field -->
+                <div id="username-field" style="{{ old('is_email_field', true) ? 'display: none;' : '' }}">
+                    <label for="username" class="text-gray-700 font-medium">Username</label>
+                    <input type="text" 
+                        name="username" 
+                        id="username" 
+                        value="{{ old('username') }}"
+                        class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="username"
+                        {{ !old('is_email_field', true) ? 'required' : '' }}>
+                    @error('username')
+                        <span class="mt-2 text-sm text-red-500">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
-            <input type="hidden" name="is_email_field" id="is_email_field" value="{{ old('is_email_field', 1) }}">
-        </div>
-    </div>
-
-    <!-- Email Field -->
-    <div id="email-field" style="{{ old('is_email_field', true) ? '' : 'display: none;' }}">
-        <label for="email" class="text-gray-700 font-medium">Email</label>
-        <div class="relative">
-            <input type="email" 
-                   name="email" 
-                   id="email" 
-                   value="{{ old('email') }}"
-                   class="block mt-1 w-full pl-10 border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                   placeholder="email@example.com"
-                   {{ old('is_email_field', true) ? 'required' : '' }}>
-        </div>
-        @error('email')
-            <span class="mt-2 text-sm text-red-500">{{ $message }}</span>
-        @enderror
-    </div>
-
-    <!-- Username Field -->
-    <div id="username-field" style="{{ old('is_email_field', true) ? 'display: none;' : '' }}">
-        <label for="username" class="text-gray-700 font-medium">Username</label>
-        <input type="text" 
-               name="username" 
-               id="username" 
-               value="{{ old('username') }}"
-               class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-               placeholder="username"
-               {{ !old('is_email_field', true) ? 'required' : '' }}>
-        @error('username')
-            <span class="mt-2 text-sm text-red-500">{{ $message }}</span>
-        @enderror
-    </div>
-</div>
     
-            <div class="flex items-center justify-center mt-8">
+            <div class="flex items-center justify-center space-x-9 mt-8">
+                <button type="button" onclick="window.history.back()" class="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    Cancel
+                </button>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                     Add User
                 </button>
