@@ -1,4 +1,13 @@
 <x-app-layout>
+      <!-- Page Header -->
+       <div class="mx-auto flex flex-col max-w-sm items-center gap-x-4 py-6">
+        <img src="{{ asset('assets/logo2.png') }}" alt="logo" class="header-logo  w-16">
+        <h1 class="text-3xl font-bold text-gray-900">
+            Documents Management
+        </h1>
+        <p class="text-sm text-gray-500">
+            Manage all your personal documents in the system
+    </div
 <div class="py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->

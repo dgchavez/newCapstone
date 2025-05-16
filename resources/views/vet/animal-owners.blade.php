@@ -11,15 +11,15 @@
                 </div>
             @endif
 
-            <!-- Page Header -->
-            <div class="mb-8">
+                    <div class="mx-auto flex flex-col max-w-sm items-center gap-x-4">
+                <img src="{{ asset('assets/logo2.png') }}" alt="logo" class="header-logo  w-16">
                 <h1 class="text-3xl font-bold text-gray-900">
-                    Animal Owners Management
+                    Owners Management
                 </h1>
-                <p class="mt-2 text-sm text-gray-600">
-                    Manage and monitor all animal owners in the system
-                </p>
+                <p class="text-sm text-gray-500">
+                    Manage all owners in the system
             </div>
+
 
             <!-- Action Buttons -->
             <div class="flex items-center justify-between mb-6">
