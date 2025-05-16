@@ -204,37 +204,35 @@ class UserController extends Controller
                 $request->only(['barangay_id', 'street'])
             );
     
-            // Handle owner-specific data if role is owner (1)
+            // Update categories
             if ($validated['role'] == 1) {
-                // Update or create owner data
-                $user->owner()->updateOrCreate(
-                    ['user_id' => $user->user_id],
-                    [
-                        'civil_status' => $request->civil_status,
-                        'permit' => 1
-                    ]
-                );
-        
-                // Update categories
+                // Initialize categories array
+                $categories = [];
+                
+                // Add regular categories
                 if (isset($request->selectedCategories)) {
-                    // Convert all values to integers and filter out invalid ones
-                    $categories = [];
                     foreach ($request->selectedCategories as $categoryId) {
                         // Include the category if it's a valid number (including 0)
                         if (is_numeric($categoryId) || $categoryId === '0') {
                             $categories[] = (int)$categoryId;
                         }
                     }
-                    
-                    // Log the categories being processed
-                    Log::info('Categories being synced:', $categories);
-                    
-                    // Sync the categories
-                    $user->categories()->sync($categories);
-                } else {
-                    // If no categories selected, detach all
-                    $user->categories()->detach();
                 }
+                
+                // Add special category if selected
+                if (isset($request->special_category) && 
+                    (is_numeric($request->special_category) || $request->special_category === '0')) {
+                    $categories[] = (int)$request->special_category;
+                }
+                
+                // Remove duplicates if any
+                $categories = array_unique($categories);
+                
+                // Log the categories being processed
+                Log::info('Categories being synced:', $categories);
+                
+                // Sync the categories
+                $user->categories()->sync($categories);
             } else {
                 // If user is not an owner, remove owner data and category associations
                 if ($user->owner) {
@@ -471,8 +469,6 @@ class UserController extends Controller
     }
 }
 
-
-
     public function ownerList_edit($owner_id)
     {
         // Fetch the owner details using the `user_id` foreign key
@@ -492,7 +488,7 @@ class UserController extends Controller
     
     
 
-       public function ownerList_update(Request $request, $owner_id)
+    public function ownerList_update(Request $request, $owner_id)
     {
         try {
             // Log the incoming request data for debugging
@@ -539,14 +535,15 @@ class UserController extends Controller
                 'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
                 'civil_status' => 'nullable|string|max:50',
                 'selectedCategories' => 'nullable|array',
-                'selectedCategories.*' => 'exists:categories,id'
+                'selectedCategories.*' => 'exists:categories,id',
+                'special_category' => 'nullable|exists:categories,id',
             ]);
-
+    
             DB::beginTransaction();
-
+    
             // Find the user
             $user = User::findOrFail($owner_id);
-
+    
             // Handle profile image upload
             if ($request->hasFile('profile_image')) {
                 // Delete the old profile image if it exists
@@ -560,7 +557,7 @@ class UserController extends Controller
                 $request->file('profile_image')->move(public_path('storage/profile_images'), $filename);
                 $user->profile_image = 'profile_images/' . $filename;
             }
-
+    
             // Update user
             $user->update([
                 'complete_name' => $validated['complete_name'],
@@ -573,7 +570,7 @@ class UserController extends Controller
                 'is_email_field' => $validated['is_email_field'],
                 'email' => $validated['identifier'],
             ]);
-
+    
             // Update address
             $user->address()->updateOrCreate(
                 ['user_id' => $user->user_id],
@@ -582,7 +579,7 @@ class UserController extends Controller
                     'street' => $validated['street'] ?? '',
                 ]
             );
-
+    
             // Update owner
             $owner = $user->owner()->updateOrCreate(
                 ['user_id' => $user->user_id],
@@ -591,38 +588,45 @@ class UserController extends Controller
                     'permit' => 1,
                 ]
             );
-
-            // Update categories
-            if (isset($validated['selectedCategories'])) {
-                // Convert all values to integers and filter out invalid ones
-                $categories = [];
-                foreach ($validated['selectedCategories'] as $categoryId) {
+    
+            // Initialize categories array
+            $categories = [];
+            
+            // Add regular categories
+            if (isset($request->selectedCategories)) {
+                foreach ($request->selectedCategories as $categoryId) {
                     // Include the category if it's a valid number (including 0)
                     if (is_numeric($categoryId) || $categoryId === '0') {
                         $categories[] = (int)$categoryId;
                     }
                 }
-                
-                // Log the categories being processed
-                Log::info('Categories being synced:', $categories);
-                
-                // Sync the categories
-                $user->categories()->sync($categories);
-            } else {
-                // If no categories selected, detach all
-                $user->categories()->detach();
             }
-
+            
+            // Add special category if selected
+            if (isset($request->special_category) && 
+                (is_numeric($request->special_category) || $request->special_category === '0')) {
+                $categories[] = (int)$request->special_category;
+            }
+            
+            // Remove duplicates if any
+            $categories = array_unique($categories);
+            
+            // Log the categories being processed
+            Log::info('Categories being synced:', $categories);
+            
+            // Sync the categories
+            $user->categories()->sync($categories);
+    
             // Verify that categories were updated correctly
             $updatedCategories = $user->categories()->pluck('categories.id')->toArray();
             Log::info('Updated categories for user ' . $user->user_id, [
                 'updated_categories' => $updatedCategories
             ]);
-
+    
             DB::commit();
             
             return redirect()->route('admin-owners')->with('success', 'Profile updated successfully.');
-
+    
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating owner: ' . $e->getMessage(), [
