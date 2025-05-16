@@ -15,13 +15,9 @@
                         {{ $owner->user->complete_name }}'s Transactions
                     </h1>
                 </div>
-                <a href="{{ route('owners.profile', ['owner_id' => $owner_id]) }}" 
-                   class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Back to Profile
-                </a>
+                <button onclick="window.history.back()" class="bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    back
+                </button>
             </div>
 
             <!-- Main Content Card -->

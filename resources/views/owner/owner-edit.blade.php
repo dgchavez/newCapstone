@@ -3,16 +3,9 @@
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg relative">
         
         <!-- Title with Gradient Background -->
-        <div class="text-center mb-6 bg-gradient-to-r from-blue-600 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
+        <div class="text-center mb-6 bg-gradient-to-r from-green-800 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
             <h2 class="text-3xl font-bold text-white">Edit Animal Owner</h2>
             <p class="text-lg text-blue-100">Update the owner details below</p>
-        </div>
-
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <a href="/admin/users">
-                <img class="h-24 w-auto mx-auto hover:scale-105 transition-transform duration-300" src="{{ asset('assets/1.jpg') }}" alt="Your Logo">
-            </a>
         </div>
 
         <!-- Error Messages -->
@@ -120,7 +113,7 @@
                 <!-- Birth Date -->
                 <div>
                     <x-input-label for="birth_date" :value="__('Birth Date')" class="text-gray-700 font-medium"/>
-                    <x-text-input type="date" name="birth_date" id="birth_date" value="{{ old('birth_date', $user->birth_date = \Carbon\Carbon::parse($user->birth_date)->format('Y-m-d')); }}" class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+                    <x-text-input type="date" name="birth_date" id="birth_date" value="{{ old('birth_date', $user->birth_date = \Carbon\Carbon::parse($user->birth_date)->format('Y-m-d')) }}" class="block mt-1 w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
                 </div>
             </div>
         </div>
@@ -299,12 +292,12 @@
                 {{ __('Update Owner') }}
             </button>
             
-            <a href="{{ route('owners.profile-owner', ['owner_id' => $user->owner->owner_id]) }}" class="bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+            <button onclick="window.history.back()" class="bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 inline" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                 </svg>
-                {{ __('Cancel') }}
-            </a>
+                Cancel
+            </button>
         </div>
       </form>
     </div>

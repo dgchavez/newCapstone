@@ -13,7 +13,7 @@
         <!-- Main Profile Section -->
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
             <!-- Profile Header with Banner -->
-            <div class="relative h-48 bg-gradient-to-r from-green-600 to-green-800">
+            <div class="relative h-48 bg-gradient-to-r from-green-800 to-green-600">
                 <div class="absolute inset-0 bg-black/20"></div>
                 <!-- Action Buttons -->
                 <div class="absolute top-4 right-4 flex space-x-3">

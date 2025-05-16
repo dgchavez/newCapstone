@@ -1,11 +1,33 @@
 <x-app-layout>
     <div class="container mx-auto p-6">
-        <!-- Page Header -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Report Engine</h1>
-            <p class="text-gray-600">Generate comprehensive reports for reception and administrative needs</p>
+       <!-- Page Header -->
+        <div class="bg-gradient-to-r from-green-800 to-green-600 rounded-xl shadow-lg p-8 mb-8 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10">
+                <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#engine-pattern)" />
+                </svg>
+                <defs>
+                    <pattern id="engine-pattern" width="10" height="10" patternUnits="userSpaceOnUse">
+                        <path d="M5,2 C7,2 8,3 8,5 C8,7 7,8 5,8 C3,8 2,7 2,5 C2,3 3,2 5,2 Z" fill="currentColor" />
+                    </pattern>
+                </defs>
+            </div>
+            <div class="relative z-10 flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">Report Engine</h1>
+                    <p class="text-blue-100">Generate comprehensive reports for reception and administrative needs</p>
+                </div>
+                <div class="hidden md:flex space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+            </div>
         </div>
-
         <!-- Tabbed Report Interface -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
             <!-- Tab Navigation -->
