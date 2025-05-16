@@ -198,18 +198,46 @@
                     <div class="mt-4">
                         <label class="text-gray-700 font-medium">Pet Categories</label>
                         <div class="mt-2 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                @foreach($categories as $category)
-                                    <div class="flex items-center">
-                                        <input type="checkbox" 
-                                               name="selectedCategories[]" 
-                                               id="category_{{ $category->id }}" 
-                                               value="{{ $category->id }}" 
-                                               {{ in_array($category->id, old('selectedCategories', [])) ? 'checked' : '' }}
-                                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                                        <label for="category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
-                                    </div>
-                                @endforeach
+                            <!-- Special Categories (0, 8, 9) - Radio Buttons -->
+                            <div class="mb-3 pb-3 border-b border-gray-200">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Select one of these categories:</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    @foreach($categories as $category)
+                                        @if(in_array($category->id, [0, 8, 9]))
+                                            <div class="flex items-center">
+                                                <input type="radio" 
+                                                      name="selectedCategories[]" 
+                                                      id="category_radio_{{ $category->id }}" 
+                                                      value="{{ $category->id }}" 
+                                                      {{ in_array($category->id, old('selectedCategories', [])) ? 'checked' : '' }}
+                                                      class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                                <label for="category_radio_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                                    
+                            <!-- Regular Categories (Checkboxes) -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Select additional categories:</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    @foreach($categories as $category)
+                                        @if(!in_array($category->id, [0, 8, 9]))
+                                            <div class="flex items-center" 
+                                                 x-data="{}"
+                                                 x-show="!(['4', '6'].includes('{{ $category->id }}') && document.querySelector('input[name=gender][value=Male]').checked)">
+                                                <input type="checkbox" 
+                                                      name="selectedCategories[]" 
+                                                      id="category_{{ $category->id }}" 
+                                                      value="{{ $category->id }}" 
+                                                      {{ in_array($category->id, old('selectedCategories', [])) ? 'checked' : '' }}
+                                                      class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                                <label for="category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                         @error('selectedCategories')
@@ -332,5 +360,34 @@ function toggleAuthMethod() {
             roleSelect.addEventListener('change', toggleOwnerFields);
             toggleOwnerFields(); // Initial check
         });
+
+    // Handle gender change to show/hide categories 4 and 6
+    document.addEventListener('DOMContentLoaded', function() {
+        const maleRadio = document.querySelector('input[name=gender][value=Male]');
+        const femaleRadio = document.querySelector('input[name=gender][value=Female]');
+        const category4 = document.querySelector('input[name="selectedCategories[]"][value="4"]')?.closest('div');
+        const category6 = document.querySelector('input[name="selectedCategories[]"][value="6"]')?.closest('div');
+        
+        function toggleCategories() {
+            if (category4 && category6) {
+                if (maleRadio.checked) {
+                    category4.style.display = 'none';
+                    category6.style.display = 'none';
+                    // Uncheck if hidden
+                    document.querySelector('input[name="selectedCategories[]"][value="4"]').checked = false;
+                    document.querySelector('input[name="selectedCategories[]"][value="6"]').checked = false;
+                } else {
+                    category4.style.display = '';
+                    category6.style.display = '';
+                }
+            }
+        }
+        
+        if (maleRadio && femaleRadio) {
+            maleRadio.addEventListener('change', toggleCategories);
+            femaleRadio.addEventListener('change', toggleCategories);
+            toggleCategories(); // Initial check
+        }
+    });
     </script>
     </x-app-layout>

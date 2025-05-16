@@ -27,6 +27,9 @@ use App\Models\User;
 use DB; 
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeEmail;
 
 class VetController extends Controller
 {
@@ -617,15 +620,24 @@ public function showRegistrationForm()
      */
     public function register(Request $request)
     {
-        $validated = $request->validate($this->validationRules($request));
+        // Add specialCategories to validation rules
+        $rules = $this->validationRules($request);
+        $rules['specialCategories'] = 'nullable|array|max:1';
+        $rules['specialCategories.*'] = 'exists:categories,id';
+        
+        // Make selectedCategories optional since we now have specialCategories
+        $rules['selectedCategories'] = 'nullable|array';
+        
+        $validated = $request->validate($rules);
 
         try {
             DB::beginTransaction();
 
-               // Determine email/username value
-    $identifier = $validated['is_email_field'] 
-    ? $validated['email']
-    : $validated['username'];
+            // Determine email/username value
+            $identifier = $validated['is_email_field'] 
+            ? $validated['email']
+            : $validated['username'];
+            
             // Generate password
             $randomPassword = Str::random(8);
             
@@ -655,8 +667,29 @@ public function showRegistrationForm()
                     'permit' => 1, // Default permit status
                 ]);
 
+                // Prepare categories to attach
+                $categoriesToAttach = [];
+                
+                // Add regular categories (checkboxes)
                 if (!empty($validated['selectedCategories'])) {
-                    $user->categories()->attach($validated['selectedCategories']);
+                    $categoriesToAttach = $validated['selectedCategories'];
+                    
+                    // If gender is Male, remove categories 4 and 6
+                    if ($validated['gender'] === 'Male') {
+                        $categoriesToAttach = array_filter($categoriesToAttach, function($categoryId) {
+                            return !in_array($categoryId, [4, 6]);
+                        });
+                    }
+                }
+                
+                // Add special category (single checkbox from specialCategories)
+                if (!empty($validated['specialCategories'])) {
+                    $categoriesToAttach = array_merge($categoriesToAttach, $validated['specialCategories']);
+                }
+                
+                // Attach categories
+                if (!empty($categoriesToAttach)) {
+                    $user->categories()->attach(array_values($categoriesToAttach));
                 }
             }
 
@@ -683,7 +716,7 @@ public function showRegistrationForm()
                 'is_email' => $validated['is_email_field']
             ]
         ])->with('message', 'User registered successfully! Password has been sent to their email.');
-            }
+    }
 
     private function validationRules(Request $request)
     {

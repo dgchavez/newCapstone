@@ -218,10 +218,11 @@ public function showRegistrationForm()
         try {
             DB::beginTransaction();
 
-               // Determine email/username value
-    $identifier = $validated['is_email_field'] 
-    ? $validated['email']
-    : $validated['username'];
+            // Determine email/username value
+            $identifier = $validated['is_email_field'] 
+                ? $validated['email']
+                : $validated['username'];
+            
             // Generate password
             $randomPassword = Str::random(8);
             
@@ -252,7 +253,28 @@ public function showRegistrationForm()
                 ]);
 
                 if (!empty($validated['selectedCategories'])) {
-                    $user->categories()->attach($validated['selectedCategories']);
+                    // Filter categories based on gender
+                    $selectedCategories = $validated['selectedCategories'];
+                    
+                    // If gender is Male, remove categories 4 and 6
+                    if ($validated['gender'] === 'Male') {
+                        $selectedCategories = array_filter($selectedCategories, function($categoryId) {
+                            return !in_array($categoryId, [4, 6]);
+                        });
+                    }
+                    
+                    // Make sure only one of categories 0, 8, 9 is selected
+                    $specialCategories = array_intersect([0, 8, 9], $selectedCategories);
+                    $regularCategories = array_diff($selectedCategories, [0, 8, 9]);
+                    
+                    // Combine: One special category + all regular categories
+                    $categoriesToAttach = $regularCategories;
+                    if (!empty($specialCategories)) {
+                        // Add only the first special category found
+                        $categoriesToAttach[] = reset($specialCategories);
+                    }
+                    
+                    $user->categories()->attach($categoriesToAttach);
                 }
             }
 
@@ -262,7 +284,7 @@ public function showRegistrationForm()
             return back()->with('error', 'Cannot add user due to an issue. Please try again.')
                          ->withInput();
         }
-    
+
         // Email sending outside transaction
         try {
             if ($validated['is_email_field']) {
@@ -271,7 +293,7 @@ public function showRegistrationForm()
         } catch (\Exception $e) {
             \Log::error('Email sending failed: ' . $e->getMessage());
         }
-    
+
         return redirect()->route('rec-owners')->with([
             'credentials' => [
                 'identifier' => $user->email,
@@ -279,7 +301,7 @@ public function showRegistrationForm()
                 'is_email' => $validated['is_email_field']
             ]
         ])->with('message', 'User registered successfully! Password has been sent to their email.');
-            }
+    }
 
     private function validationRules(Request $request)
     {

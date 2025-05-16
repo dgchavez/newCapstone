@@ -13,28 +13,28 @@
 
             <!-- Error and Success Messages -->
             <div class="px-8 pt-6">
-                @if ($errors->any())
+            @if ($errors->any())
                     <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6">
                         <div class="flex items-center mb-2">
                             <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
                             <p class="font-semibold text-red-800">Please correct the following errors:</p>
                         </div>
                         <ul class="list-disc list-inside text-red-700">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-                @if (session('success'))
+            @if (session('success'))
                     <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg mb-6">
                         <div class="flex items-center">
                             <i class="fas fa-check-circle text-green-500 mr-2"></i>
                             <p class="text-green-800">{{ session('success') }}</p>
                         </div>
-                    </div>
-                @endif
+                </div>
+            @endif
             </div>
 
             <!-- Form Content -->
@@ -54,66 +54,66 @@
                                 <select name="is_group" id="is_group" class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm" onchange="toggleGroupFields()">
                                     <option value="0" {{ old('is_group', $animal->is_group) == '0' ? 'selected' : '' }}>Individual Animal</option>
                                     <option value="1" {{ old('is_group', $animal->is_group) == '1' ? 'selected' : '' }}>Animal Group</option>
-                                </select>
-                            </div>
+                    </select>
+                </div>
                             <div class="flex-1">
                                 <label for="is_vaccinated" class="block text-sm font-medium text-gray-600 mb-1">Vaccination Status</label>
                                 <select name="is_vaccinated" id="is_vaccinated" class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm">
                                     <option value="" {{ old('is_vaccinated', $animal->is_vaccinated) === null ? 'selected' : '' }}>Select Status</option>
-                                    <option value="0" {{ old('is_vaccinated', $animal->is_vaccinated) == '0' ? 'selected' : '' }}>Not Vaccinated</option>
-                                    <option value="1" {{ old('is_vaccinated', $animal->is_vaccinated) == '1' ? 'selected' : '' }}>Vaccinated</option>
+                        <option value="0" {{ old('is_vaccinated', $animal->is_vaccinated) == '0' ? 'selected' : '' }}>Not Vaccinated</option>
+                        <option value="1" {{ old('is_vaccinated', $animal->is_vaccinated) == '1' ? 'selected' : '' }}>Vaccinated</option>
                                     <option value="2" {{ old('is_vaccinated', $animal->is_vaccinated) == '2' ? 'selected' : '' }}>Not Required</option>
-                                </select>
+                    </select>
                             </div>
-                        </div>
-
+                </div>
+                
                         <!-- Name and Gender/Group Count -->
-                        <div>
+                <div>
                             <label for="name" class="block text-sm font-medium text-gray-600 mb-1">Animal Name</label>
                             <input type="text" name="name" id="name" value="{{ old('name', $animal->name) }}" 
                                    class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm">
-                        </div>
+                </div>
 
-                        <div id="individual-animal-fields">
+                <div id="individual-animal-fields">
                             <label for="gender" class="block text-sm font-medium text-gray-600 mb-1">Gender</label>
                             <select name="gender" id="gender" class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm">
-                                <option value="Male" {{ old('gender', $animal->gender) == 'Male' ? 'selected' : '' }}>Male</option>
-                                <option value="Female" {{ old('gender', $animal->gender) == 'Female' ? 'selected' : '' }}>Female</option>
-                            </select>
-                        </div>
+                            <option value="Male" {{ old('gender', $animal->gender) == 'Male' ? 'selected' : '' }}>Male</option>
+                            <option value="Female" {{ old('gender', $animal->gender) == 'Female' ? 'selected' : '' }}>Female</option>
+                        </select>
+                </div>
 
-                        <div id="group-fields" class="{{ $animal->is_group ? '' : 'hidden' }}">
+                <div id="group-fields" class="{{ $animal->is_group ? '' : 'hidden' }}">
                             <label for="group_count" class="block text-sm font-medium text-gray-600 mb-1">Number of Animals</label>
                             <input type="number" name="group_count" id="group_count" value="{{ old('group_count', $animal->group_count) }}" 
                                    class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm" min="1">
-                        </div>
+                </div>
 
                         <!-- Species and Breed -->
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
+                <div>
                                 <label for="species_id" class="block text-sm font-medium text-gray-600 mb-1">Species</label>
                                 <select name="species_id" id="species_id" class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm" required>
-                                    @foreach ($species as $specie)
-                                        <option value="{{ $specie->id }}" {{ old('species_id', $animal->species_id) == $specie->id ? 'selected' : '' }}>
-                                            {{ $specie->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
+                        @foreach ($species as $specie)
+                            <option value="{{ $specie->id }}" {{ old('species_id', $animal->species_id) == $specie->id ? 'selected' : '' }}>
+                                {{ $specie->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
                                 <label for="breed_id" class="block text-sm font-medium text-gray-600 mb-1">Breed</label>
                                 <select name="breed_id" id="breed_id" class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm" required>
-                                    <option value="">Select a breed</option>
-                                    @foreach ($breeds as $breed)
+                        <option value="">Select a breed</option>
+                        @foreach ($breeds as $breed)
                                         <option value="{{ $breed->id }}" {{ old('breed_id', $animal->breed_id) == $breed->id ? 'selected' : '' }}>
                                             {{ $breed->name }}
                                         </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                        @endforeach
+                    </select>
+                </div>
                         </div>
-                    </div>
-
+                </div>
+                
                     <!-- Additional Details Section -->
                     <div class="space-y-6">
                         <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Additional Details</h3>
@@ -124,15 +124,15 @@
                                 <input type="text" name="color" id="color" value="{{ old('color', $animal->color ?? '') }}"
                                        class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm">
                             </div>
-                            <div>
+                <div>
                                 <label for="birth_date" class="block text-sm font-medium text-gray-600 mb-1">Birth Date</label>
-                                <input type="date" name="birth_date" id="birth_date" 
-                                       value="{{ old('birth_date', optional($animal->birth_date)->format('Y-m-d')) }}"
+                    <input type="date" name="birth_date" id="birth_date" 
+                           value="{{ old('birth_date', optional($animal->birth_date)->format('Y-m-d')) }}" 
                                        class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm">
                             </div>
-                        </div>
-
-                        <div>
+                </div>
+                
+                <div>
                             <label for="medical_condition" class="block text-sm font-medium text-gray-600 mb-1">Medical Condition</label>
                             <textarea name="medical_condition" id="medical_condition" rows="3" 
                                       class="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm">{{ old('medical_condition', $animal->medical_condition) }}</textarea>
@@ -144,11 +144,11 @@
                 <div class="mt-8">
                     <h3 class="text-lg font-semibold text-gray-900 border-b pb-2 mb-6">Animal Photos</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        @foreach (['front', 'back', 'left_side', 'right_side'] as $field)
+@foreach (['front', 'back', 'left_side', 'right_side'] as $field)
                             <div class="space-y-2">
-                                <label for="photo_{{ $field }}" class="block text-sm font-medium text-gray-600">
+    <label for="photo_{{ $field }}" class="block text-sm font-medium text-gray-600">
                                     {{ ucfirst(str_replace('_', ' ', $field)) }} View
-                                </label>
+    </label>
                                 <div class="relative">
                                     <div class="aspect-square rounded-lg border-2 border-dashed border-gray-300 overflow-hidden">
                                         <img id="preview_{{ $field }}" 
@@ -158,12 +158,12 @@
                                             <i class="fas fa-camera text-gray-400 text-2xl"></i>
                                         </div>
                                     </div>
-                                    <input type="file" name="photo_{{ $field }}" id="photo_{{ $field }}"
+    <input type="file" name="photo_{{ $field }}" id="photo_{{ $field }}" 
                                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                            onchange="previewImage(event, 'preview_{{ $field }}')">
-                                </div>
-                            </div>
-                        @endforeach
+</div>
+</div>
+@endforeach
                     </div>
                 </div>
 
