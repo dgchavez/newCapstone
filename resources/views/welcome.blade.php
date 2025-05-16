@@ -48,7 +48,7 @@
         <div class="fixed inset-0 -z-10 bg-black/20 backdrop-blur-sm"></div>
 
         <!-- ========== HEADER ========== -->
-        <header class="sticky top-0 inset-x-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
+        <header class="sticky top-0 inset-x-0 z-50 backdrop-blur-md shadow-sm">
             <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-20">
                     <!-- Logo -->
@@ -142,7 +142,7 @@
 
         <!-- ========== HERO ========== -->
         <main class="flex-1">
-        <section class="relative py-16 sm:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-gray-50 via-white to-green-50">
+        <section class="relative py-16 sm:py-24 lg:py-32 overflow-hidden from-gray-50 via-white to-green-50">
   <div class="absolute inset-0 bg-pattern opacity-5 z-0"></div>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
     <div class="bg-white/90 backdrop-blur-xl overflow-hidden shadow-2xl rounded-3xl border border-green-100">

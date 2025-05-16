@@ -368,15 +368,19 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
-        $validated = $request->validate($this->validationRules($request));
-
+        // Add specialCategory to validation rules
+        $rules = $this->validationRules($request);
+        
+        $validated = $request->validate($rules);
+    
         try {
             DB::beginTransaction();
-
-               // Determine email/username value
-    $identifier = $validated['is_email_field'] 
-    ? $validated['email']
-    : $validated['username'];
+    
+            // Determine email/username value
+            $identifier = $validated['is_email_field'] 
+            ? $validated['email']
+            : $validated['username'];
+            
             // Generate password
             $randomPassword = Str::random(8);
             
@@ -392,29 +396,50 @@ class UserController extends Controller
                 'password' => Hash::make($randomPassword),
                 'designation_id' => $validated['designation_id'] ?? null,
             ]);
-
+    
             // Create address
             $user->address()->create([
                 'barangay_id' => $validated['barangay_id'],
                 'street' => $validated['street'],
             ]);
-
+    
             // If owner, create owner record and attach categories
             if ($validated['role'] == 1) {
                 $owner = $user->owner()->create([
                     'civil_status' => $validated['civil_status'],
                     'permit' => 1, // Default permit status
                 ]);
-
+    
+                // Prepare categories to attach
+                $categoriesToAttach = [];
+                
+                // Add regular categories (checkboxes)
                 if (!empty($validated['selectedCategories'])) {
-                    $user->categories()->attach($validated['selectedCategories']);
+                    $categoriesToAttach = $validated['selectedCategories'];
+                    
+                    // If gender is Male, remove categories 4 and 6
+                    if ($validated['gender'] === 'Male') {
+                        $categoriesToAttach = array_filter($categoriesToAttach, function($categoryId) {
+                            return !in_array($categoryId, [4, 6]);
+                        });
+                    }
+                }
+                
+                // Add special category (radio button selection)
+                if (!empty($validated['specialCategory'])) {
+                    $categoriesToAttach[] = $validated['specialCategory'];
+                }
+                
+                // Attach categories
+                if (!empty($categoriesToAttach)) {
+                    $user->categories()->attach(array_values($categoriesToAttach));
                 }
             }
-
+    
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Cannot add user due to an issue. Please try again.')
+            return back()->with('error', 'Cannot add user due to an issue. Please try again: ' . $e->getMessage())
                          ->withInput();
         }
     
@@ -434,39 +459,39 @@ class UserController extends Controller
                 'is_email' => $validated['is_email_field']
             ]
         ])->with('message', 'User registered successfully! Password has been sent to their email.');
-            }
-
-    private function validationRules(Request $request)
-    {
-        $rules = [
-            'complete_name' => 'required|string|max:255',
-            'role' => 'required|integer|in:1,2,3',
-            'contact_no' => 'nullable|string|max:15',
-            'gender' => 'required|string|in:Male,Female',
-            'birth_date' => 'nullable|date|before_or_equal:today',
-            'barangay_id' => 'required|exists:barangays,id',
-            'street' => 'required|string|max:255',
-            'is_email_field' => 'required|boolean',
-        ];
-
-        // Role-specific rules
-        if ($request->role == 1) {
-            $rules['civil_status'] = 'required|string|in:Married,Separated,Single,Widow';
-            $rules['selectedCategories'] = 'required|array|min:1';
-            $rules['selectedCategories.*'] = 'exists:categories,id';
-
-            if ($request->role == 1) {
-                if ($request->is_email_field) {
-                    $rules['email'] = 'required|email|max:255|unique:users,email';
-                    $rules['username'] = 'nullable|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/';
-                } else {
-                    $rules['username'] = 'required|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/|unique:users,email';
-                    $rules['email'] = 'nullable|email';
-                }
-            }
-        
-            return $rules;
     }
+
+
+private function validationRules(Request $request)
+{
+    $rules = [
+        'complete_name' => 'required|string|max:255',
+        'role' => 'required|integer|in:1,2,3',
+        'contact_no' => 'nullable|string|max:15',
+        'gender' => 'required|string|in:Male,Female',
+        'birth_date' => 'nullable|date|before_or_equal:today',
+        'barangay_id' => 'required|exists:barangays,id',
+        'street' => 'required|string|max:255',
+        'is_email_field' => 'required|boolean',
+    ];
+
+    // Role-specific rules
+    if ($request->role == 1) {
+        $rules['civil_status'] = 'required|string|in:Married,Separated,Single,Widow';
+        $rules['selectedCategories'] = 'nullable|array';
+        $rules['selectedCategories.*'] = 'exists:categories,id';
+        $rules['specialCategory'] = 'required|exists:categories,id';
+
+        if ($request->is_email_field) {
+            $rules['email'] = 'required|email|max:255|unique:users,email';
+            $rules['username'] = 'nullable|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/';
+        } else {
+            $rules['username'] = 'required|string|min:5|max:25|regex:/^[a-zA-Z0-9_.]+$/|unique:users,email';
+            $rules['email'] = 'nullable|email';
+        }
+    }
+    
+    return $rules;
 }
 
     public function ownerList_edit($owner_id)

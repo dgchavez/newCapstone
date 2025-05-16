@@ -51,6 +51,7 @@ new #[Layout('layouts.guest')] class extends Component
     public $categories = []; // Barangays list
 
     public array $selectedCategories = [];
+    public ?int $specialCategory = null;
 
     public bool $isProcessing = false;
     public bool $showCredentials = false; // Flag to show credentials modal
@@ -112,8 +113,9 @@ new #[Layout('layouts.guest')] class extends Component
                 'status' => ['required', 'integer'],
                 'designation_id' => ['nullable', 'exists:designations,designation_id'],
                 'civil_status' => ['nullable', 'required_if:role,1', 'string', 'max:255'],
-                'selectedCategories' => ['nullable', 'required_if:role,1', 'array'],
+                'selectedCategories' => ['nullable', 'array'],
                 'selectedCategories.*' => ['exists:categories,id'],
+                'specialCategory' => ['nullable', 'required_if:role,1', 'integer', 'exists:categories,id'],
                 'barangay_id' => ['required', 'exists:barangays,id'],
                 'street' => ['nullable', 'string', 'max:255'],
             ];
@@ -166,8 +168,29 @@ new #[Layout('layouts.guest')] class extends Component
                     'permit' => $this->permit,
                 ]);
 
+                // Process categories
+                $categoriesToAttach = [];
+                
+                // Add regular categories (excluding pregnant and lactating for males)
                 if (!empty($this->selectedCategories)) {
-                    $user->categories()->attach($this->selectedCategories);
+                    $categoriesToAttach = $this->selectedCategories;
+                    
+                    // Remove categories 4 and 6 if gender is Male
+                    if ($this->gender === 'Male') {
+                        $categoriesToAttach = array_filter($categoriesToAttach, function($categoryId) {
+                            return !in_array($categoryId, [4, 6]);
+                        });
+                    }
+                }
+                
+                // Add the special category if selected
+                if (!empty($this->specialCategory)) {
+                    $categoriesToAttach[] = $this->specialCategory;
+                }
+                
+                // Attach the categories if any exist
+                if (!empty($categoriesToAttach)) {
+                    $user->categories()->attach(array_values(array_unique($categoriesToAttach)));
                 }
             }
 
@@ -473,21 +496,50 @@ new #[Layout('layouts.guest')] class extends Component
 
                 <!-- Categories Selection -->
                 <div class="mt-4">
-                    <x-input-label for="category" :value="__('Pet Categories')" class="text-gray-700 font-medium" />
+                    <x-input-label for="category" :value="__('Owner Categories')" class="text-gray-700 font-medium" />
                     <div class="mt-2 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            @foreach($categories as $category)
-                                <div class="flex items-center">
-                                    <input 
-                                        type="checkbox" 
-                                        id="category_{{ $category->id }}" 
-                                        wire:model="selectedCategories" 
-                                        value="{{ $category->id }}" 
-                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    >
-                                    <label for="category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
-                                </div>
-                            @endforeach
+                        <!-- Special Categories (0, 8, 9) - Radio Buttons -->
+                        <div class="mb-3 pb-3 border-b border-gray-200">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select one of these categories:</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                @foreach($categories as $category)
+                                    @if(in_array($category->id, [0, 8, 9]))
+                                        <div class="flex items-center">
+                                            <input 
+                                                type="radio" 
+                                                id="category_radio_{{ $category->id }}" 
+                                                wire:model="specialCategory" 
+                                                value="{{ $category->id }}" 
+                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                            >
+                                            <label for="category_radio_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                        
+                        <!-- Regular Categories (Checkboxes) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select additional categories:</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                @foreach($categories as $category)
+                                    @if(!in_array($category->id, [0, 8, 9]))
+                                        <div class="flex items-center" 
+                                             x-data="{}"
+                                             x-show="!(['4', '6'].includes('{{ $category->id }}') && '{{ $gender }}' === 'Male')">
+                                            <input 
+                                                type="checkbox" 
+                                                id="category_{{ $category->id }}" 
+                                                wire:model="selectedCategories" 
+                                                value="{{ $category->id }}" 
+                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                            >
+                                            <label for="category_{{ $category->id }}" class="ml-2 text-gray-700">{{ $category->name }}</label>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                     <x-input-error :messages="$errors->get('selectedCategories')" class="mt-2 text-sm text-red-500" />

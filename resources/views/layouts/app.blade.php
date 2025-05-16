@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
     <link rel="preload" as="style" href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap">
     <link rel="preload" as="image" href="{{ asset('assets/bg6.jpg') }}">
-    
+
     <!-- Styles -->
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ asset('assets/icon.ico') }}" type="image/x-icon">
@@ -143,19 +143,19 @@
 
         <!-- Footer (now part of the main layout flow) -->
         <footer class="site-footer shadow-lg">
-            <div class="container mx-auto px-4 py-3">
+                <div class="container mx-auto px-4 py-3">
                 <div class="flex flex-wrap justify-center gap-4 mb-2">
-                    @foreach(\App\Models\Policy::where('is_published', true)->get() as $policy)
+                        @foreach(\App\Models\Policy::where('is_published', true)->get() as $policy)
                         <button 
                             @click="$store.policyData.openPolicyModal(@js($policy))"
                             class="text-gray-300 hover:text-white hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white rounded-md px-2 py-1">
                             {{ ucfirst($policy->type) }} Policy
                         </button>
-                    @endforeach
+                        @endforeach
+                    </div>
+                    <p class="text-center text-gray-400 text-xs">&copy; {{ date('Y') }} {{ config('app.name') }}</p>
                 </div>
-                <p class="text-center text-gray-400 text-xs">&copy; {{ date('Y') }} {{ config('app.name') }}</p>
-            </div>
-        </footer>
+            </footer>
 
         <!-- Policy Modal (moved outside the footer but still in the main container) -->
         <div x-data x-show="$store.policyData.showPolicyModal" 
@@ -163,10 +163,10 @@
              @keydown.escape.window="$store.policyData.closePolicyModal()"
              role="dialog"
              aria-modal="true"
-             x-cloak
+                 x-cloak
              class="fixed inset-0 z-50 overflow-y-auto">
             <div class="modal-overlay fixed inset-0" @click="$store.policyData.closePolicyModal()"></div>
-            
+                
             <div class="flex min-h-screen items-center justify-center p-4">
                 <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
                     <div class="sticky top-0 bg-white px-6 py-4 border-b rounded-t-xl flex items-center justify-between">
