@@ -1,11 +1,11 @@
     <x-app-layout>
-        <div class="py-10 bg-gray-50">
+        <div class="py-10 ">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="bg-white shadow-xl rounded-xl overflow-hidden max-w-4xl mx-auto">
                     <!-- Header -->
-                    <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-6">
+                    <div class="bg-gradient-to-r from-green-800 to-green-600 px-8 py-6">
                         <h2 class="text-2xl font-bold text-white">Add New Pet</h2>
-                        <p class="text-blue-100">Owner: {{ $owner->complete_name }}</p>
+                        <p class="text-green-100">Owner: {{ $owner->complete_name }}</p>
                     </div>
 
                     <!-- Alerts -->
@@ -192,12 +192,12 @@
 
                         <!-- Submit Buttons -->
                         <div class="mt-8 flex justify-between border-t border-gray-200 pt-6">
-                            <a href="{{ route('owners.profile-owner', ['owner_id' => $owner_id]) }}" class="px-5 py-2.5 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 transition-colors flex items-center">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            <button onclick="window.history.back()" class="bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 inline" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                                 Cancel
-                            </a>
+                            </button>
                             <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />

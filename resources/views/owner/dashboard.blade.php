@@ -1,6 +1,6 @@
 <x-app-layout>
     <!-- Hero Section with Welcome Banner -->
-    <div class="relative bg-gradient-to-r from-green-600 to-blue-800 shadow-xl mb-8">
+    <div class="relative bg-gradient-to-r from-green-800 to-green-600 shadow-xl mb-8">
         <div class="absolute inset-0 opacity-10">
             <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#pet-pattern)" />
@@ -26,7 +26,7 @@
                         Register New Pet
                     </a>
                     <a href="{{ route('owners.profile', ['owner_id' => Auth::user()->owner->owner_id]) }}" 
-                       class="inline-flex items-center px-5 py-3 bg-green-700 text-white rounded-lg shadow-md hover:bg-green-800 transition-all duration-300">
+                       class="inline-flex items-center px-5 py-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-800 transition-all duration-300">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
