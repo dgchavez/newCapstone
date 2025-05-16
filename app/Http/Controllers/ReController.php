@@ -331,7 +331,7 @@ public function ownerList_edit($owner_id)
     return view('receptionist.ownerlist-edit', compact('user', 'barangays', 'owner','categories'));
 }
 
-       public function ownerList_update(Request $request, $owner_id)
+public function ownerList_update(Request $request, $owner_id)
     {
         try {
             // Log the incoming request data for debugging
