@@ -1,8 +1,20 @@
 <x-app-layout>
+       <!-- Page Header -->
+       <div class="mx-auto flex flex-col max-w-sm items-center gap-x-4 py-6">
+        <img src="{{ asset('assets/logo2.png') }}" alt="logo" class="header-logo  w-16">
+        <h1 class="text-3xl font-bold text-gray-900">
+            Documents Management
+        </h1>
+        <p class="text-sm text-gray-500">
+            Manage all your personal documents in the system
+    </div
 <div class="py-6">
+    
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
+        
         <div class="flex justify-between items-center mb-6">
+            
             <h2 class="text-2xl font-semibold text-gray-900">My Documents</h2>
             <button 
                 onclick="document.getElementById('uploadModal').classList.remove('hidden')"
@@ -46,6 +58,8 @@
         @endif
 
         <!-- Documents Grid -->
+        @if($documents->count())
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($documents as $document)
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
@@ -87,10 +101,19 @@
         <div class="mt-6">
             {{ $documents->links() }}
         </div>
+        @else
+    <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2a4 4 0 014-4h1a4 4 0 010 8h-5zm0 0a5 5 0 01-5-5V7a5 5 0 0110 0v5" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No documents found</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by uploading your first document.</p>
+    </div>
+@endif
 
         <!-- Upload Modal -->
         <div id="uploadModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="flex items-center justify-center min-h-screen px-4 text-center">
                 <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
                 <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
