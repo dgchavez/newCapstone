@@ -51,46 +51,125 @@
                                 Member since {{ $owner->created_at->format('F d, Y') }}
                             </p>
                         </div>
+                        
+                        <!-- Owner Status Badge -->
+                        <div class="bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                            <span class="text-xs font-medium text-green-700">Active Owner</span>
+                        </div>
                     </div>
 
-                    <!-- Contact Grid -->
-                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                            <div class="flex items-center space-x-3">
-                                <div class="p-2 bg-blue-100 rounded-lg">
-                                    <i class="fas fa-envelope text-blue-600"></i>
+                    <!-- Enhanced Contact & Personal Info Grid -->
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                            <i class="fas fa-user-circle mr-2 text-green-600"></i>
+                            Personal Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-blue-100 rounded-lg">
+                                        <i class="fas fa-envelope text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Email</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ $owner->email }}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">Email</p>
-                                    <p class="text-sm font-medium text-gray-900">{{ $owner->email }}</p>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-green-100 rounded-lg">
+                                        <i class="fas fa-phone text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Contact</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ $owner->contact_no }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-purple-100 rounded-lg">
+                                        <i class="fas fa-user text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Personal Info</p>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ $owner->gender }} • {{ \Carbon\Carbon::parse($owner->birth_date)->age }} yrs
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-yellow-100 rounded-lg">
+                                        <i class="fas fa-id-card text-yellow-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Civil Status</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ $owner->civil_status ?? 'Not specified' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-red-100 rounded-lg">
+                                        <i class="fas fa-birthday-cake text-red-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Birth Date</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ \Carbon\Carbon::parse($owner->birth_date)->format('F d, Y') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 bg-indigo-100 rounded-lg">
+                                        <i class="fas fa-tags text-indigo-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Categories</p>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            @if(isset($owner->user) && isset($owner->user->categories) && $owner->user->categories->count() > 0)
+                                                {{ $owner->user->categories->pluck('name')->take(2)->join(', ') }}
+                                                @if($owner->user->categories->count() > 2)
+                                                    <span class="text-xs text-gray-500">+{{ $owner->user->categories->count() - 2 }} more</span>
+                                                @endif
+                                            @else
+                                                No categories
+                                            @endif
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                            <div class="flex items-center space-x-3">
-                                <div class="p-2 bg-green-100 rounded-lg">
-                                    <i class="fas fa-phone text-green-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">Contact</p>
-                                    <p class="text-sm font-medium text-gray-900">{{ $owner->contact_no }}</p>
-                                </div>
+                    </div>
+                    
+                    <!-- Statistics Summary -->
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                            <i class="fas fa-chart-bar mr-2 text-green-600"></i>
+                            Owner Statistics
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 text-center">
+                                <p class="text-2xl font-bold text-blue-700">{{ $animals->count() }}</p>
+                                <p class="text-xs text-blue-600">Registered Animals</p>
                             </div>
-                        </div>
-
-                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                            <div class="flex items-center space-x-3">
-                                <div class="p-2 bg-purple-100 rounded-lg">
-                                    <i class="fas fa-user text-purple-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">Personal Info</p>
-                                    <p class="text-sm font-medium text-gray-900">
-                                        {{ $owner->gender }} • {{ \Carbon\Carbon::parse($owner->birth_date)->age }} yrs
-                                    </p>
-                                </div>
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                                <p class="text-2xl font-bold text-green-700">{{ $owner->transactions->where('status', 1)->count() }}</p>
+                                <p class="text-xs text-green-600">Completed Transactions</p>
                             </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100 text-center">
+                                <p class="text-2xl font-bold text-yellow-700">{{ $owner->transactions->where('status', 0)->count() }}</p>
+                                <p class="text-xs text-yellow-600">Pending Transactions</p>
+                            </div>
+                    
                         </div>
                     </div>
                 </div>
@@ -103,7 +182,10 @@
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex justify-between items-center">
-                        <h2 class="text-xl font-semibold text-gray-900">Registered Animals</h2>
+                        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-paw mr-2 text-green-600"></i>
+                            Registered Animals
+                        </h2>
                         <a href="{{ route('owner.createAnimalForm', ['owner_id' => $owner->owner_id]) }}"
                            class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all text-sm font-medium">
                             <i class="fas fa-plus mr-2"></i>
@@ -214,7 +296,12 @@
 
             <!-- Transactions Section -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-clipboard-list mr-2 text-green-600"></i>
+                        Recent Transactions
+                    </h2>
+                </div>
 
                 @if($owner->transactions->isNotEmpty())
                     <div class="divide-y divide-gray-200">
@@ -244,6 +331,7 @@
                                             {{ $transaction->status == 0 ? 'Pending' : 
                                                ($transaction->status == 1 ? 'Completed' : 'Canceled') }}
                                         </span>
+                                        <span class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($transaction->created_at)->format('M d, Y') }}</span>
                                     </div>
                                 </div>
                                 <div class="mt-2 text-sm text-gray-500">
@@ -253,22 +341,11 @@
                                     </p>
                                 </div>
                                 <div class="mt-4 flex justify-end space-x-2">
-                                    @if ($transaction->status == 1)
-                                        <!-- If status is 'Completed', show a button to view transaction details -->
-                                        <button type="button"
-                                                onclick="openTransactionModal('{{ $transaction->transaction_id }}')"
-                                                class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200 ease-in-out hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
-                                            <span class="text-sm">See Transaction Details</span>
-                                        </button>
-                                    @else
-                                   <!-- If status is 'Completed', show a button to view transaction details -->
-                                   <button type="button"
-                                   onclick="openTransactionModal('{{ $transaction->transaction_id }}')"
-                                   class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200 ease-in-out hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
-                               <span class="text-sm">See Transaction Details</span>
-                           </button>
-                                       
-                                    @endif
+                                    <button type="button"
+                                            onclick="openTransactionModal('{{ $transaction->transaction_id }}')"
+                                            class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200 ease-in-out hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+                                        <span class="text-sm">See Transaction Details</span>
+                                    </button>
                                 </div>
                             </div>
                         @endforeach
