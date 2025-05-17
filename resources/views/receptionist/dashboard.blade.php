@@ -103,33 +103,44 @@
 
             <!-- Filters and Search Section -->
             <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-500">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    Filters & Search
-                </h2>
-                <div class="flex flex-col lg:flex-row justify-between gap-6">
-                    <!-- Search Input -->
-                    <div class="flex-1">
-                        <form method="GET" action="{{ route('receptionist-dashboard') }}" class="flex gap-2">
-                            <input name="search" value="{{ request('search') }}" 
-                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300"
-                                   placeholder="Search by Owner or Animal">
-                            <button type="submit" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-300 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
-                                Search
-                            </button>
-                        </form>
-                    </div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        Filters & Search
+                    </h2>
+                    <a href="{{ route('receptionist-dashboard') }}" 
+                       class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-300 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Reset Filters
+                    </a>
+                </div>
+                
+                <form id="filterForm" method="GET" action="{{ route('receptionist-dashboard') }}" class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                        <!-- Search Input -->
+                        <div class="lg:col-span-2">
+                            <div class="relative">
+                                <input name="search" value="{{ request('search') }}" 
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300"
+                                       placeholder="Search by Owner or Animal"
+                                       onchange="this.form.submit()">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- Filters -->
-                    <div class="flex flex-wrap gap-4">
                         <!-- Status Filter -->
-                        <form method="GET" action="{{ route('receptionist-dashboard') }}">
-                            <select name="status" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300" onchange="this.form.submit()">
+                        <div>
+                            <select name="status" 
+                                    onchange="this.form.submit()"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300">
                                 <option value="" {{ request('status') === null || request('status') === '' ? 'selected' : '' }}>All Status</option>
                                 @foreach($statuses as $key => $status)
                                     <option value="{{ $key }}" {{ request('status') !== null && request('status') !== '' && (string)request('status') === (string)$key ? 'selected' : '' }}>
@@ -137,11 +148,13 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </form>
+                        </div>
 
                         <!-- Veterinarian Filter -->
-                        <form method="GET" action="{{ route('receptionist-dashboard') }}">
-                            <select name="veterinarian" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300" onchange="this.form.submit()">
+                        <div>
+                            <select name="veterinarian" 
+                                    onchange="this.form.submit()"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300">
                                 <option value="">All Veterinarians</option>
                                 @foreach($veterinarians as $veterinarian)
                                     <option value="{{ $veterinarian->user_id }}" 
@@ -150,11 +163,13 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </form>
+                        </div>
 
                         <!-- Technician Filter -->
-                        <form method="GET" action="{{ route('receptionist-dashboard') }}">
-                            <select name="technician" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300" onchange="this.form.submit()">
+                        <div>
+                            <select name="technician" 
+                                    onchange="this.form.submit()"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300">
                                 <option value="">All Technicians</option>
                                 @foreach($technicians as $technician)
                                     <option value="{{ $technician->technician_id }}" 
@@ -163,9 +178,9 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </form>
+                        </div>
                     </div>
-                </div>
+                </form>
             </div>
 
             <!-- Recent Transactions Section -->
