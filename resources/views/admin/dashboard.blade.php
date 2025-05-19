@@ -104,14 +104,22 @@
                     </svg>
                     Filters & Search
                 </h2>
+            <div class="bg-white p-6 rounded-2xl shadow-md space-y-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Filters & Search</h2>
+                    <a href="{{ route('admin-dashboard') }}" 
+                       class="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300">
+                        Reset Filters
+                    </a>
+                </div>
                 <div class="flex flex-col lg:flex-row justify-between gap-6">
                     <!-- Search Input -->
                     <div class="flex-1">
-                        <form method="GET" action="{{ route('receptionist-dashboard') }}" class="flex gap-2">
+                        <form method="GET" action="{{ route('admin-dashboard') }}" class="flex gap-2">
                             <input name="search" value="{{ request('search') }}" 
-                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300"
+                                   class="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
                                    placeholder="Search by Owner or Animal">
-                            <button type="submit" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-300 flex items-center gap-2">
+                            <button type="submit" class="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-300 flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                 </svg>
@@ -123,8 +131,8 @@
                     <!-- Filters -->
                     <div class="flex flex-wrap gap-4">
                         <!-- Status Filter -->
-                        <form method="GET" action="{{ route('receptionist-dashboard') }}">
-                            <select name="status" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300" onchange="this.form.submit()">
+                        <form method="GET" action="{{ route('admin-dashboard') }}">
+                            <select name="status" class="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300" onchange="this.form.submit()">
                                 <option value="" {{ request('status') === null || request('status') === '' ? 'selected' : '' }}>All Status</option>
                                 @foreach($statuses as $key => $status)
                                     <option value="{{ $key }}" {{ request('status') !== null && request('status') !== '' && (string)request('status') === (string)$key ? 'selected' : '' }}>
@@ -135,8 +143,8 @@
                         </form>
 
                         <!-- Veterinarian Filter -->
-                        <form method="GET" action="{{ route('receptionist-dashboard') }}">
-                            <select name="veterinarian" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300" onchange="this.form.submit()">
+                        <form method="GET" action="{{ route('admin-dashboard') }}">
+                            <select name="veterinarian" class="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300" onchange="this.form.submit()">
                                 <option value="">All Veterinarians</option>
                                 @foreach($veterinarians as $veterinarian)
                                     <option value="{{ $veterinarian->user_id }}" 
@@ -148,8 +156,8 @@
                         </form>
 
                         <!-- Technician Filter -->
-                        <form method="GET" action="{{ route('receptionist-dashboard') }}">
-                            <select name="technician" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300" onchange="this.form.submit()">
+                        <form method="GET" action="{{ route('admin-dashboard') }}">
+                            <select name="technician" class="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300" onchange="this.form.submit()">
                                 <option value="">All Technicians</option>
                                 @foreach($technicians as $technician)
                                     <option value="{{ $technician->technician_id }}" 
