@@ -12,7 +12,7 @@
                             elseif($hour < 17) $greeting = 'Good afternoon';
                         @endphp
                         <span class="text-sm text-gray-600 mr-4">{{ $greeting }}, {{ auth()->user()->complete_name }}</span>
-                        <span class="text-sm bg-green-100 text-green-800 py-1 px-3 rounded-full font-semibold">Receptionist</span>
+                        <span class="text-sm bg-yellow-100 text-yellow-800 py-1 px-3 rounded-full font-semibold">Receptionist</span>
                     </div>
                 </div>
             </div>
