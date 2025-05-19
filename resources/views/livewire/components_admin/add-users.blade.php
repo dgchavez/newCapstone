@@ -330,16 +330,9 @@ new #[Layout('layouts.guest')] class extends Component
     @endif
 
     <!-- Title with Gradient Background -->
-    <div class="text-center mb-6 bg-gradient-to-r from-blue-600 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
+    <div class="text-center mb-6 bg-gradient-to-r from-green-800 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
         <h2 class="text-3xl font-bold text-white">User Registration Form</h2>
         <p class="text-lg text-blue-100">Add a new user to the system</p>
-    </div>
-
-    <!-- Logo -->
-    <div class="text-center mb-8">
-        <a href="/">
-            <img class="h-24 w-auto mx-auto hover:scale-105 transition-transform duration-300" src="{{ asset('assets/1.jpg') }}" alt="Your Logo">
-        </a>
     </div>
 
     <form wire:submit.prevent="register" class="space-y-8">
@@ -608,7 +601,11 @@ new #[Layout('layouts.guest')] class extends Component
         </div>
 
         <!-- Update submit button to show loading state -->
-        <div class="flex items-center justify-center mt-8">
+        <div class="flex items-center justify-center gap-64 mt-8">
+
+                <button type="button" onclick="window.history.back()" class="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    Cancel
+                </button>
             <x-primary-button 
                 class="bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 wire:loading.attr="disabled"
