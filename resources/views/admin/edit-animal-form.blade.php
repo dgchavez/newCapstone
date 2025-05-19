@@ -8,11 +8,6 @@
                     <h1 class="text-2xl font-bold text-gray-800 flex items-center">
                         <i class="fas fa-paw text-blue-500 mr-3"></i>Edit Animal
                     </h1>
-                    <a href="{{ route('admin-animals') }}" 
-                       class="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded-lg transition duration-200 flex items-center gap-2 shadow-md">
-                        <i class="fas fa-arrow-left text-sm"></i>
-                        <span>Back to Animals</span>
-                    </a>
                 </div>
             </div>
 
