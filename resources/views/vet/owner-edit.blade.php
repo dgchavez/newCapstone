@@ -3,16 +3,9 @@
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg relative">
         
         <!-- Title with Gradient Background -->
-        <div class="text-center mb-6 bg-gradient-to-r from-blue-600 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
+        <div class="text-center mb-6 bg-gradient-to-r from-green-800 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
             <h2 class="text-3xl font-bold text-white">Edit Animal Owner</h2>
-            <p class="text-lg text-blue-100">Update the owner details below</p>
-        </div>
-
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <a href="/admin/users">
-                <img class="h-24 w-auto mx-auto hover:scale-105 transition-transform duration-300" src="{{ asset('assets/1.jpg') }}" alt="Your Logo">
-            </a>
+            <p class="text-lg text-green-100">Update the owner details below</p>
         </div>
 
         <!-- Error Messages -->
@@ -329,20 +322,16 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center justify-center gap-4 mt-8">
+        <div class="flex items-center justify-center gap-64 mt-8">
+            <button type="button" onclick="window.history.back()" class="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                Cancel
+            </button>
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 inline" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                 </svg>
                 {{ __('Update Owner') }}
             </button>
-            
-            <a href="{{ route('owners.profile-owner', ['owner_id' => $user->owner->owner_id]) }}" class="bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 inline" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                </svg>
-                {{ __('Cancel') }}
-            </a>
         </div>
       </form>
     </div>

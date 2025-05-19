@@ -50,16 +50,9 @@
         </div>
         @endif
             <!-- Title with Gradient Background -->
-    <div class="text-center mb-6 bg-gradient-to-r from-blue-600 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
+    <div class="text-center mb-6 bg-gradient-to-r from-green-800 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
         <h2 class="text-3xl font-bold text-white">Owner Registration Form</h2>
-        <p class="text-lg text-blue-100">Add a new animal owner to the system</p>
-    </div>
-
-    <!-- Logo -->
-    <div class="text-center mb-8">
-        <a href="/">
-            <img class="h-24 w-auto mx-auto hover:scale-105 transition-transform duration-300" src="{{ asset('assets/1.jpg') }}" alt="Your Logo">
-        </a>
+        <p class="text-lg text-green-100">Add a new animal owner to the system</p>
     </div>
 
     
@@ -303,7 +296,10 @@
     </div>
 </div>
     
-            <div class="flex items-center justify-center mt-8">
+            <div class="flex items-center justify-center gap-64 mt-8">
+                <button type="button" onclick="window.history.back()" class="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    Cancel
+                </button>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                     Add User
                 </button>
