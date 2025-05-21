@@ -207,19 +207,19 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-sm">
-                                        <a href="{{ route('rec.profile-owner', $transaction->owner->owner_id) }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                                        <a href="{{ route('owners.profile-owner', $transaction->owner->owner_id) }}" class="text-blue-600 hover:text-blue-800 font-medium">
                                             {{ $transaction->owner->user->complete_name ?? 'N/A' }}
                                         </a>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <a href="{{ route('rec.profile', ['animal_id' => $transaction->animal->animal_id]) }}" 
+                                        <a href="{{ route('animals.profile', ['animal_id' => $transaction->animal->animal_id]) }}" 
                                         class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline">
                                             <strong>{{ $transaction->animal->name ?? 'N/A' }}</strong>
                                         </a>
                                     </td>
                                     <td class="px-6 py-4">
                                         @if($transaction->vet)
-                                            <a href="{{ route('rec.veterinarian.profile', $transaction->vet->user_id) }}" 
+                                            <a href="{{ route('admin.veterinarian.profile', $transaction->vet->user_id) }}" 
                                             class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
                                                 {{ $transaction->vet->complete_name }}
                                             </a>
