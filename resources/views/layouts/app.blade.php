@@ -78,7 +78,26 @@
             backdrop-filter: blur(8px);
         }
     </style>
-
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+window.downloadIdCard = function(type) {
+    const card = document.getElementById('animal-card');
+    if (!card) {
+        alert('No card found to download!');
+        return;
+    }
+    html2canvas(card, {
+        backgroundColor: type === 'jpeg' ? '#FFFFFF' : null,
+        useCORS: true,
+        scale: 2 // or use: scale: window.devicePixelRatio
+    }).then(canvas => {
+        let link = document.createElement('a');
+        link.download = 'animal-id-card.' + (type === 'jpeg' ? 'jpg' : 'png');
+        link.href = canvas.toDataURL('image/' + type, 1.0);
+        link.click();
+    });
+}
+</script>
     <!-- Initialize Alpine.js Store -->
     <script>
         document.addEventListener('alpine:init', () => {
