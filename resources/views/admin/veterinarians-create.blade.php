@@ -37,10 +37,6 @@
                     <h1 class="text-2xl font-bold text-gray-800 flex items-center">
                         <i class="fas fa-user-plus text-blue-500 mr-3"></i>Register New Veterinarian
                     </h1>
-                    <a href="{{ route('admin-veterinarians') }}" class="mt-3 sm:mt-0 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
-                        <i class="fas fa-arrow-left text-sm"></i>
-                        <span>Back to List</span>
-                    </a>
                 </div>
             </div>
 

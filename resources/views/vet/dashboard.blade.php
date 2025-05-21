@@ -1,6 +1,24 @@
 <x-app-layout>
     <!-- Hero Section with Welcome Banner (based on owner dashboard) -->
     <div class="relative bg-gradient-to-r from-green-800 to-green-600 shadow-xl mb-8">
+
+        <!-- Navigation Bar with Greeting -->
+        <nav class="bg-white border-b border-gray-200 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-end h-16">
+                    <div class="flex items-center">
+                        @php
+                            $hour = date('H');
+                            $greeting = 'Good evening';
+                            if($hour < 12) $greeting = 'Good morning';
+                            elseif($hour < 17) $greeting = 'Good afternoon';
+                        @endphp
+                        <span class="text-sm text-gray-600 mr-4">{{ $greeting }}, {{ auth()->user()->complete_name }}</span>
+                        <span class="text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-semibold">Veterinarian</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
         <div class="absolute inset-0 opacity-10">
             <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#pet-pattern)" />

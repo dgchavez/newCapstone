@@ -1,163 +1,275 @@
 <x-app-layout>
-    <div class="container mx-auto my-8 p-6 bg-white shadow-lg rounded-lg border border-gray-300">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <!-- Card Wrapper -->
-                <div class="card shadow-lg border-0 rounded-lg">
-                    <!-- Card Header -->
-                    <div class="card-header bg-primary text-black text-center py-4">
-                        <h4 class="mb-0">
-                            <i class="bi bi-pencil-square"></i> Edit Transaction
-                        </h4>
-                        <p class="mb-0"><small>Animal: <strong>{{ $transaction->animal->name }}</strong></small></p>
-                    </div>
-
-                    <!-- Card Body -->
-                    <div class="card-body p-4">
-                        <!-- Success Message -->
-                        @if(session('success'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                {{ session('success') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        @endif
-
-                        <!-- Edit Transaction Form -->
-                        <form action="{{ route('rec.updateTransaction', $transaction->transaction_id) }}" method="POST">
-                            @csrf
-                            @method('PUT')
-
-                            <!-- Animal Selection -->
-                                <div class="mb-4">
-                                    <label for="animal_id" class="block text-sm font-medium text-gray-700">Select Animal</label>
-                                    <select name="animal_id" id="animal_id" class="w-full p-2 border border-gray-300 rounded-md" required>
-                                        <option value="">Select animal</option>
-                                        @foreach($animals as $animal)
-                                            <option value="{{ $animal->animal_id }}" {{ old('animal_id', $transaction->animal_id) == $animal->animal_id ? 'selected' : '' }}>
-                                                {{ $animal->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('animal_id')
-                                        <div class="text-danger">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                            <!-- Transaction Type and Subtype -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <label for="transaction_type_id" class="block text-sm font-medium text-gray-700">Transaction</label>
-                                    <select name="transaction_type_id" id="transaction_type_id" class="w-full p-2 border border-gray-300 rounded-md" required>
-                                        <option value="">Select a Transaction</option>
-
-                                        @foreach($transactionTypes as $type)
-                                            <option value="{{ $type->id }}" {{ old('transaction_type_id', $transaction->transaction_type_id) == $type->id ? 'selected' : '' }}>
-                                                {{ $type->type_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('transaction_type_id')
-                                        <div class="text-danger">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="transaction_subtype_id" class="block text-sm font-medium text-gray-700">Transaction Type</label>
-                                    <select name="transaction_subtype_id" id="transaction_subtype_id" class="w-full p-2 border border-gray-300 rounded-md" required>
-
-                                        <!-- Subtypes will be populated dynamically -->
-                                    </select>
-                                    @error('transaction_subtype_id')
-                                        <div class="text-danger">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div id="vaccine_dropdown" style="display: none;">
-                                <label for="vaccine_id" class="block text-sm font-medium text-gray-600">Select Vaccine</label>
-                                <select name="vaccine_id" id="vaccine_id" class="w-full p-3 border border-gray-300 rounded-md">
-                                    <option value="">Select a Vaccine</option>
-                                    @foreach ($vaccines as $vaccine)
-                                        <option value="{{ $vaccine->id }}" {{ old('vaccine_id', $selectedVaccineId ?? '') == $vaccine->id ? 'selected' : '' }}>
-                                            {{ $vaccine->vaccine_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            
-                            <!-- Veterinarian Selection -->
-                            <div class="mb-4">
-                                <label for="vet_id" class="block text-sm font-medium text-gray-700">Select Veterinarian</label>
-                                <select name="vet_id" id="vet_id" class="w-full p-2 border border-gray-300 rounded-md" required>
-                                    @foreach($vets as $vet)
-                                        <option value="{{ $vet->user_id }}" {{ old('vet_id', $transaction->vet_id) == $vet->user_id ? 'selected' : '' }}>
-                                            {{ $vet->complete_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('vet_id')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <!--technician -->
-                            <div>
-                                <label for="technician_id" class="block text-sm font-medium text-gray-600">Select Technician</label>
-                                <select name="technician_id" id="technician_id" class="w-full p-2 border border-gray-300 rounded-md">
-                                    <option value="">Select Technician</option>
-                                    @foreach ($technicians as $technician)
-                                        <option value="{{ $technician->technician_id }}" 
-                                            {{ old('technician_id', $selectedTechnicianId) == $technician->technician_id ? 'selected' : '' }}>
-                                            {{ $technician->full_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            
-
-                            <!-- Transaction Date -->
-                            <div class="mb-4">
-                                <label for="created_at" class="block text-sm font-medium text-gray-700">Transaction Date</label>
-                                <input type="date" name="created_at" id="created_at" class="w-full p-2 border border-gray-300 rounded-md" 
-                                    value="{{ old('created_at', $transaction->created_at ? $transaction->created_at->format('Y-m-d') : '') }}" required>
-                                @error('created_at')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Details -->
-                            <div class="mb-4" hidden>
-                                <label for="details" class="block text-sm font-medium text-gray-700">Details</label>
-                                <textarea name="details" id="details" class="w-full p-2 border border-gray-300 rounded-md" rows="4">{{ old('details', $transaction->details) }}</textarea>
-                                @error('details')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Status -->
-                            <div class="mb-4" hidden>
-                                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                                <select name="status" id="status" class="w-full p-2 border border-gray-300 rounded-md">
-                                    <option value="0" {{ old('status', $transaction->status) == 0 ? 'selected' : '' }}>Pending</option>
-                                    <option value="1" {{ old('status', $transaction->status) == 1 ? 'selected' : '' }}>Completed</option>
-                                    <option value="2" {{ old('status', $transaction->status) == 2 ? 'selected' : '' }}>Cancelled</option>
-                                </select>
-                                @error('status')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Submit Button -->
-                            <div class="flex justify-between items-center mt-6">
-                                <button type="submit" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors duration-300 ">
-                                    Update Transaction
-                                </button>
-
-                                <a href="{{ route('owners.profile-owner', ['owner_id' => $owner_id]) }}" class="bg-gray-500 text-white p-2 rounded-md hover:bg-gray-600 transition-colors duration-300">
-                                    Cancel
-                                </a>
-                            </div>
-                        </form>
-                    </div>
+    <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        
+        <!-- Main Card with Form -->
+        <div class="bg-white shadow-xl rounded-xl p-8 border-t-4 border-green-500">
+            <!-- Header inside container with gradient background -->
+            <div class="bg-gradient-to-r from-green-800 to-green-600 rounded-xl shadow-md p-6 -mt-8 -mx-8 mb-8 relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10">
+                    <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#pet-pattern)" />
+                    </svg>
+                    <defs>
+                        <pattern id="pet-pattern" width="10" height="10" patternUnits="userSpaceOnUse">
+                            <path d="M5,2 C7,2 8,3 8,5 C8,7 7,8 5,8 C3,8 2,7 2,5 C2,3 3,2 5,2 Z" fill="currentColor" />
+                        </pattern>
+                    </defs>
+                </div>
+                <div class="relative z-10">
+                    <h1 class="text-2xl font-bold text-white flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit Transaction
+                    </h1>
+                    <p class="text-green-100 mt-2">Animal: <strong>{{ $transaction->animal->name }}</strong></p>
                 </div>
             </div>
+
+            <!-- Success Message -->
+            @if(session('success'))
+                <div class="alert alert-success mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            <!-- Edit Transaction Form -->
+            <form action="{{ route('rec.updateTransaction', $transaction->transaction_id) }}" method="POST" class="space-y-6">
+                @csrf
+                @method('PUT')
+                
+                <!-- Animal Selection -->
+                <div>
+                    <label for="animal_id" class="block text-sm font-medium text-gray-700 mb-1">Select Animal</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+                        <select 
+                            name="animal_id" 
+                            id="animal_id" 
+                            class="pl-10 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                            required
+                        >
+                            <option value="">Select animal</option>
+                            @foreach($animals as $animal)
+                                <option value="{{ $animal->animal_id }}" {{ old('animal_id', $transaction->animal_id) == $animal->animal_id ? 'selected' : '' }}>
+                                    {{ $animal->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('animal_id')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Transaction Type and Subtype in a grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="transaction_type_id" class="block text-sm font-medium text-gray-700 mb-1">Transaction</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </div>
+                            <select 
+                                name="transaction_type_id" 
+                                id="transaction_type_id" 
+                                class="pl-10 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                                required
+                            >
+                                <option value="">Select a Transaction</option>
+                                @foreach($transactionTypes as $type)
+                                    <option value="{{ $type->id }}" {{ old('transaction_type_id', $transaction->transaction_type_id) == $type->id ? 'selected' : '' }}>
+                                        {{ $type->type_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @error('transaction_type_id')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    
+                    <div>
+                        <label for="transaction_subtype_id" class="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </div>
+                            <select 
+                                name="transaction_subtype_id" 
+                                id="transaction_subtype_id" 
+                                class="pl-10 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                                required
+                            >
+                                <!-- Subtypes will be populated dynamically -->
+                            </select>
+                        </div>
+                        @error('transaction_subtype_id')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Transaction Vaccine -->
+                <div id="vaccine_dropdown" style="display: none;">
+                    <label for="vaccine_id" class="block text-sm font-medium text-gray-700 mb-1">Select Vaccine</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                        </div>
+                        <select 
+                            name="vaccine_id" 
+                            id="vaccine_id" 
+                            class="pl-10 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        >
+                            <option value="">Select a Vaccine</option>
+                            @foreach ($vaccines as $vaccine)
+                                <option value="{{ $vaccine->id }}" {{ old('vaccine_id', $selectedVaccineId ?? '') == $vaccine->id ? 'selected' : '' }}>
+                                    {{ $vaccine->vaccine_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('vaccine_id')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Veterinarian Selection -->
+                <div>
+                    <label for="vet_id" class="block text-sm font-medium text-gray-700 mb-1">Select Veterinarian</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <select 
+                            name="vet_id" 
+                            id="vet_id" 
+                            class="pl-10 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                            required
+                        >
+                            @foreach($vets as $vet)
+                                <option value="{{ $vet->user_id }}" {{ old('vet_id', $transaction->vet_id) == $vet->user_id ? 'selected' : '' }}>
+                                    {{ $vet->complete_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('vet_id')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Technician Selection -->
+                <div>
+                    <label for="technician_id" class="block text-sm font-medium text-gray-700 mb-1">Select Technician</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <select 
+                            name="technician_id" 
+                            id="technician_id" 
+                            class="pl-10 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        >
+                            <option value="">Select Technician</option>
+                            @foreach ($technicians as $technician)
+                                <option value="{{ $technician->technician_id }}" 
+                                    {{ old('technician_id', $selectedTechnicianId) == $technician->technician_id ? 'selected' : '' }}>
+                                    {{ $technician->full_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('technician_id')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Transaction Date -->
+                <div>
+                    <label for="created_at" class="block text-sm font-medium text-gray-700 mb-1">Transaction Date</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <input 
+                            type="date" 
+                            name="created_at" 
+                            id="created_at" 
+                            class="pl-10 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            value="{{ old('created_at', $transaction->created_at ? $transaction->created_at->format('Y-m-d') : '') }}" 
+                            required
+                        >
+                    </div>
+                    @error('created_at')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Details - Hidden -->
+                <div hidden>
+                    <label for="details" class="block text-sm font-medium text-gray-700 mb-1">Details</label>
+                    <textarea 
+                        name="details" 
+                        id="details" 
+                        class="block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                        rows="4"
+                    >{{ old('details', $transaction->details) }}</textarea>
+                </div>
+
+                <!-- Status - Hidden -->
+                <div hidden>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select 
+                        name="status" 
+                        id="status" 
+                        class="block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                        <option value="0" {{ old('status', $transaction->status) == 0 ? 'selected' : '' }}>Pending</option>
+                        <option value="1" {{ old('status', $transaction->status) == 1 ? 'selected' : '' }}>Completed</option>
+                        <option value="2" {{ old('status', $transaction->status) == 2 ? 'selected' : '' }}>Cancelled</option>
+                    </select>
+                </div>
+
+                <!-- Buttons with space between -->
+                <div class="flex items-center justify-between space-x-4 pt-4 mt-6 border-t border-gray-200">
+                    <button
+                        type="button"
+                        onclick="window.history.back()"
+                        class="inline-flex items-center px-5 py-3 bg-red-500 text-white font-medium rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Cancel
+                    </button>
+                    
+                    <button
+                        type="submit"
+                        class="inline-flex items-center px-5 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-all duration-300 shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Update Transaction
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -205,7 +317,5 @@
         toggleVaccineDropdown(transactionSubtypeSelect.value);
     });
 });
-
-        
     </script>
 </x-app-layout>
