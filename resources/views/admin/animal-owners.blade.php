@@ -249,11 +249,10 @@
                                         <div class="flex items-center space-x-2">
                                             @if($owner->status == 0)
                                             <!-- Approve Owner Button - Only shown for pending status -->
-                                            <form action="{{ route('users.approve', $owner->user_id) }}" 
-                                                  method="POST" 
-                                                  class="inline-block">
+                                            <form id="approveForm-{{ $owner->user_id }}" action="{{ route('users.approve', $owner->user_id) }}" method="POST" class="inline-block">
                                                 @csrf
-                                                <button type="submit" 
+                                                <button type="button" 
+                                                        onclick="confirmApproveOwner('{{ $owner->user_id }}', '{{ $owner->complete_name ?? $owner->name ?? 'this owner' }}')"
                                                         class="text-green-600 hover:text-green-900 transition-colors duration-200"
                                                         title="Approve Owner">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,10 +279,11 @@
 
                                             @if($isValidEmail)
                                             <!-- Reset Password Button - Only for email-based accounts -->
-                                            <form action="{{ route('users.reset-password', $owner->user_id) }}" 
+                                            <form id="resetForm-{{ $owner->user_id }}" 
+                                                  action="{{ route('users.reset-password', $owner->user_id) }}" 
                                                   method="POST" 
                                                   class="inline-block" 
-                                                  onsubmit="return confirmReset()">
+                                                  onsubmit="return confirmResetPassword('{{ $owner->user_id }}', '{{ $owner->complete_name ?? $owner->name ?? 'this owner' }}')">
                                                 @csrf
                                                 <button type="submit" 
                                                         class="text-yellow-600 hover:text-yellow-900 transition-colors duration-200"
@@ -313,10 +313,11 @@
                                                 </svg>
                                             </a>
 
-                                            <form action="{{ route('users.destroy', $owner->user_id) }}" 
+                                            <form id="deleteForm-{{ $owner->user_id }}" 
+                                                  action="{{ route('users.destroy', $owner->user_id) }}" 
                                                   method="POST" 
                                                   class="inline-block" 
-                                                  onsubmit="return confirm('Are you sure you want to delete this owner?')">
+                                                  onsubmit="return confirmDeleteOwner('{{ $owner->user_id }}', '{{ $owner->complete_name ?? $owner->name ?? 'this owner' }}')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" 
@@ -524,6 +525,266 @@
         // For direct navigation or if the script loads after the page
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             setupCredentialModalHandlers();
+        }
+    </script>
+
+    <!-- Approve Owner Confirmation Modal -->
+    <div id="approveOwnerModal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <div class="text-center mb-5">
+                <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-green-100 mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Approve Animal Owner</h3>
+                <p id="approveOwnerMessage" class="text-sm text-gray-600 mt-2"></p>
+            </div>
+            
+            <div class="flex space-x-3 justify-center">
+                <button id="confirmApproveOwnerBtn" type="button" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg">
+                    Approve
+                </button>
+                <button id="cancelApproveOwnerBtn" type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to confirm owner approval
+        function confirmApproveOwner(ownerId, ownerName) {
+            const modal = document.getElementById('approveOwnerModal');
+            const message = document.getElementById('approveOwnerMessage');
+            
+            // Set the message
+            message.textContent = `Are you sure you want to approve ${ownerName}? This will activate their account.`;
+            
+            // Store the owner ID to use when the user confirms
+            modal.dataset.ownerId = ownerId;
+            
+            // Set up the confirm button
+            document.getElementById('confirmApproveOwnerBtn').onclick = function() {
+                // Submit the corresponding form
+                document.getElementById(`approveForm-${ownerId}`).submit();
+            };
+            
+            // Set up the cancel button
+            document.getElementById('cancelApproveOwnerBtn').onclick = closeApproveOwnerModal;
+            
+            // Show the modal
+            modal.classList.remove('hidden');
+            
+            // Close when clicking outside the modal
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeApproveOwnerModal();
+                }
+            }, { once: true });
+        }
+        
+        // Function to close the approve owner modal
+        function closeApproveOwnerModal() {
+            document.getElementById('approveOwnerModal').classList.add('hidden');
+        }
+        
+        // Set up event handlers when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('approveOwnerModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeApproveOwnerModal();
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Reset Password Confirmation Modal -->
+    <div id="resetPasswordModal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <div class="text-center mb-5">
+                <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-yellow-100 mb-4">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Reset Password</h3>
+                <p id="resetPasswordMessage" class="text-sm text-gray-600 mt-2"></p>
+            </div>
+            
+            <div class="flex space-x-3 justify-center">
+                <button id="confirmResetBtn" type="button" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg">
+                    Reset Password
+                </button>
+                <button id="cancelResetBtn" type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to confirm password reset
+        function confirmResetPassword(ownerId, ownerName) {
+            // Prevent the default form submission
+            event.preventDefault();
+            
+            const modal = document.getElementById('resetPasswordModal');
+            const message = document.getElementById('resetPasswordMessage');
+            
+            // Set the message
+            message.textContent = `Are you sure you want to reset the password for ${ownerName}? A new password will be generated.`;
+            
+            // Store the form to submit when confirmed
+            const form = document.getElementById(`resetForm-${ownerId}`);
+            
+            // Set up the confirm button
+            document.getElementById('confirmResetBtn').onclick = function() {
+                form.submit();
+            };
+            
+            // Set up the cancel button
+            document.getElementById('cancelResetBtn').onclick = closeResetPasswordModal;
+            
+            // Show the modal
+            modal.classList.remove('hidden');
+            
+            // Close when clicking outside the modal
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeResetPasswordModal();
+                }
+            }, { once: true });
+            
+            // Prevent the form from submitting
+            return false;
+        }
+        
+        // Function to close the reset password modal
+        function closeResetPasswordModal() {
+            document.getElementById('resetPasswordModal').classList.add('hidden');
+        }
+        
+        // Set up event handlers when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setupModalHandlers();
+        });
+        
+        // Function to set up all modal handlers
+        function setupModalHandlers() {
+            const resetModal = document.getElementById('resetPasswordModal');
+            if (resetModal) {
+                resetModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeResetPasswordModal();
+                    }
+                });
+            }
+            
+            // If you already have an approveOwnerModal, add its handler here too
+            const approveModal = document.getElementById('approveOwnerModal');
+            if (approveModal) {
+                approveModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeApproveOwnerModal();
+                    }
+                });
+            }
+        }
+        
+        // If you implemented the approve owner modal previously
+        function closeApproveOwnerModal() {
+            const modal = document.getElementById('approveOwnerModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+    </script>
+
+    <!-- Delete Owner Confirmation Modal -->
+    <div id="deleteOwnerModal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <div class="text-center mb-5">
+                <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-100 mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Delete Owner</h3>
+                <p id="deleteOwnerMessage" class="text-sm text-gray-600 mt-2"></p>
+            </div>
+            
+            <div class="flex space-x-3 justify-center">
+                <button id="confirmDeleteBtn" type="button" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">
+                    Delete
+                </button>
+                <button id="cancelDeleteBtn" type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to confirm owner deletion
+        function confirmDeleteOwner(ownerId, ownerName) {
+            // Prevent the default form submission
+            event.preventDefault();
+            
+            const modal = document.getElementById('deleteOwnerModal');
+            const message = document.getElementById('deleteOwnerMessage');
+            
+            // Set the message with stronger warning
+            message.textContent = `Are you sure you want to delete ${ownerName}? This action cannot be undone and will remove all associated data.`;
+            
+            // Store the form to submit when confirmed
+            const form = document.getElementById(`deleteForm-${ownerId}`);
+            
+            // Set up the confirm button
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                form.submit();
+            };
+            
+            // Set up the cancel button
+            document.getElementById('cancelDeleteBtn').onclick = closeDeleteOwnerModal;
+            
+            // Show the modal
+            modal.classList.remove('hidden');
+            
+            // Close when clicking outside the modal
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteOwnerModal();
+                }
+            }, { once: true });
+            
+            // Prevent the form from submitting
+            return false;
+        }
+        
+        // Function to close the delete owner modal
+        function closeDeleteOwnerModal() {
+            document.getElementById('deleteOwnerModal').classList.add('hidden');
+        }
+        
+        // Update the setupModalHandlers function to include the delete modal
+        function setupModalHandlers() {
+            // Previous modal handlers...
+            
+            // Delete owner modal handler
+            const deleteModal = document.getElementById('deleteOwnerModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeDeleteOwnerModal();
+                    }
+                });
+            }
+            
+            // Add handlers for other modals if they exist...
         }
     </script>
 </x-app-layout>

@@ -75,10 +75,15 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                             </svg>
                         </a>
-                        <form action="{{ route('admin.documents.destroy', $document) }}" method="POST" class="inline">
+                        <form id="deleteDocForm-{{ $document->id }}" 
+                              action="{{ route('admin.documents.destroy', $document) }}" 
+                              method="POST" 
+                              class="inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="text-red-600 hover:text-red-700" onclick="return confirm('Are you sure?')">
+                            <button type="button" 
+                                    class="text-red-600 hover:text-red-700" 
+                                    onclick="confirmDocDelete('{{ $document->id }}', '{{ $document->title }}')">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
@@ -173,4 +178,77 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Document Confirmation Modal -->
+<div id="deleteDocModal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+        <div class="text-center mb-5">
+            <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-100 mb-4">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800">Delete Document</h3>
+            <p id="deleteDocMessage" class="text-sm text-gray-600 mt-2"></p>
+        </div>
+        
+        <div class="flex space-x-3 justify-center">
+            <button id="confirmDocDeleteBtn" type="button" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">
+                Delete
+            </button>
+            <button id="cancelDocDeleteBtn" type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to confirm document deletion
+    function confirmDocDelete(docId, docTitle) {
+        const modal = document.getElementById('deleteDocModal');
+        const message = document.getElementById('deleteDocMessage');
+        
+        // Set the message with stronger warning
+        message.textContent = `Are you sure you want to delete "${docTitle}"? This action cannot be undone.`;
+        
+        // Store the form to submit when confirmed
+        const form = document.getElementById(`deleteDocForm-${docId}`);
+        
+        // Set up the confirm button
+        document.getElementById('confirmDocDeleteBtn').onclick = function() {
+            form.submit();
+        };
+        
+        // Set up the cancel button
+        document.getElementById('cancelDocDeleteBtn').onclick = closeDeleteDocModal;
+        
+        // Show the modal
+        modal.classList.remove('hidden');
+        
+        // Close when clicking outside the modal
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteDocModal();
+            }
+        }, { once: true });
+    }
+    
+    // Function to close the delete document modal
+    function closeDeleteDocModal() {
+        document.getElementById('deleteDocModal').classList.add('hidden');
+    }
+    
+    // Set up event handlers when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteModal = document.getElementById('deleteDocModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteDocModal();
+                }
+            });
+        }
+    });
+</script>
 </x-app-layout>
