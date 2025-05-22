@@ -67,7 +67,7 @@ new #[Layout('layouts.guest')] class extends Component
                             </svg>
                         </div>
                         <input wire:model="form.email" id="email" 
-                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200 text-gray-900" 
                                type="text" 
                                name="email" 
                                required 
@@ -90,7 +90,7 @@ new #[Layout('layouts.guest')] class extends Component
                         <div x-data="{ showPassword: false }">
                             <input wire:model="form.password" id="password" 
                                    :type="showPassword ? 'text' : 'password'"
-                                   class="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
+                                   class="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200 text-gray-900" 
                                    name="password" 
                                    required 
                                    autocomplete="current-password" 
