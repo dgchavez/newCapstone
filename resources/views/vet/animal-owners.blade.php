@@ -401,11 +401,179 @@
     </div>
 
     <script>
-        // For confirming password reset
-        function confirmReset() {
-            return confirm('Are you sure you want to reset this owner\'s password? A new password will be generated.');
+        // Safely declare the currentVetResetForm variable only if it doesn't already exist
+        if (typeof window.currentVetResetForm === 'undefined') {
+            window.currentVetResetForm = null;
         }
         
+        // Function to confirm password reset
+        function confirmReset() {
+            // Prevent the default form submission
+            event.preventDefault();
+            
+            // Find the form that triggered this
+            window.currentVetResetForm = event.target;
+            
+            // Show modal
+            const modal = document.getElementById('vetResetModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                
+                // Set up confirm button
+                const confirmBtn = document.getElementById('confirmVetResetBtn');
+                if (confirmBtn) {
+                    // Remove existing event listeners
+                    const newConfirmBtn = confirmBtn.cloneNode(true);
+                    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                    
+                    // Add new event listener
+                    newConfirmBtn.addEventListener('click', function() {
+                        if (window.currentVetResetForm) {
+                            window.currentVetResetForm.submit();
+                        }
+                        modal.classList.add('hidden');
+                    });
+                }
+                
+                // Set up cancel button
+                const cancelBtn = document.getElementById('cancelVetResetBtn');
+                if (cancelBtn) {
+                    // Remove existing event listeners
+                    const newCancelBtn = cancelBtn.cloneNode(true);
+                    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+                    
+                    // Add new event listener
+                    newCancelBtn.addEventListener('click', function() {
+                        modal.classList.add('hidden');
+                    });
+                }
+                
+                // Close when clicking outside
+                modal.onclick = function(e) {
+                    if (e.target === this) {
+                        modal.classList.add('hidden');
+                    }
+                };
+            }
+            
+            // Prevent the form from submitting
+            return false;
+        }
+        
+        // Only set up handlers if they haven't been set up already
+        if (typeof window.resetHandlersInitialized === 'undefined' || !window.resetHandlersInitialized) {
+            // Set up event handlers when the page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                const resetModal = document.getElementById('vetResetModal');
+                if (resetModal) {
+                    resetModal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            this.classList.add('hidden');
+                        }
+                    });
+                }
+            });
+            
+            // Mark handlers as initialized
+            window.resetHandlersInitialized = true;
+        }
+    </script>
+
+    <script>
+        function confirmApproval(userId) {
+            // Create the correct URL using the route name and user ID
+            const approveUrl = "{{ route('users.approve', ':id') }}".replace(':id', userId);
+            
+            // Set the form action
+            document.getElementById('approvalForm').action = approveUrl;
+            
+            // Show the modal
+            const modal = document.getElementById('approvalModal');
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex'; // Make sure flex display is enforced
+        }
+
+        function closeApprovalModal() {
+            // Hide the modal
+            const modal = document.getElementById('approvalModal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+
+        // Add this to handle clicking outside the modal to close it
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('approvalModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeApprovalModal();
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Confirmation Modal - update the styling to ensure proper centering -->
+    <div id="approvalModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-gray-900/70 backdrop-blur-sm flex items-center justify-center">
+        <div class="relative bg-white rounded-lg max-w-md w-full mx-auto shadow-xl">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 rounded-t-lg">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            Approve Owner
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">
+                                Are you sure you want to approve this owner? This will grant them access to the system.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-lg">
+                <form id="approvalForm" action="" method="POST">
+                    @csrf
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Approve
+                    </button>
+                </form>
+                <button type="button" onclick="closeApprovalModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vet Reset Password Modal -->
+    <div id="vetResetModal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <div class="text-center mb-5">
+                <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-yellow-100 mb-4">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Reset Password</h3>
+                <p class="text-sm text-gray-600 mt-2">Are you sure you want to reset this owner's password? A new password will be generated.</p>
+            </div>
+            
+            <div class="flex space-x-3 justify-center">
+                <button id="confirmVetResetBtn" type="button" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg">
+                    Reset Password
+                </button>
+                <button id="cancelVetResetBtn" type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
         // Global function that will be called from HTML buttons
         function showCredentialsModal(userId) {
             // Get user information and password via AJAX
@@ -511,65 +679,6 @@
         // For direct navigation or if the script loads after the page
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             setupCredentialModalHandlers();
-        }
-    </script>
-
-    <!-- Confirmation Modal (add this at the bottom of your file, before the closing body tag) -->
-    <div id="approvalModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                                Approve Owner
-                            </h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-500">
-                                    Are you sure you want to approve this owner? This will grant them access to the system.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <form id="approvalForm" action="" method="POST">
-                        @csrf
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
-                            Approve
-                        </button>
-                    </form>
-                    <button type="button" onclick="closeApprovalModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add this JavaScript at the bottom of your file, before the closing body tag -->
-    <script>
-        function confirmApproval(userId) {
-            // Create the correct URL using the route name and user ID
-            const approveUrl = "{{ route('users.approve', ':id') }}".replace(':id', userId);
-            // Set the form action
-            document.getElementById('approvalForm').action = approveUrl;
-            // Show the modal
-            document.getElementById('approvalModal').classList.remove('hidden');
-        }
-
-        function closeApprovalModal() {
-            // Hide the modal
-            document.getElementById('approvalModal').classList.add('hidden');
         }
     </script>
 </x-app-layout>

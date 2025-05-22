@@ -248,10 +248,11 @@
                                                 </svg>
                                             </a>
 
-                                            <form action="{{ route('animals.delete', ['animal_id' => $animal->animal_id]) }}" 
+                                            <form id="deleteAnimalForm-{{ $animal->animal_id }}" 
+                                                  action="{{ route('animals.delete', ['animal_id' => $animal->animal_id]) }}" 
                                                   method="POST" 
                                                   class="inline-block"
-                                                  onsubmit="return confirm('Are you sure you want to delete this animal?')">
+                                                  onsubmit="return confirmAnimalDelete('{{ $animal->animal_id }}', '{{ $animal->name }}')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" 
@@ -286,6 +287,30 @@
             <!-- Pagination -->
             <div class="mt-5">
                 {{ $animals->appends(request()->query())->links() }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Animal Confirmation Modal -->
+    <div id="deleteAnimalModal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <div class="text-center mb-5">
+                <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-100 mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Delete Animal</h3>
+                <p id="deleteAnimalMessage" class="text-sm text-gray-600 mt-2"></p>
+            </div>
+            
+            <div class="flex space-x-3 justify-center">
+                <button id="confirmAnimalDeleteBtn" type="button" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">
+                    Delete
+                </button>
+                <button id="cancelAnimalDeleteBtn" type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>
@@ -349,6 +374,59 @@
         // Submit form when breed is selected
         document.getElementById('breedFilter')?.addEventListener('change', function() {
             this.form.submit();
+        });
+
+        // Function to confirm animal deletion
+        function confirmAnimalDelete(animalId, animalName) {
+            // Prevent the default form submission
+            event.preventDefault();
+            
+            const modal = document.getElementById('deleteAnimalModal');
+            const message = document.getElementById('deleteAnimalMessage');
+            
+            // Set the message with stronger warning
+            message.textContent = `Are you sure you want to delete ${animalName}? This action cannot be undone and will remove all associated records.`;
+            
+            // Store the form to submit when confirmed
+            const form = document.getElementById(`deleteAnimalForm-${animalId}`);
+            
+            // Set up the confirm button
+            document.getElementById('confirmAnimalDeleteBtn').onclick = function() {
+                form.submit();
+            };
+            
+            // Set up the cancel button
+            document.getElementById('cancelAnimalDeleteBtn').onclick = closeDeleteAnimalModal;
+            
+            // Show the modal
+            modal.classList.remove('hidden');
+            
+            // Close when clicking outside the modal
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteAnimalModal();
+                }
+            }, { once: true });
+            
+            // Prevent the form from submitting
+            return false;
+        }
+        
+        // Function to close the delete animal modal
+        function closeDeleteAnimalModal() {
+            document.getElementById('deleteAnimalModal').classList.add('hidden');
+        }
+
+        // Set up event handlers when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteModal = document.getElementById('deleteAnimalModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeDeleteAnimalModal();
+                    }
+                });
+            }
         });
     </script>
 </x-app-layout>
