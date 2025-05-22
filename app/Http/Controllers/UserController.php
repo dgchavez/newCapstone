@@ -862,12 +862,22 @@ public function resetPasswordAjax(User $user)
  */
 public function approveUser(User $user)
 {
-    if ($user->status === 0) {
-        $user->update(['status' => 1]); // Change from pending (0) to enabled (1)
-        return redirect()->back()->with('message', "User {$user->complete_name} has been approved.");
+    try {
+        if ($user->status === 0) {
+            // Update the user status
+            $user->update(['status' => 1]); // Change from pending (0) to enabled (1)
+            
+            // Send approval email notification
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\ApprovalEmail($user));
+            
+            return redirect()->back()->with('message', "User {$user->complete_name} has been approved and notified by email.");
+        }
+        
+        return redirect()->back()->with('error', "User is not in pending status.");
+    } catch (\Exception $e) {
+        // Redirect back with an error message in case of failure
+        return redirect()->back()->with('error', 'An error occurred while approving the user: ' . $e->getMessage());
     }
-    
-    return redirect()->back()->with('error', "User is not in pending status.");
 }
 
 /**
