@@ -1,4 +1,33 @@
 <x-app-layout>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4">
+            <div class="flex flex-col items-center">
+                <!-- Loading Animation -->
+                <div class="flex items-center justify-center mb-6">
+                    <div class="relative">
+                        <!-- Outer spinning circle -->
+                        <div class="w-16 h-16 border-4 border-green-100 border-t-green-600 rounded-full animate-spin"></div>
+                        <!-- Inner spinning circle -->
+                        <div class="w-12 h-12 border-4 border-green-100 border-t-green-600 rounded-full animate-spin absolute top-2 left-2"></div>
+                        <!-- Center dot -->
+                        <div class="w-4 h-4 bg-green-600 rounded-full absolute top-6 left-6"></div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Registering Owner</h3>
+                    <p class="text-gray-600">Please wait while we process your request...</p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-6 overflow-hidden">
+                    <div id="progressBar" class="bg-green-600 h-2.5 rounded-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="mb-9 "></div>
     <div class="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-lg relative">
         @if(session('credentials'))
@@ -387,5 +416,51 @@ function toggleAuthMethod() {
             toggleCategories(); // Initial check
         }
     });
+
+    // Add this new code at the bottom
+    document.querySelector('form').addEventListener('submit', function(e) {
+        // Show loading overlay
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const progressBar = document.getElementById('progressBar');
+        loadingOverlay.classList.remove('hidden');
+        
+        // Animate progress bar
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 90) {
+                clearInterval(interval);
+            } else {
+                width += Math.random() * 30;
+                if (width > 90) width = 90;
+                progressBar.style.width = width + '%';
+            }
+        }, 500);
+    });
     </script>
+
+    <style>
+        /* Add these styles for smooth transitions */
+        #loadingOverlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #loadingOverlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #progressBar {
+            transition: width 0.5s ease-in-out;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
     </x-app-layout>
