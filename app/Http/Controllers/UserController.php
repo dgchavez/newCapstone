@@ -278,6 +278,7 @@ class UserController extends Controller
     {
         $request->validate([
             'complete_name' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email',
             'contact_no' => 'required|string|max:15',
             'gender' => 'required|string|max:10',
             'birth_date' => 'required|date',
@@ -304,6 +305,7 @@ class UserController extends Controller
         // Update user data
         $user->update($request->only([
             'complete_name',
+            'email',
             'contact_no',
             'gender',
             'birth_date',
