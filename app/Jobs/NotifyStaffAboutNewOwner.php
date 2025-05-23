@@ -26,7 +26,7 @@ class NotifyStaffAboutNewOwner implements ShouldQueue
     {
         Log::info('NotifyStaffAboutNewOwner job started', ['owner_id' => $this->newOwner->user_id]);
         
-        $staffMembers = User::whereIn('role', [0, 2, 3])
+        $staffMembers = User::whereIn('role', [0, 3])
             ->where('status', 1)
             ->get();
 

@@ -35,7 +35,6 @@ class NewOwnerRegistration extends Notification implements ShouldQueue
             ->line('Owner Details:')
             ->line("Name: {$this->newOwner->complete_name}")
             ->line("Email: {$this->newOwner->email}")
-            ->line("Contact: {$this->newOwner->contact_no}")
-            ->action('Review Registration', url('/admin/owners/pending'));
+            ->line("Contact: {$this->newOwner->contact_no}");
     }
 } 
