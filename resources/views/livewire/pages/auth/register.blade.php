@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use App\Jobs\NotifyStaffAboutNewOwner;
 
 new #[Layout('layouts.guest')] class extends Component
 {
@@ -166,6 +167,8 @@ new #[Layout('layouts.guest')] class extends Component
         // Fire the Registered event
         event(new Registered($user));
 
+        // Dispatch the notification job
+        NotifyStaffAboutNewOwner::dispatch($user);
 
         // Check if the user is an owner and their account is pending approval
         if ($user->role === 1 && $user->status === 0) {
