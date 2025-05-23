@@ -282,7 +282,7 @@ new #[Layout('layouts.guest')] class extends Component
                     <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">Sex</label>
                     <div class="relative">
                         <select wire:model="gender" id="gender" 
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition duration-200">
+                                class="w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition duration-200">
                             <option value="">Select </option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
@@ -299,7 +299,7 @@ new #[Layout('layouts.guest')] class extends Component
                     <label for="birth_date" class="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
                     <div class="relative">
                         <input type="date" wire:model="birth_date" id="birth_date" 
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
+                               class="w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
                                required>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                             {{-- SVG icon removed for now --}}
@@ -317,7 +317,7 @@ new #[Layout('layouts.guest')] class extends Component
                         +63
                     </span>
                     <input type="tel" wire:model="contact_no" id="contact_no" 
-                           class="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
+                           class="flex-1 px-4 py-2 text-gray-900 border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
                            placeholder="912 345 6789" pattern="[0-9]{10}" required>
                 </div>
                 @error('contact_no') <span class="text-xs text-red-600 mt-1">{{ $message }}</span> @enderror
@@ -356,7 +356,7 @@ new #[Layout('layouts.guest')] class extends Component
                 <label for="barangay_id" class="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
                 <div class="relative">
                     <select wire:model="barangay_id" id="barangay_id" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition duration-200">
+                            class="w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition duration-200">
                         <option value="">Select Barangay</option>
                         @foreach($barangays as $barangay)
                             <option value="{{ $barangay->id }}">{{ $barangay->barangay_name }}</option>
@@ -376,7 +376,7 @@ new #[Layout('layouts.guest')] class extends Component
                 <label for="street" class="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
                 <div class="relative">
                     <input type="text" wire:model="street" id="street" 
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
+                           class="w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
                            placeholder="123 Main Street" required>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
@@ -397,7 +397,7 @@ new #[Layout('layouts.guest')] class extends Component
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach($categories as $category)
                             @if(in_array($category->id, [0, 8, 9]))
-                                <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer">
+                                <label class="flex items-start p-3 text-gray-900 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer">
                                     <input type="radio" 
                                         wire:model="selected_special_category" 
                                         value="{{ $category->id }}" 
@@ -419,7 +419,7 @@ new #[Layout('layouts.guest')] class extends Component
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach($categories as $category)
                             @if(!in_array($category->id, [0, 8, 9]) && !($gender == 'Male' && in_array($category->id, [4, 6])))
-                                <label class="flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer">
+                                <label class="flex items-start p-3 text-gray-900 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 cursor-pointer">
                                     <input type="checkbox" 
                                         wire:model="selected_regular_categories" 
                                         value="{{ $category->id }}" 
@@ -478,7 +478,7 @@ new #[Layout('layouts.guest')] class extends Component
                         type="{{ $is_email_field ? 'email' : 'text' }}" 
                         wire:model="email" 
                         id="email" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
+                        class="w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
                         placeholder="{{ $is_email_field ? 'your@email.com' : 'username' }}" 
                         required
                     >
@@ -506,7 +506,7 @@ new #[Layout('layouts.guest')] class extends Component
                     <input :type="showPassword ? 'text' : 'password'" 
                            wire:model="password" 
                            id="password" 
-                           class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
+                           class="w-full px-4 py-2 pr-12 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
                            required>
                     <!-- Toggle Password Visibility -->
                     <button type="button" 
@@ -551,7 +551,7 @@ new #[Layout('layouts.guest')] class extends Component
                     <input :type="showConfirmPassword ? 'text' : 'password'" 
                            wire:model="password_confirmation" 
                            id="password_confirmation" 
-                           class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
+                           class="w-full px-4 py-2 pr-12 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200" 
                            required>
                     <!-- Toggle Password Visibility -->
                     <button type="button" 
