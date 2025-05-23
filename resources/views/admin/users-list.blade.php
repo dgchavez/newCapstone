@@ -86,7 +86,7 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">Status</label>
                             <select name="status" class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" onchange="this.form.submit()">
-                                <option value="">All Statuses</option>
+                                <option value="">All Status</option>
                                 <option value="zero" {{ request('status') === 'zero' ? 'selected' : '' }}>Pending</option>
                                 <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
                                 <option value="2" {{ request('status') === '2' ? 'selected' : '' }}>Disabled</option>
