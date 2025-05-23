@@ -1,18 +1,19 @@
 <x-app-layout>
-    <div class="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
-        <div class="bg-white shadow-lg rounded-xl p-8">
+    <div class="bg-gradient-to-b from-green-50 to-white min-h-screen">
+        <div class="container mx-auto px-4 py-8">
             <!-- Header Section -->
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl font-bold text-gray-900">Vaccines Management</h1>
-                <a href="{{ route('vaccines.create') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg 
-                          transition-colors duration-150 hover:bg-indigo-700 focus:outline-none focus:ring-2 
-                          focus:ring-indigo-500 focus:ring-offset-2">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Add New Vaccine
-                </a>
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-green-600 to-green-400 h-16"></div>
+                <div class="px-6 py-5 -mt-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-syringe text-blue-500 mr-3"></i>Vaccines Management
+                    </h1>
+                    <a href="{{ route('vaccines.create') }}" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition duration-200 flex items-center gap-2 shadow-md">
+                        <i class="fas fa-plus text-sm"></i>
+                        <span>Add New Vaccine</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Status Messages -->
@@ -28,57 +29,67 @@
                 </div>
             @endif
 
-            <!-- Vaccine Table -->
-            <div class="overflow-x-auto rounded-lg border border-gray-200">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccine Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach ($vaccines as $vaccine)
-                            <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $loop->iteration }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $vaccine->vaccine_name }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-500">{{ $vaccine->description }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
-                                    <div class="flex justify-center space-x-2">
-                                        <a href="{{ route('vaccines.edit', $vaccine) }}" 
-                                           class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-sm 
-                                                  font-medium rounded-md transition-colors duration-150 hover:bg-indigo-700 
-                                                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                            </svg>
-                                            Edit
-                                        </a>
-                                        <form action="{{ route('vaccines.destroy', $vaccine) }}" method="POST" class="inline-block">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm 
-                                                           font-medium rounded-md transition-colors duration-150 hover:bg-red-700 
-                                                           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                                                    onclick="return confirm('Are you sure you want to delete this vaccine?')">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                </svg>
-                                                Delete
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <!-- Table Section -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccine Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach ($vaccines as $vaccine)
+                                    <tr class="hover:bg-blue-50 transition-colors duration-200">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                                                {{ $loop->iteration }}
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-10 w-10 mr-3">
+                                                    <div class="h-10 w-10 rounded-full bg-orange-100 text-blue-600 flex items-center justify-center">
+                                                        <i class="fas fa-syringe"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm font-medium text-gray-900">{{ $vaccine->vaccine_name }}</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">{{ $vaccine->description }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex space-x-2">
+                                                <a href="{{ route('vaccines.edit', $vaccine) }}" 
+                                                   class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200">
+                                                    <i class="fas fa-edit"></i>
+                                                    <span>Edit</span>
+                                                </a>
+                                                <form action="{{ route('vaccines.destroy', $vaccine) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                           class="bg-red-100 text-red-700 hover:bg-red-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200"
+                                                           onclick="return confirm('Are you sure you want to delete this vaccine?')">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                        <span>Delete</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    
+    <!-- Add Font Awesome CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 </x-app-layout>
