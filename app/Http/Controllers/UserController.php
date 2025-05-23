@@ -22,6 +22,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Mail\NewOwnerRegistration;
 
 
 
@@ -278,55 +279,46 @@ class UserController extends Controller
     {
         $request->validate([
             'complete_name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
             'contact_no' => 'required|string|max:15',
             'gender' => 'required|string|max:10',
             'birth_date' => 'required|date',
             'barangay_id' => 'required|exists:barangays,id',
             'street' => 'nullable|string|max:255',
-            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Added validation for image
-          
-    ]);
+            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
         $user = User::findOrFail($id);
-    
+        
         // Handle profile image upload if a file is provided
-      // Handle profile image upload if a file is provided
         if ($request->hasFile('profile_image')) {
             if ($user->profile_image) {
                 Storage::disk('public')->delete($user->profile_image);
             }
             $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-            // Copy to public/storage for web access
             copy(storage_path('app/public/' . $imagePath), public_path('storage/' . $imagePath));
             $user->profile_image = $imagePath;
         }
-    
-        // Update user data
+        
+        // Update user data - remove identifier from the fields being updated
         $user->update($request->only([
             'complete_name',
-            'email',
             'contact_no',
             'gender',
             'birth_date',
-            'identifier',
         ]));
-    
-        // Update the password if provided
-
-    
+        
         // Update or create the address
         $user->address()->updateOrCreate(
-            ['user_id' => $user->user_id], // Condition to find the address
-            $request->only(['barangay_id', 'street']) // Address fields to update
+            ['user_id' => $user->user_id],
+            $request->only(['barangay_id', 'street'])
         );
-    
+        
         // Update or create the owner's data
         $user->owner()->updateOrCreate(
-            ['user_id' => $user->user_id], // Match condition
-            $request->only(['civil_status', 'category']) + ['permit' => 1] // Data to update, with permit added
+            ['user_id' => $user->user_id],
+            $request->only(['civil_status', 'category']) + ['permit' => 1]
         );
-    
+        
         return redirect()->route('users.nav-profile', ['id' => $user->user_id])
             ->with('message', 'Profile updated successfully.');
     }
@@ -929,6 +921,18 @@ public function toggleUserStatus(Request $request, User $user)
     $statusName = $request->status == 1 ? 'enabled' : 'disabled';
     
     return redirect()->back()->with('message', "User {$user->complete_name} has been {$statusName}.");
+}
+
+// Add this method to send notifications to staff
+private function notifyStaffAboutNewOwner(User $newOwner)
+{
+    $staffMembers = User::whereIn('role', [0])
+        ->where('status', 1)
+        ->get();
+
+    foreach ($staffMembers as $staff) {
+        Mail::to($staff->email)->send(new NewOwnerRegistration($newOwner));
+    }
 }
 
    }

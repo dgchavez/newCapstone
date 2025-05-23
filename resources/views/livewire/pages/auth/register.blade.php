@@ -13,6 +13,8 @@ use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use App\Jobs\NotifyStaffAboutNewOwner;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewOwnerRegistration;
 
 new #[Layout('layouts.guest')] class extends Component
 {
@@ -47,6 +49,9 @@ new #[Layout('layouts.guest')] class extends Component
     // Add these properties to your component class
     public $selected_special_category = null;
     public $selected_regular_categories = [];
+
+    public $registrationStep = 0;
+    public $registrationComplete = false;
 
     /**
      * Mount function to initialize data
@@ -108,6 +113,7 @@ new #[Layout('layouts.guest')] class extends Component
      */
     public function register(): void
     {
+        $this->registrationStep = 1;
         // Base validation rules
         $validationRules = [
             'complete_name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-]+$/u'],
@@ -135,54 +141,64 @@ new #[Layout('layouts.guest')] class extends Component
 
         $validated = $this->validate($validationRules);
 
-        // Create the user first
-        $user = User::create([
-            'complete_name' => $this->complete_name,
-            'contact_no' => $this->contact_no,
-            'gender' => $this->gender,
-            'birth_date' => $this->birth_date,
-            'status' => $this->status,
-            'email' => $this->email,
-            'role' => $this->role,
-            'password' => Hash::make($this->password)
-        ]);
+        try {
+            $this->registrationStep = 2;
+            // Create the user first
+            $user = User::create([
+                'complete_name' => $this->complete_name,
+                'contact_no' => $this->contact_no,
+                'gender' => $this->gender,
+                'birth_date' => $this->birth_date,
+                'status' => $this->status,
+                'email' => $this->email,
+                'role' => $this->role,
+                'password' => Hash::make($this->password)
+            ]);
 
-        // Attach categories directly to the user
-        $user->categories()->attach($this->selected_categories);
+            $this->registrationStep = 3;
+            // Attach categories directly to the user
+            $user->categories()->attach($this->selected_categories);
 
-        // Create owner record
-        Owner::create([
-            'user_id' => $user->user_id,
-            'civil_status' => $this->civil_status,
-            'permit' => 1
-        ]);
+            $this->registrationStep = 4;
+            // Create owner record
+            Owner::create([
+                'user_id' => $user->user_id,
+                'civil_status' => $this->civil_status,
+                'permit' => 1
+            ]);
 
-        // Insert the address record
-        Address::create([
-            'user_id' => $user->user_id,
-            'barangay_id' => $this->barangay_id,
-            'street' => $this->street,
-        ]);
+            $this->registrationStep = 5;
+            // Insert the address record
+            Address::create([
+                'user_id' => $user->user_id,
+                'barangay_id' => $this->barangay_id,
+                'street' => $this->street,
+            ]);
 
-        // Fire the Registered event
-        event(new Registered($user));
+            $this->registrationStep = 6;
+            // Fire the Registered event
+            event(new Registered($user));
 
-        // Dispatch the notification job
-        NotifyStaffAboutNewOwner::dispatch($user);
+            // Dispatch the notification job
+            $this->notifyStaffAboutNewOwner($user);
+            // Check if the user is an owner and their account is pending approval
+            if ($user->role === 1 && $user->status === 0) {
+                // Log the user out immediately
+                Auth::logout();
+                session()->invalidate();
+                session()->regenerateToken();
 
-        // Check if the user is an owner and their account is pending approval
-        if ($user->role === 1 && $user->status === 0) {
-            // Log the user out immediately
-            Auth::logout();
-            session()->invalidate();
-            session()->regenerateToken();
+                // Redirect to login page with a message
+                redirect()->route('login')->with('message', 'Your registration is pending approval by admin. You will receive an email once your account is approved.');
+            } else {
+                // If active, login the user and redirect
+                Auth::login($user);
+                redirect()->intended(route('dashboard', absolute: false));
+            }
 
-            // Redirect to login page with a message
-            redirect()->route('login')->with('message', 'Your registration is pending approval by admin. You will receive an email once your account is approved.');
-        } else {
-            // If active, login the user and redirect
-            Auth::login($user);
-            redirect()->intended(route('dashboard', absolute: false));
+            $this->registrationComplete = true;
+        } catch (\Exception $e) {
+            $this->addError('registration', 'Registration failed: ' . $e->getMessage());
         }
     }
 
@@ -202,6 +218,25 @@ new #[Layout('layouts.guest')] class extends Component
         $this->selected_categories = $this->selected_regular_categories;
         if (!is_null($this->selected_special_category)) {
             $this->selected_categories[] = $this->selected_special_category;
+        }
+    }
+
+    private function notifyStaffAboutNewOwner($newOwner)
+    {
+        $staffMembers = User::whereIn('role', [0, 3])
+            ->where('status', 1)
+            ->get();
+
+        foreach ($staffMembers as $staff) {
+            try {
+                Mail::to($staff->email)->send(new NewOwnerRegistration($newOwner));
+            } catch (\Exception $e) {
+                // Log the error but continue with registration
+                \Log::error('Failed to send notification to staff member', [
+                    'staff_id' => $staff->user_id,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
     }
 }
@@ -629,11 +664,25 @@ new #[Layout('layouts.guest')] class extends Component
                 </button>
             @else
                 <button type="submit" 
-                        class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    Complete Registration
+                        wire:loading.attr="disabled"
+                        class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                    
+                    <!-- Normal State -->
+                    <div wire:loading.remove wire:target="register">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Complete Registration
+                    </div>
+
+                    <!-- Loading State -->
+                    <div wire:loading wire:target="register" class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                    </div>
                 </button>
             @endif
         </div>
@@ -647,6 +696,46 @@ new #[Layout('layouts.guest')] class extends Component
                 Sign in here
             </a>
         </p>
+    </div>
+
+    <!-- Add this status indicator below the button -->
+    <div class="mt-4">
+        <div wire:loading wire:target="register" class="space-y-3">
+            <div class="flex items-center text-sm text-gray-600">
+                <div class="flex-shrink-0 h-2 w-2 rounded-full bg-blue-600 animate-pulse mr-2"></div>
+                <span wire:loading wire:target="register">Creating your account...</span>
+            </div>
+            
+            <div class="flex items-center text-sm text-gray-600">
+                <div class="flex-shrink-0 h-2 w-2 rounded-full bg-blue-600 animate-pulse mr-2" 
+                     wire:loading.delay.longest wire:target="register"></div>
+                <span wire:loading.delay.longest wire:target="register">Setting up your profile...</span>
+            </div>
+            
+            <div class="flex items-center text-sm text-gray-600">
+                <div class="flex-shrink-0 h-2 w-2 rounded-full bg-blue-600 animate-pulse mr-2"
+                     wire:loading.delay.longer wire:target="register"></div>
+                <span wire:loading.delay.longer wire:target="register">Notifying administrators...</span>
+            </div>
+
+            <div class="flex items-center text-sm text-gray-600">
+                <div class="flex-shrink-0 h-2 w-2 rounded-full bg-green-600 animate-pulse mr-2"
+                     wire:loading.delay.longest wire:target="register"></div>
+                <span wire:loading.delay.longest wire:target="register">Almost done...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this success message that shows briefly before redirect -->
+    <div wire:loading.remove wire:target="register">
+        @if(session()->has('success'))
+            <div class="mt-4 p-4 rounded-lg bg-green-50 text-green-700 flex items-center">
+                <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                {{ session('success') }}
+            </div>
+        @endif
     </div>
 </div>
 
