@@ -184,6 +184,16 @@
                                                             <span class="text-gray-500">({{ $animal->group_count }})</span>
                                                         @endif
                                                     </a>
+                                                    <div class="mt-1">
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                                            {{ $animal->is_vaccinated == 1 ? 'bg-green-100 text-green-800' : 
+                                                               ($animal->is_vaccinated == 2 ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                                            <i class="fas {{ $animal->is_vaccinated == 1 ? 'fa-syringe' : 
+                                                                    ($animal->is_vaccinated == 2 ? 'fa-ban' : 'fa-exclamation-triangle') }} mr-1"></i>
+                                                            {{ $animal->is_vaccinated == 1 ? 'Vaccinated' : 
+                                                               ($animal->is_vaccinated == 2 ? 'Not Required' : 'Not Vaccinated') }}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -192,15 +202,15 @@
                                             <div class="text-sm text-gray-500">{{ $animal->breed ? $animal->breed->name : 'N/A' }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                {{ $animal->is_vaccinated == 1 ? 'bg-green-100 text-green-800' : 
-                                                   ($animal->is_vaccinated == 2 ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800') }}">
-                                                @if($animal->is_vaccinated == 1)
-                                                    Vaccinated
-                                                @elseif($animal->is_vaccinated == 2)
-                                                    No Vaccination Required
-                                                @else
-                                                    Not Vaccinated
+                                            <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium
+                                                {{ $animal->isAlive === null ? 'bg-gray-100 text-gray-600' : 
+                                                   ($animal->isAlive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700') }}">
+                                                <i class="fas {{ $animal->isAlive === null ? 'fa-circle-question' : 
+                                                        ($animal->isAlive ? 'fa-heartbeat' : 'fa-heart-broken') }} mr-1.5"></i>
+                                                {{ $animal->isAlive === null ? 'Status Not Set' : 
+                                                   ($animal->isAlive ? 'Alive' : 'Deceased') }}
+                                                @if(!$animal->isAlive && $animal->death_date)
+                                                    <span class="ml-1 text-gray-500">• {{ \Carbon\Carbon::parse($animal->death_date)->format('M d, Y') }}</span>
                                                 @endif
                                             </span>
                                         </td>
