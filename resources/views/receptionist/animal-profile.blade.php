@@ -213,6 +213,32 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Life Status -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 {{ $animal->isAlive === null ? 'bg-gray-100' : 
+                                                   ($animal->isAlive ? 'bg-green-100' : 'bg-red-100') }} rounded-lg">
+                                    <i class="fas {{ $animal->isAlive === null ? 'fa-question' : 
+                                                   ($animal->isAlive ? 'fa-heartbeat' : 'fa-heart-broken') }} 
+                                                   {{ $animal->isAlive === null ? 'text-gray-600' : 
+                                                   ($animal->isAlive ? 'text-green-600' : 'text-red-600') }}"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Life Status</p>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {{ $animal->isAlive === null ? 'bg-gray-100 text-gray-800' : 
+                                           ($animal->isAlive ? 'bg-green-100 text-green-800' : 
+                                           'bg-red-100 text-red-800') }}">
+                                        {{ $animal->isAlive === null ? 'Status Not Set' : 
+                                           ($animal->isAlive ? 'Alive' : 'Deceased') }}
+                                        @if(!$animal->isAlive && $animal->death_date)
+                                            <span class="ml-1 text-xs text-gray-500">• {{ \Carbon\Carbon::parse($animal->death_date)->format('M d, Y') }}</span>
+                                        @endif
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Additional Details -->
