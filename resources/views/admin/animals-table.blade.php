@@ -104,6 +104,25 @@
                         </select>
                     </div>
 
+                    <!-- Life Status Filter -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Life Status</label>
+                        <select name="life_status" 
+                                class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                id="lifeStatusFilter">
+                            <option value="">All Status</option>
+                            <option value="1" {{ request('life_status') == '1' ? 'selected' : '' }}>
+                                <i class="fas fa-heart"></i> Alive
+                            </option>
+                            <option value="0" {{ request('life_status') == '0' ? 'selected' : '' }}>
+                                <i class="fas fa-heart-broken"></i> Deceased
+                            </option>
+                            <option value="null" {{ request('life_status') == 'null' ? 'selected' : '' }}>
+                                <i class="fas fa-question"></i> Not Set
+                            </option>
+                        </select>
+                    </div>
+
                     <!-- Date Range -->
                     <div class="col-span-1">
                         <label class="block text-xs font-medium text-gray-700 mb-1">Date Range</label>
@@ -143,6 +162,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($animals as $animal)
                                 <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                    <!-- Animal Name & Info Column -->
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10">
@@ -157,8 +177,17 @@
                                                         {{ $animal->name }}
                                                     </a>
                                                 </div>
-                                                <div class="text-xs text-gray-500">
-                                                    Created {{ $animal->created_at->format('m/d/Y') }}
+                                                <div class="flex items-center mt-1">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                                        {{ $animal->is_vaccinated == 1 ? 'bg-green-100 text-green-800' : 
+                                                           ($animal->is_vaccinated == 2 ? 'bg-gray-100 text-gray-800' : 
+                                                           'bg-yellow-100 text-yellow-800') }}">
+                                                        <i class="fas {{ $animal->is_vaccinated == 1 ? 'fa-syringe' : 
+                                                                        ($animal->is_vaccinated == 2 ? 'fa-ban' : 
+                                                                        'fa-exclamation-triangle') }} mr-1 text-xs"></i>
+                                                        {{ $animal->is_vaccinated == 1 ? 'Vaccinated' : 
+                                                           ($animal->is_vaccinated == 2 ? 'Not Required' : 'Not Vaccinated') }}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -229,13 +258,23 @@
                                             <span class="text-sm text-gray-500">No transactions</span>
                                         @endif
                                     </td>
+                                    <!-- Status Column (isAlive only) -->
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                            {{ $animal->is_vaccinated == 1 ? 'bg-green-100 text-green-800' : 
-                                               ($animal->is_vaccinated == 2 ? 'bg-gray-100 text-gray-800' : 
-                                               'bg-red-100 text-red-800') }}">
-                                            {{ $animal->is_vaccinated == 1 ? 'Vaccinated' : 
-                                               ($animal->is_vaccinated == 2 ? 'Not Required' : 'Not Vaccinated') }}
+                                        <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium
+                                            {{ $animal->isAlive === null ? 'bg-gray-100 text-gray-600' : 
+                                               ($animal->isAlive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700') }}">
+                                            @if($animal->isAlive === null)
+                                                <i class="fas fa-circle-question mr-1.5"></i>Status Not Set
+                                            @elseif($animal->isAlive)
+                                                <i class="fas fa-circle-check mr-1.5"></i>Alive
+                                            @else
+                                                <i class="fas fa-circle-xmark mr-1.5"></i>Deceased
+                                                @if($animal->death_date)
+                                                    <span class="ml-1 text-gray-500 border-l border-gray-300 pl-2">
+                                                        {{ \Carbon\Carbon::parse($animal->death_date)->format('M d, Y') }}
+                                                    </span>
+                                                @endif
+                                            @endif
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -302,7 +341,7 @@
 
     <script>
         // Auto-submit form when filters change
-        ['ownerFilter', 'fromDateFilter', 'toDateFilter'].forEach(function(id) {
+        ['ownerFilter', 'fromDateFilter', 'toDateFilter', 'lifeStatusFilter'].forEach(function(id) {
             document.getElementById(id)?.addEventListener('change', function() {
                 this.form.submit();
             });

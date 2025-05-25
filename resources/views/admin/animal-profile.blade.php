@@ -198,6 +198,35 @@
                             </div>
                         </div>
 
+                        <!-- Add the Life Status here, before Vaccination Status -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 {{ $animal->isAlive === null ? 'bg-gray-100' : 
+                                                   ($animal->isAlive ? 'bg-emerald-100' : 'bg-red-100') }} rounded-lg">
+                                    <i class="fas {{ $animal->isAlive === null ? 'fa-circle-question' : 
+                                                    ($animal->isAlive ? 'fa-heartbeat' : 'fa-heart-broken') }} 
+                                        {{ $animal->isAlive === null ? 'text-gray-600' : 
+                                           ($animal->isAlive ? 'text-emerald-600' : 'text-red-600') }}"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Life Status</p>
+                                    <div class="flex items-center">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {{ $animal->isAlive === null ? 'bg-gray-100 text-gray-600' : 
+                                               ($animal->isAlive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700') }}">
+                                            {{ $animal->isAlive === null ? 'Status Not Set' : 
+                                               ($animal->isAlive ? 'Alive' : 'Deceased') }}
+                                        </span>
+                                        @if(!$animal->isAlive && $animal->death_date)
+                                            <span class="ml-2 text-xs text-gray-500">
+                                                Died on: {{ \Carbon\Carbon::parse($animal->death_date)->format('M d, Y') }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Vaccination Status -->
                         <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
                             <div class="flex items-center space-x-3">
@@ -221,6 +250,8 @@
                                 </div>
                             </div>
                         </div>
+
+                   
                     </div>
 
                     <!-- Additional Details -->
