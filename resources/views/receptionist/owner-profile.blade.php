@@ -36,8 +36,9 @@
                 <div class="absolute -top-16 left-6">
                     <div class="relative">
                         <img class="w-32 h-32 rounded-xl object-cover border-4 border-white shadow-lg" 
-                             src="{{ $owner->profile_image ? Storage::url($owner->profile_image) : asset('assets/default-avatar.png') }}" 
-                             alt="{{ $owner->complete_name }}">
+                             src="{{ $owner->profile_image ? Storage::url($owner->profile_image) : 
+                                  ($owner->user->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
+                             alt="{{ $owner->user->complete_name }}">
                         <div class="absolute bottom-2 right-2 w-4 h-4 rounded-full bg-green-500 border-2 border-white"></div>
                     </div>
                 </div>

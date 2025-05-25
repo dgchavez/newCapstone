@@ -157,8 +157,10 @@
                                 <td class="px-6 py-3 text-start">
                                     <!-- Owner Profile Image -->
                                     <a href="{{ route('vet.profile-owner', ['owner_id' => $animal->owner->owner_id]) }}" class="flex items-center text-blue-600 hover:text-blue-800">
-                                        <img src="{{ $animal->owner->user->profile_image ? Storage::url($animal->owner->user->profile_image) : asset('assets/default-avatar.png') }}" 
-                                            alt="Owner Image" class="w-8 h-8 object-cover rounded-full border-2 border-gray-300 mr-2">
+                                        <img src="{{ $animal->owner->user->profile_image ? Storage::url($animal->owner->user->profile_image) : 
+                                                  ($animal->owner->user->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
+                                             alt="{{ $animal->owner->user->complete_name }}" 
+                                             class="w-8 h-8 object-cover rounded-full border-2 border-gray-300 mr-2">
                                         <span class="font-medium">{{ $animal->owner->user->complete_name ?? 'Unknown Owner' }}</span>
                                     </a>
                                 </td>
@@ -166,7 +168,7 @@
                                 <td class="px-6 py-3 text-start">
                                     <!-- Animal Photo Front -->
                                     <a href="{{ route('vet.profile', ['animal_id' => $animal->animal_id]) }}" class="flex items-center text-blue-600 hover:text-blue-800">
-                                        <img src="{{ $animal->photo_front ? Storage::url($animal->photo_front) : asset('assets/default-avatar.png') }}" 
+                                        <img src="{{ $animal->photo_front ? Storage::url($animal->photo_front) : asset('assets/animal-default.png') }}" 
                                             alt="Animal Photo" class="w-8 h-8 object-cover rounded-full border-2 border-gray-300 mr-2">
                                         <span class="font-medium">{{ $animal->name ?? 'Unknown Animal' }}</span>
                                     </a>

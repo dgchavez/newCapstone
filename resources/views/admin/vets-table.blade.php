@@ -126,7 +126,8 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex-shrink-0 h-10 w-10">
                                             <img class="h-10 w-10 rounded-full object-cover" 
-                                                 src="{{ $vet->profile_image ? asset('storage/' . $vet->profile_image) : asset('assets/default-avatar.png') }}" 
+                                                 src="{{ $vet->profile_image ? asset('storage/' . $vet->profile_image) : 
+                                                      ($vet->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
                                                  alt="{{ $vet->complete_name }}">
                                         </div>
                                     </td>

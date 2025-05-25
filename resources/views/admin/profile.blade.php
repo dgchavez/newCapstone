@@ -13,8 +13,9 @@
                 <div class="absolute -bottom-16 left-8 flex items-end space-x-6">
                     <div class="relative">
                         <img class="w-32 h-32 rounded-xl border-4 border-white shadow-xl object-cover" 
-                             src="{{ $user->profile_image ? Storage::url($user->profile_image) : asset('assets/default-avatar.png') }}" 
-                             alt="Profile Image">
+                             src="{{ $user->profile_image ? Storage::url($user->profile_image) : 
+                                  ($user->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
+                             alt="{{ $user->complete_name }}'s Profile Image">
                         <div class="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center {{ $user->status == 1 ? 'bg-green-500' : 'bg-red-500' }} border-2 border-white">
                             <i class="fas fa-{{ $user->status == 1 ? 'check' : 'times' }} text-white text-xs"></i>
                         </div>

@@ -200,11 +200,10 @@
                             @forelse ($recentTransactions as $transaction)
                                 <tr class="border-b hover:bg-gray-50 transition-colors duration-200">
                                     <td class="px-6 py-4">
-                                        @if($transaction->owner->user->profile_image)
-                                            <img src="{{ asset('storage/' . $transaction->owner->user->profile_image) }}" alt="Profile Image" class="w-10 h-10 rounded-full object-cover hover:scale-105 transition-all duration-300">
-                                        @else
-                                            <img src="{{asset('assets/default-avatar.png') }}" class="w-10 h-10 rounded-full object-cover hover:scale-105 transition-all duration-300" alt="Profile">
-                                        @endif
+                                        <img src="{{ $transaction->owner->user->profile_image ? asset('storage/' . $transaction->owner->user->profile_image) : 
+                                                  ($transaction->owner->user->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
+                                             alt="{{ $transaction->owner->user->complete_name }}" 
+                                             class="w-10 h-10 rounded-full object-cover hover:scale-105 transition-all duration-300">
                                     </td>
                                     <td class="px-4 py-3 text-sm">
                                         <a href="{{ route('owners.profile-owner', $transaction->owner->owner_id) }}" class="text-blue-600 hover:text-blue-800 font-medium">

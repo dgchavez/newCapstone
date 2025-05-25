@@ -245,7 +245,8 @@ new class extends Component
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg text-gray-600 hover:bg-green-50 hover:text-green-600 focus:outline-none transition-all duration-300">
                             <div class="flex items-center gap-2">
-                                <img src="{{ auth()->user()->profile_image ? asset('storage/' . auth()->user()->profile_image) : asset('assets/default-avatar.png') }}" 
+                                <img src="{{ auth()->user()->profile_image ? asset('storage/' . auth()->user()->profile_image) : 
+                                          (auth()->user()->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
                                      alt="{{ auth()->user()->complete_name }}" 
                                      class="h-8 w-8 rounded-full object-cover ring-2 ring-gray-100" />
                                 <div x-data="{{ json_encode(['complete_name' => auth()->user()->complete_name]) }}" 
@@ -340,7 +341,8 @@ new class extends Component
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4 flex items-center">
                 <div class="flex-shrink-0">
-                    <img src="{{ auth()->user()->profile_image ? asset('storage/' . auth()->user()->profile_image) : asset('assets/default-avatar.png') }}" 
+                    <img src="{{ auth()->user()->profile_image ? asset('storage/' . auth()->user()->profile_image) : 
+                              (auth()->user()->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
                          alt="{{ auth()->user()->complete_name }}" 
                          class="h-10 w-10 rounded-full object-cover ring-2 ring-gray-100" />
                 </div>

@@ -9,8 +9,9 @@
                         <!-- Profile Image -->
                         <div class="relative">
                             <img class="w-32 h-32 md:w-40 md:h-40 object-cover rounded-full border-4 border-white shadow-xl transform transition-transform duration-300 hover:scale-105" 
-                                src="{{ $veterinarian->profile_image ? Storage::url($veterinarian->profile_image) : asset('assets/default-avatar.png') }}" 
-                                alt="Profile Image">
+                                src="{{ $veterinarian->profile_image ? Storage::url($veterinarian->profile_image) : 
+                                     ($veterinarian->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
+                                alt="{{ $veterinarian->complete_name }}'s Profile Image">
                             <div class="absolute bottom-0 right-0 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-white">
                                 <i class="fas fa-user-md"></i>
                             </div>
@@ -205,8 +206,10 @@
                                     <td class="px-6 py-4">
                                         <a href="{{ route('owners.profile-owner', ['owner_id' => $animal->owner->owner_id]) }}" class="flex items-center group">
                                             <div class="relative mr-3">
-                                                <img src="{{ $animal->owner->user->profile_image ? Storage::url($animal->owner->user->profile_image) : asset('assets/default-avatar.png') }}" 
-                                                    alt="Owner Image" class="w-10 h-10 object-cover rounded-full border-2 border-gray-200 group-hover:border-blue-400 transition-all duration-200">
+                                                <img src="{{ $animal->owner->user->profile_image ? Storage::url($animal->owner->user->profile_image) : 
+                                                  ($animal->owner->user->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
+                                                     alt="{{ $animal->owner->user->complete_name }}" 
+                                                     class="w-10 h-10 object-cover rounded-full border-2 border-gray-200 group-hover:border-blue-400 transition-all duration-200">
                                                 <div class="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 rounded-full border-2 border-white"></div>
                                             </div>
                                             <div>
@@ -219,7 +222,7 @@
                                     <td class="px-6 py-4">
                                         <a href="{{ route('animals.profile', ['animal_id' => $animal->animal_id]) }}" class="flex items-center group">
                                             <div class="relative mr-3">
-                                                <img src="{{ $animal->photo_front ? Storage::url($animal->photo_front) : asset('assets/default-avatar.png') }}" 
+                                                <img src="{{ $animal->photo_front ? Storage::url($animal->photo_front) : asset('assets/animal-default.png') }}" 
                                                     alt="Animal Photo" class="w-10 h-10 object-cover rounded-full border-2 border-gray-200 group-hover:border-blue-400 transition-all duration-200">
                                             </div>
                                             <div>

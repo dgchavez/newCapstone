@@ -164,11 +164,11 @@
                                     <tr class="hover:bg-gray-50 transition-colors duration-200">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-10 w-10">
-                                                    <img class="h-10 w-10 rounded-full object-cover" 
-                                                         src="{{ asset($animal->photo_front ? 'storage/' . $animal->photo_front : 'assets/default-avatar.png') }}" 
-                                                         alt="Animal Photo">
-                                                </div>
+                                                    <div class="flex-shrink-0 h-10 w-10">
+                                                        <img class="h-10 w-10 rounded-full object-cover" 
+                                                            src="{{ asset($animal->photo_front ? 'storage/' . $animal->photo_front : 'assets/animal-default.png') }}" 
+                                                            alt="Animal Photo">
+                                                    </div>
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-blue-900">
                                                         <a href="{{ route('rec.profile', ['animal_id' => $animal->animal_id]) }}" 

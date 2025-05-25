@@ -477,6 +477,8 @@ Route::group(['middleware' => 'receptionist'], function () {
     
     Route::post('/receptionist/reports/users', [App\Http\Controllers\ReportController::class, 'generateUserReport']);
 
+    Route::get('/newbarangay/{barangay}/edit', [NewBarangayController::class, 'edit'])->name('newbarangay.edit');
+Route::put('/newbarangay/{barangay}', [NewBarangayController::class, 'update'])->name('newbarangay.update');
 });
 
     Route::get('/rec/owners',[ReController::class,'loadOwnersList'])
