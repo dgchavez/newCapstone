@@ -696,7 +696,8 @@ public function toggleStatus(Request $request, $animal_id)
 {
     $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
     
-    if ($animal->isAlive) {
+    // If currently alive, mark as deceased
+    if ($animal->isAlive === true) {
         // Validate death date when marking as deceased
         $request->validate([
             'death_date' => 'required|date|before_or_equal:today',
@@ -711,7 +712,9 @@ public function toggleStatus(Request $request, $animal_id)
             ]);
 
         return back()->with('message', $animal->name . ' has been marked as deceased.');
-    } else {
+    } 
+    // If currently deceased or status not set (null), mark as alive
+    else {
         // When marking as alive, clear death date
         DB::table('animals')
             ->where('animal_id', $animal_id)

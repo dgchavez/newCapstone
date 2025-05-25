@@ -113,143 +113,136 @@
                 <!-- Header -->
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex justify-between items-center">
-                        <h2 class="text-xl font-semibold text-gray-900">Registered Animals</h2>
+                        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-paw mr-2 text-green-600"></i>
+                            Registered Animals
+                        </h2>
                         <a href="{{ route('owner.addAnimalForm', ['owner_id' => $owner->owner_id]) }}"
-                           class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all text-sm font-medium">
+                           class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 text-sm font-medium">
                             <i class="fas fa-plus mr-2"></i>Add Animal
                         </a>
                     </div>
 
                     <!-- Search and Filters -->
-                    <form method="GET" action="{{ route('owners.profile-owner', ['owner_id' => $owner->owner_id]) }}" 
-                          class="mt-4 space-y-4" id="filterForm">
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <!-- Search Input -->
-                            <div class="flex-1">
-                                <input type="text" name="search" value="{{ request('search') }}" 
-                                       placeholder="Search animals..."
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            
-                            <!-- Species Filter -->
-                            <div class="w-full sm:w-48">
-                                <select name="species_id" id="speciesFilter"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                    <option value="">All Species</option>
-                                    @foreach($species as $specie)
-                                        <option value="{{ $specie->id }}" {{ request('species_id') == $specie->id ? 'selected' : '' }}>
-                                            {{ $specie->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <!-- Breed Filter -->
-                            <div id="breedFilterContainer" class="w-full sm:w-48" style="{{ request('species_id') ? '' : 'display: none;' }}">
-                                <select name="breed_id" id="breedFilter"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                    <option value="">All Breeds</option>
-                                    @foreach($breeds as $breed)
-                                        @if(!request('species_id') || $breed->species_id == request('species_id'))
-                                            <option value="{{ $breed->id }}" {{ request('breed_id') == $breed->id ? 'selected' : '' }}>
-                                                {{ $breed->name }}
-                                            </option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                            </div>
+                    <div class="mt-4 flex flex-wrap gap-4">
+                        <div class="flex-1 min-w-[200px] relative">
+                            <input type="text" name="search" value="{{ request('search') }}" 
+                                   placeholder="Search animals..."
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                         </div>
-                    </form>
+                        
+                        <select name="species_id" id="speciesFilter"
+                                class="w-full sm:w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white">
+                            <option value="">All Species</option>
+                            @foreach($species as $specie)
+                                <option value="{{ $specie->id }}" {{ request('species_id') == $specie->id ? 'selected' : '' }}>
+                                    {{ $specie->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Animals List -->
                 @if($animals->isNotEmpty())
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Animal</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-3/5">Animal Information</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($animals as $animal)
-                                    <tr class="hover:bg-gray-50">
-                                        <!-- Animal Info Column -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                    <tr class="hover:bg-gray-50 transition duration-150">
+                                        <td class="px-6 py-4">
                                             <div class="flex items-center">
-                                                <!-- Animal Photo -->
-                                                <img class="h-10 w-10 rounded-full object-cover" 
-                                                     src="{{ $animal->photo_front ? asset('storage/' . $animal->photo_front) : asset('assets/default-avatar.png') }}"
-                                                     alt="{{ $animal->name }}">
+                                                <div class="flex-shrink-0 h-14 w-14 relative">
+                                                    <img class="h-14 w-14 rounded-lg object-cover border-2 border-gray-200" 
+                                                         src="{{ $animal->photo_front ? asset('storage/' . $animal->photo_front) : asset('assets/default-avatar.png') }}"
+                                                         alt="{{ $animal->name }}">
+                                                    @if($animal->is_group)
+                                                        <span class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
+                                                            {{ $animal->group_count }}
+                                                        </span>
+                                                    @endif
+                                                </div>
                                                 
-                                                <!-- Animal Name and Vaccination Status -->
                                                 <div class="ml-4">
-                                                    <div class="flex items-center">
-                                                        <a href="{{ route('animals.profile', ['animal_id' => $animal->animal_id]) }}"
-                                                           class="text-sm font-medium text-blue-600 hover:text-blue-900">
-                                                            {{ $animal->name }}
-                                                            @if ($animal->is_group)
-                                                                <span class="text-gray-500">({{ $animal->group_count }})</span>
-                                                            @endif
-                                                        </a>
+                                                    <a href="{{ route('animals.profile', ['animal_id' => $animal->animal_id]) }}"
+                                                       class="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors duration-200">
+                                                        {{ $animal->name }}
+                                                    </a>
+                                                    
+                                                    <!-- Species and Breed -->
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        {{ $animal->species?->name ?? 'N/A' }} • {{ $animal->breed?->name ?? 'N/A' }}
                                                     </div>
                                                     
-                                                    <!-- Vaccination Status with Icons -->
+                                                    <!-- Vaccination Status -->
                                                     @php
                                                         $vaccStatus = [
-                                                            0 => ['text' => 'Not Vaccinated', 'icon' => 'exclamation-circle', 'color' => 'text-red-600'],
-                                                            1 => ['text' => 'Vaccinated', 'icon' => 'check-circle', 'color' => 'text-green-600'],
-                                                            3 => ['text' => 'No Vaccination Needed', 'icon' => 'minus-circle', 'color' => 'text-gray-500'],
-                                                            null => ['text' => 'No Vaccination Needed', 'icon' => 'minus-circle', 'color' => 'text-gray-500']
+                                                            0 => ['text' => 'Not Vaccinated', 'icon' => 'exclamation-circle', 'color' => 'text-red-600 bg-red-50'],
+                                                            1 => ['text' => 'Vaccinated', 'icon' => 'check-circle', 'color' => 'text-green-600 bg-green-50'],
+                                                            2 => ['text' => 'Not Required', 'icon' => 'minus-circle', 'color' => 'text-gray-500 bg-gray-50']
                                                         ];
-                                                        $status = $vaccStatus[$animal->is_vaccinated ?? null] ?? $vaccStatus[null];
+                                                        $status = $vaccStatus[$animal->is_vaccinated ?? 2] ?? $vaccStatus[2];
                                                     @endphp
-                                                    <p class="text-xs mt-0.5 {{ $status['color'] }}">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs mt-1 {{ $status['color'] }}">
                                                         <i class="fas fa-{{ $status['icon'] }} mr-1"></i>
                                                         {{ $status['text'] }}
-                                                    </p>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </td>
 
-                                        <!-- Species and Breed Details -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">{{ $animal->species?->name ?? 'N/A' }}</div>
-                                            <div class="text-sm text-gray-500">{{ $animal->breed?->name ?? 'N/A' }}</div>
+                                        <td class="px-6 py-4">
+                                            <div class="flex flex-col gap-1">
+                                                @if($animal->isAlive === null)
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                        <i class="fas fa-question-circle mr-1.5"></i>Status Not Set
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+                                                        {{ $animal->isAlive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                        <i class="fas fa-{{ $animal->isAlive ? 'heart' : 'heart-broken' }} mr-1.5"></i>
+                                                        {{ $animal->isAlive ? 'Alive' : 'Deceased' }}
+                                                    </span>
+                                                    @if(!$animal->isAlive && $animal->death_date)
+                                                        <span class="text-xs text-gray-500 flex items-center">
+                                                            <i class="fas fa-calendar-day mr-1.5"></i>
+                                                            {{ \Carbon\Carbon::parse($animal->death_date)->format('M d, Y') }}
+                                                        </span>
+                                                    @endif
+                                                @endif
+                                            </div>
                                         </td>
 
-                                        <!-- Life Status -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                {{ $animal->isAlive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                                {{ $animal->isAlive ? 'Alive' : 'Deceased' }}
-                                            </span>
-                                            @if(!$animal->isAlive && $animal->death_date)
-                                                <p class="text-xs text-gray-500 mt-1">
-                                                    Died on: {{ \Carbon\Carbon::parse($animal->death_date)->format('M d, Y') }}
-                                                </p>
-                                            @endif
-                                        </td>
-
-                                        <!-- Action Buttons -->
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div class="flex items-center space-x-3">
-                                                <!-- Toggle Status Button -->
                                                 <form action="{{ route('owner.toggleAnimalStatus', ['animal_id' => $animal->animal_id]) }}"
-                                                      method="POST" class="inline">
+                                                      method="POST" 
+                                                      class="inline"
+                                                      data-animal="{{ $animal->name }}">
                                                     @csrf
                                                     @method('PATCH')
                                                     <button type="button" 
-                                                            onclick="confirmStatusChange(this.form, {{ $animal->isAlive ? 1 : 0 }}, '{{ $animal->name }}')"
-                                                            class="inline-flex items-center px-3 py-1.5 rounded-md {{ $animal->isAlive 
-                                                                ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-300' 
-                                                                : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-300' }}">
+                                                            onclick="confirmStatusChange(this.form, {{ $animal->isAlive === null ? 'null' : ($animal->isAlive ? 1 : 0) }}, '{{ $animal->name }}')"
+                                                            class="inline-flex items-center px-3 py-1.5 rounded-md {{ 
+                                                                $animal->isAlive === null ? 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-300' :
+                                                                ($animal->isAlive ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-300' : 
+                                                                'bg-green-50 text-green-700 hover:bg-green-100 border border-green-300') 
+                                                            }}">
                                                         <span class="flex items-center">
-                                                            <i class="fas fa-{{ $animal->isAlive ? 'times' : 'check' }} mr-1.5"></i>
-                                                            {{ $animal->isAlive ? 'Mark Deceased' : 'Mark Alive' }}
+                                                            @if($animal->isAlive === null)
+                                                                <i class="fas fa-check-circle mr-1.5"></i>Set Status
+                                                            @elseif($animal->isAlive)
+                                                                <i class="fas fa-times mr-1.5"></i>Mark Deceased
+                                                            @else
+                                                                <i class="fas fa-check mr-1.5"></i>Mark Alive
+                                                            @endif
                                                         </span>
                                                     </button>
                                                 </form>
@@ -268,13 +261,13 @@
                         </table>
                     </div>
                     
-                    <!-- Pagination -->
                     <div class="px-6 py-4 border-t border-gray-200">
                         {{ $animals->links() }}
                     </div>
                 @else
                     <div class="p-6 text-center text-gray-500">
-                        No animals registered yet.
+                        <i class="fas fa-paw text-gray-400 text-4xl mb-4"></i>
+                        <p>No animals registered yet.</p>
                     </div>
                 @endif
             </div>
@@ -441,48 +434,90 @@
             `;
         }
 
-        function confirmStatusChange(form, currentStatus, animalName) {
-            if (currentStatus === 1) {  // If currently alive
-                Swal.fire({
-                    title: `Change Status for ${animalName}`,
-                    html: `
-                        <div class="mb-4">
-                            <p class="text-gray-600 mb-3">You are about to mark this animal as deceased.</p>
-                            <div class="text-left">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Date of Death</label>
-                                <input type="date" 
-                                       id="swal-death-date" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                       max="${new Date().toISOString().split('T')[0]}"
-                                       value="${new Date().toISOString().split('T')[0]}">
-                            </div>
+        function setStatus(animalName, isAlive, buttonElement) {
+            // Find the closest form to the button that triggered the modal
+            const form = document.querySelector(`form[data-animal="${animalName}"]`);
+            if (form) {
+                form.submit();
+            }
+        }
+
+        function showDeathDatePrompt(form, animalName) {
+            Swal.fire({
+                title: `Change Status for ${animalName}`,
+                html: `
+                    <div class="mb-4">
+                        <p class="text-gray-600 mb-3">You are about to mark this animal as deceased.</p>
+                        <div class="text-left">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date of Death</label>
+                            <input type="date" 
+                                   id="death-date-input" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                   max="${new Date().toISOString().split('T')[0]}"
+                                   value="${new Date().toISOString().split('T')[0]}">
                         </div>
-                    `,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc2626',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Mark as Deceased',
-                    cancelButtonText: 'Cancel',
-                    reverseButtons: true,
-                    preConfirm: () => {
-                        const deathDate = document.getElementById('swal-death-date').value;
-                        if (!deathDate) {
-                            Swal.showValidationMessage('Please select a date of death');
-                            return false;
-                        }
-                        return deathDate;
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Mark as Deceased',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true,
+                preConfirm: () => {
+                    const deathDate = document.getElementById('death-date-input').value;
+                    if (!deathDate) {
+                        Swal.showValidationMessage('Please select a date of death');
+                        return false;
                     }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const dateInput = document.createElement('input');
-                        dateInput.type = 'hidden';
-                        dateInput.name = 'death_date';
-                        dateInput.value = result.value;
+                    return deathDate;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Create a hidden input for the death date
+                    const dateInput = document.createElement('input');
+                    dateInput.type = 'hidden';
+                    dateInput.name = 'death_date';
+                    dateInput.value = result.value;
+                    
+                    // Find the form again using the animal name
+                    const form = document.querySelector(`form[data-animal="${animalName}"]`);
+                    if (form) {
                         form.appendChild(dateInput);
                         form.submit();
                     }
+                }
+            });
+        }
+
+        function confirmStatusChange(form, currentStatus, animalName) {
+            if (currentStatus === null) {
+                Swal.fire({
+                    title: `Set Status for ${animalName}`,
+                    html: `
+                        <div class="mb-4">
+                            <p class="text-gray-600 mb-3">Please select the animal's status.</p>
+                            <div class="flex flex-col space-y-4">
+                                <button type="button" 
+                                        class="w-full px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-300 hover:bg-green-100"
+                                        onclick="setStatus('${animalName}', true, this)">
+                                    <i class="fas fa-check mr-2"></i>Mark as Alive
+                                </button>
+                                <button type="button" 
+                                        class="w-full px-4 py-2 bg-red-50 text-red-700 rounded-lg border border-red-300 hover:bg-red-100"
+                                        onclick="showDeathDatePrompt(null, '${animalName}')">
+                                    <i class="fas fa-times mr-2"></i>Mark as Deceased
+                                </button>
+                            </div>
+                        </div>
+                    `,
+                    showConfirmButton: false,
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancel'
                 });
+            } else if (currentStatus === 1) {  // If currently alive
+                showDeathDatePrompt(form, animalName);
             } else {
                 Swal.fire({
                     title: `Change Status for ${animalName}`,
@@ -496,7 +531,10 @@
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        form.submit();
+                        const form = document.querySelector(`form[data-animal="${animalName}"]`);
+                        if (form) {
+                            form.submit();
+                        }
                     }
                 });
             }
