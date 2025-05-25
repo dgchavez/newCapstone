@@ -38,7 +38,7 @@ class BarangayController extends Controller
     // Show the form for editing the specified barangay
     public function edit(Barangay $barangay)
     {
-        return view('barangays.edit', compact('barangay'));
+        return view('admin.edit-barangay', compact('barangay'));
     }
 
     // Update the specified barangay
@@ -50,7 +50,7 @@ class BarangayController extends Controller
 
         $barangay->update($request->all());
 
-        return redirect()->route('admin.barangay-index');
+        return redirect()->route('barangay.load');
     }
 
     // Remove the specified barangay

@@ -231,20 +231,20 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Animal</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Life Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($animals as $animal)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-4">
                                             <div class="flex items-center">
                                                 <img class="h-10 w-10 rounded-full object-cover" 
                                                      src="{{ $animal->photo_front ? asset('storage/' . $animal->photo_front) : asset('assets/default-avatar.png') }}"
                                                      alt="{{ $animal->name }}">
                                                 <div class="ml-4">
+                                                    <!-- Animal Name -->
                                                     <a href="{{ route('newanimals.profile', ['animal_id' => $animal->animal_id]) }}"
                                                        class="text-sm font-medium text-blue-600 hover:text-blue-900">
                                                         {{ $animal->name }}
@@ -252,31 +252,69 @@
                                                             <span class="text-gray-500">({{ $animal->group_count }})</span>
                                                         @endif
                                                     </a>
+                                                    <!-- Species and Breed -->
+                                                    <div class="text-sm text-gray-500 mt-1">
+                                                        {{ $animal->species ? $animal->species->name : 'N/A' }} • {{ $animal->breed ? $animal->breed->name : 'N/A' }}
+                                                    </div>
+                                                    <!-- Vaccination Status -->
+                                                    <div class="mt-1">
+                                                        <span class="px-2 inline-flex items-center text-xs leading-5 font-semibold rounded-full
+                                                            {{ $animal->is_vaccinated == 1 ? 'bg-green-100 text-green-800' : 
+                                                               ($animal->is_vaccinated == 2 ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800') }}">
+                                                            <i class="fas {{ $animal->is_vaccinated == 1 ? 'fa-syringe' : 
+                                                                   ($animal->is_vaccinated == 2 ? 'fa-check' : 'fa-times') }} mr-1"></i>
+                                                            @if($animal->is_vaccinated == 1)
+                                                                Vaccinated
+                                                            @elseif($animal->is_vaccinated == 2)
+                                                                No Vaccination Required
+                                                            @else
+                                                                Not Vaccinated
+                                                            @endif
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">{{ $animal->species ? $animal->species->name : 'N/A' }}</div>
-                                            <div class="text-sm text-gray-500">{{ $animal->breed ? $animal->breed->name : 'N/A' }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                {{ $animal->is_vaccinated == 1 ? 'bg-green-100 text-green-800' : 
-                                                   ($animal->is_vaccinated == 2 ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800') }}">
-                                                @if($animal->is_vaccinated == 1)
-                                                    Vaccinated
-                                                @elseif($animal->is_vaccinated == 2)
-                                                    No Vaccination Required
+                                            <!-- Life Status Display -->
+                                            <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium
+                                                {{ $animal->isAlive === null ? 'bg-gray-100 text-gray-800' : 
+                                                   ($animal->isAlive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') }}">
+                                                <i class="fas {{ $animal->isAlive === null ? 'fa-question-circle' : 
+                                                                   ($animal->isAlive ? 'fa-heartbeat' : 'fa-heart-broken') }} mr-1"></i>
+                                                @if($animal->isAlive === null)
+                                                    Status Not Set
+                                                @elseif($animal->isAlive)
+                                                    Alive
                                                 @else
-                                                    Not Vaccinated
+                                                    Deceased
+                                                    @if($animal->death_date)
+                                                        <span class="ml-1 text-xs opacity-75">• {{ \Carbon\Carbon::parse($animal->death_date)->format('M d, Y') }}</span>
+                                                    @endif
                                                 @endif
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex space-x-2">
+                                            <div class="flex items-center space-x-3">
+                                                <!-- Edit Button -->
                                                 <a href="{{ route('owner.NeweditAnimal', ['owner_id' => $owner->owner_id, 'animal_id' => $animal->animal_id]) }}"
-                                                   class="text-blue-600 hover:text-blue-900">Edit</a>
-                                              
+                                                   class="inline-flex items-center text-blue-600 hover:text-blue-900">
+                                                    <i class="fas fa-edit mr-1"></i> Edit
+                                                </a>
+                                                <!-- Status Toggle Button -->
+                                                <form action="{{ route('owner.toggleAnimalStatus', ['animal_id' => $animal->animal_id]) }}" 
+                                                      method="POST" 
+                                                      class="inline"
+                                                      data-animal="{{ $animal->name }}">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="button" 
+                                                            onclick="confirmStatusChange('{{ $animal->animal_id }}', '{{ $animal->name }}', {{ $animal->isAlive ? 'true' : 'false' }})"
+                                                            class="inline-flex items-center {{ $animal->isAlive ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900' }}">
+                                                        <i class="fas {{ $animal->isAlive ? 'fa-heart-broken' : 'fa-heartbeat' }} mr-1"></i>
+                                                        {{ $animal->isAlive ? 'Mark as Deceased' : 'Mark as Alive' }}
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
@@ -399,6 +437,39 @@
         </div>
     </div>
 
+    <!-- Status Modal -->
+    <div id="statusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full" style="z-index: 999;">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium leading-6 text-gray-900" id="statusModalLabel">Confirm Status Change</h3>
+                <div class="mt-2">
+                    <p class="text-sm text-gray-500" id="statusConfirmMessage"></p>
+                    <div id="deathDateContainer" class="mt-4 hidden">
+                        <label for="deathDate" class="block text-sm font-medium text-gray-700">Date of Death:</label>
+                        <input type="date" 
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                               id="deathDate" 
+                               name="death_date"
+                               max="{{ date('Y-m-d') }}">
+                        <p class="mt-1 text-sm text-gray-500">Default is set to today's date. You can modify if needed.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 flex justify-end space-x-2">
+                <button type="button" 
+                        class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        onclick="closeStatusModal()">
+                    Cancel
+                </button>
+                <button type="button" 
+                        id="confirmStatusBtn"
+                        class="inline-flex justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
    <script>
         // Function to handle species change
         function handleSpeciesChange(speciesId) {
@@ -500,5 +571,82 @@
                 </div> 
             `;
         }
+
+        let currentForm = null;
+
+        function confirmStatusChange(animalId, animalName, isCurrentlyAlive) {
+            const modal = document.getElementById('statusModal');
+            const form = document.querySelector(`form[action*="${animalId}"]`);
+            const deathDateContainer = document.getElementById('deathDateContainer');
+            const statusConfirmMessage = document.getElementById('statusConfirmMessage');
+            const confirmBtn = document.getElementById('confirmStatusBtn');
+            const deathDateInput = document.getElementById('deathDate');
+            
+            currentForm = form;
+
+            if (isCurrentlyAlive) {
+                // Marking as deceased
+                statusConfirmMessage.textContent = `Are you sure you want to mark ${animalName} as deceased?`;
+                deathDateContainer.classList.remove('hidden');
+                confirmBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                confirmBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+                
+                // Set default date to today
+                const today = new Date().toISOString().split('T')[0];
+                deathDateInput.value = today;
+            } else {
+                // Marking as alive
+                statusConfirmMessage.textContent = `Are you sure you want to mark ${animalName} as alive?`;
+                deathDateContainer.classList.add('hidden');
+                confirmBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                confirmBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            }
+
+            // Show the modal
+            modal.classList.remove('hidden');
+
+            // Set up the confirm button click handler
+            confirmBtn.onclick = function() {
+                if (isCurrentlyAlive) {
+                    const deathDate = deathDateInput.value;
+                    if (!deathDate) {
+                        alert('Please select a date of death');
+                        return;
+                    }
+                    
+                    // Validate that death date is not in the future
+                    const selectedDate = new Date(deathDate);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // Reset time part for accurate date comparison
+                    
+                    if (selectedDate > today) {
+                        alert('Death date cannot be in the future');
+                        return;
+                    }
+                    
+                    // Add death date to form
+                    const deathDateFormInput = document.createElement('input');
+                    deathDateFormInput.type = 'hidden';
+                    deathDateFormInput.name = 'death_date';
+                    deathDateFormInput.value = deathDate;
+                    currentForm.appendChild(deathDateFormInput);
+                }
+                currentForm.submit();
+            };
+        }
+
+        function closeStatusModal() {
+            const modal = document.getElementById('statusModal');
+            modal.classList.add('hidden');
+            document.getElementById('deathDate').value = '';
+            currentForm = null;
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('statusModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStatusModal();
+            }
+        });
     </script>
 </x-app-layout>

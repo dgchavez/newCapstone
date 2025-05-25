@@ -70,14 +70,7 @@
                                                 <a href="{{ route('species.edit', $specie) }}" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-lg mr-2 inline-flex items-center">
                                                     <i class="fas fa-edit mr-1"></i> Edit
                                                 </a>
-                                                <form action="{{ route('species.destroy', $specie) }}" method="POST" class="inline-block">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-lg inline-flex items-center" 
-                                                        onclick="return confirm('Are you sure you want to delete this species?')">
-                                                        <i class="fas fa-trash-alt mr-1"></i> Delete
-                                                    </button>
-                                                </form>
+                                            
                                             </td>
                                         </tr>
                                     @endforeach
@@ -188,14 +181,7 @@
                                                 <a href="{{ route('breeds.edit', $breed) }}" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-lg mr-2 inline-flex items-center">
                                                     <i class="fas fa-edit mr-1"></i> Edit
                                                 </a>
-                                                <form action="{{ route('breeds.destroy', $breed) }}" method="POST" class="inline-block">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-lg inline-flex items-center" 
-                                                        onclick="return confirm('Are you sure you want to delete this breed?')">
-                                                        <i class="fas fa-trash-alt mr-1"></i> Delete
-                                                    </button>
-                                                </form>
+                                           
                                             </td>
                                         </tr>
                                     @endforeach
