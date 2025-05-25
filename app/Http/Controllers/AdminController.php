@@ -93,58 +93,65 @@ class AdminController extends Controller
 
    public function loadAnimalsList(Request $request)
 {
-    // Fetch filter inputs from the request
-    $search = $request->input('search', '');    // Search query
-    $perPage = $request->input('perPage', 25);   // Default to 25 items per page
-    $species_id = $request->input('species_id', '');  // Species filter
-    $breed_id = $request->input('breed_id', '');      // Breed filter
-    $status = $request->input('status', '');          // Status filter
-    $fromDate = $request->input('fromDate', '');      // From date filter
-    $toDate = $request->input('toDate', '');          // To date filter
-    $owner_id = $request->input('owner_id', '');      // Owner filter
+    $query = Animal::with([
+        'owner.user.address.barangay',
+        'species',
+        'breed',
+        'transactions' => function ($query) {
+            $query->with(['vet', 'technician', 'transactionSubtype', 'vaccine'])
+                  ->latest();
+        }
+    ]);
 
-    // Fetch Owners, Species, and Breeds for the filter dropdowns
-    $owners = Owner::all();
-    $species = Species::all();  // Fetch all species for the species dropdown
-    $breeds = Breed::all();     // Fetch all breeds for the breed dropdown
+    // Search filter
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhereHas('owner.user', function ($q) use ($search) {
+                  $q->where('complete_name', 'like', "%{$search}%");
+              });
+        });
+    }
 
-    // Build the query with filtering and eager loading
-    $query = Animal::with(['owner', 'species', 'breed', 'transactions.vet']) // Eager load related data
-        ->when($species_id, function ($q) use ($species_id) {
-            $q->where('species_id', $species_id);  // Filter by species
-        })
-        ->when($breed_id, function ($q) use ($breed_id) {
-            $q->where('breed_id', $breed_id);  // Filter by breed
-        })
-        ->when($status, function ($q) use ($status) {
-            $q->where('status', $status);  // Filter by status
-        })
-        ->when($owner_id, function ($q) use ($owner_id) {
-            $q->where('owner_id', $owner_id);  // Filter by owner
-        })
-        ->when($search, function ($q) use ($search) {
-            $q->where(function ($q) use ($search) {
-                // Search by animal name
-                $q->where('name', 'LIKE', "%{$search}%")
-                  // Search for the vet's complete_name from the transaction's vet relationship
-                  ->orWhereHas('transactions.vet', function ($q) use ($search) {
-                      $q->where('users.complete_name', 'LIKE', "%{$search}%"); // Searching complete_name in users table
-                  });
-            });
-        })
-        ->when($fromDate, function ($q) use ($fromDate) {
-            $q->whereDate('created_at', '>=', $fromDate);  // Filter by creation date (from)
-        })
-        ->when($toDate, function ($q) use ($toDate) {
-            $q->whereDate('created_at', '<=', $toDate);  // Filter by creation date (to)
-        })
-        ->orderBy('created_at', 'desc'); // Default ordering by creation date
+    // Species filter
+    if ($request->filled('species_id')) {
+        $query->where('species_id', $request->species_id);
+    }
 
-    // Paginate results
-    $animals = $query->paginate($perPage);
+    // Breed filter
+    if ($request->filled('breed_id')) {
+        $query->where('breed_id', $request->breed_id);
+    }
 
-    // Return the view with animals, owners, species, and breeds data
-    return view('admin.animals-table', compact('animals', 'owners', 'species', 'breeds'));
+    // Owner filter
+    if ($request->filled('owner_id')) {
+        $query->where('owner_id', $request->owner_id);
+    }
+
+    // Date range filter
+    if ($request->filled('fromDate')) {
+        $query->whereDate('created_at', '>=', $request->fromDate);
+    }
+    if ($request->filled('toDate')) {
+        $query->whereDate('created_at', '<=', $request->toDate);
+    }
+
+    // Life Status filter
+    if ($request->filled('life_status')) {
+        if ($request->life_status === 'null') {
+            $query->whereNull('isAlive');
+        } else {
+            $query->where('isAlive', (bool)$request->life_status);
+        }
+    }
+
+    $animals = $query->latest()->paginate(10)->withQueryString();
+    $species = Species::all();
+    $breeds = Breed::all();
+    $owners = Owner::with('user')->get();
+
+    return view('admin.animals-table', compact('animals', 'species', 'breeds', 'owners'));
 }
 
    
