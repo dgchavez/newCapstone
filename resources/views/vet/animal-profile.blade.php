@@ -144,7 +144,7 @@
                         </div>
                     </div>
                     <!-- Info Grid -->
-                    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
                         <!-- Owner Info -->
                         <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
                             <div class="flex items-center space-x-3">
@@ -157,6 +157,33 @@
                                        class="text-sm font-medium text-blue-600 hover:text-blue-800">
                                         {{ $animal->owner->user->complete_name }}
                                     </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Life Status -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2 rounded-lg {{ $animal->isAlive ? 'bg-green-100' : ($animal->isAlive === false ? 'bg-red-100' : 'bg-gray-100') }}">
+                                    <i class="fas {{ $animal->isAlive ? 'fa-heartbeat' : ($animal->isAlive === false ? 'fa-heart-broken' : 'fa-question-circle') }} 
+                                        {{ $animal->isAlive ? 'text-green-600' : ($animal->isAlive === false ? 'text-red-600' : 'text-gray-600') }}"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Life Status</p>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {{ $animal->isAlive ? 'bg-green-100 text-green-800' : 
+                                               ($animal->isAlive === false ? 'bg-red-100 text-red-800' : 
+                                               'bg-gray-100 text-gray-800') }}">
+                                            {{ $animal->isAlive ? 'Alive' : 
+                                               ($animal->isAlive === false ? 'Deceased' : 'Status Not Set') }}
+                                        </span>
+                                        @if($animal->isAlive === false && $animal->death_date)
+                                            <span class="text-xs text-gray-500">
+                                                ({{ \Carbon\Carbon::parse($animal->death_date)->format('M d, Y') }})
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>

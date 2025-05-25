@@ -59,15 +59,7 @@
                                                     <i class="fas fa-edit mr-1"></i> Edit
                                                 </a>
                                                 
-                                                <form action="{{ route('designations.destroy', $designation) }}" method="POST" class="inline-block">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" 
-                                                            class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-lg inline-flex items-center" 
-                                                            onclick="return confirm('Are you sure you want to delete this designation?')">
-                                                        <i class="fas fa-trash-alt mr-1"></i> Delete
-                                                    </button>
-                                                </form>
+                                  
                                             </div>
                                         </td>
                                     </tr>

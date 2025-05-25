@@ -68,16 +68,7 @@
                                                     <i class="fas fa-edit"></i>
                                                     <span>Edit</span>
                                                 </a>
-                                                <form action="{{ route('vaccines.destroy', $vaccine) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                           class="bg-red-100 text-red-700 hover:bg-red-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200"
-                                                           onclick="return confirm('Are you sure you want to delete this vaccine?')">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                        <span>Delete</span>
-                                                    </button>
-                                                </form>
+                                             
                                             </div>
                                         </td>
                                     </tr>

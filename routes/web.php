@@ -330,7 +330,7 @@ Route::get('/admin/vaccines', [VaccineController::class, 'loadVaccines'])->name(
 Route::resource('barangays', BarangayController::class);
 Route::get('/admin/barangays', [BarangayController::class, 'loadBarangays'])->name('barangay.load');
 Route::get('/barangays/create', [BarangayController::class, 'create'])->name('create-barangay');
-
+Route::get('/barangays/{barangay}/edit', [BarangayController::class, 'edit'])->name('barangays.edit');
 
 Route::resource('species', SpeciesController::class);
 Route::resource('breeds', BreedController::class);

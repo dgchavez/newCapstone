@@ -64,16 +64,7 @@
                                                     <span>Edit</span>
                                                 </a>
                                                 
-                                                <form action="{{ route('veterinary-technicians.destroy', ['technician' => $technician->technician_id]) }}" method="POST" class="inline-block">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" 
-                                                            class="text-red-600 hover:text-red-900 flex items-center gap-1"
-                                                            onclick="return confirm('Are you sure you want to delete this technician?');">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                        <span>Delete</span>
-                                                    </button>
-                                                </form>
+                                           
                                             </div>
                                         </td>
                                     </tr>
