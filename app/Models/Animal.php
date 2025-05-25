@@ -11,6 +11,10 @@ class Animal extends Model
 
     protected $casts = [
         'birth_date' => 'date',
+        'isAlive' => 'boolean',
+        'death_date',
+
+
     ];
     
     protected $fillable = [
@@ -29,7 +33,8 @@ class Animal extends Model
         'photo_right_side',
         'color',
         'is_vaccinated',
-
+        'isAlive',
+        'death_date',
     ];
 
     // Relationship with the Owner model

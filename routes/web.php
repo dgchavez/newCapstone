@@ -31,12 +31,16 @@ use App\Models\TransactionSubtype;
 use App\Livewire\EditUser;
 use Illuminate\Support\Facades\Route;
 
-//Routes
+//PubliRoutes
 
-// Add this at the top of your routes/web.php file
 Route::get('/403', function () {
     return redirect('/');
 })->name('403');
+
+//Animal IsAlive Toggle
+
+Route::patch('/owner/animal/{animal_id}/toggle-status', [AnimalController::class, 'toggleStatus'])
+    ->name('owner.toggleAnimalStatus');
 
 Route::get('/', function () {
     $veterinarians = \App\Models\User::where('role', 2)->get(); // Assuming role 2 identifies veterinarians

@@ -691,4 +691,37 @@ public function downloadHealthCertificatePdf($animal_id)
 
     return $pdf->download('health-certificate-' . $animal->animal_id . '.pdf');
 }
+
+public function toggleStatus(Request $request, $animal_id)
+{
+    $animal = Animal::where('animal_id', $animal_id)->firstOrFail();
+    
+    if ($animal->isAlive) {
+        // Validate death date when marking as deceased
+        $request->validate([
+            'death_date' => 'required|date|before_or_equal:today',
+        ]);
+
+        DB::table('animals')
+            ->where('animal_id', $animal_id)
+            ->update([
+                'isAlive' => false,
+                'death_date' => $request->death_date,
+                'updated_at' => now()
+            ]);
+
+        return back()->with('message', $animal->name . ' has been marked as deceased.');
+    } else {
+        // When marking as alive, clear death date
+        DB::table('animals')
+            ->where('animal_id', $animal_id)
+            ->update([
+                'isAlive' => true,
+                'death_date' => null,
+                'updated_at' => now()
+            ]);
+
+        return back()->with('message', $animal->name . ' has been marked as alive.');
+    }
+}
 }
