@@ -333,14 +333,7 @@
                                         <!-- If not completed, show Edit and Delete buttons -->
                                         <a href="{{ route('owner.editTransactionForm', ['transaction_id' => $transaction->transaction_id]) }}"
                                            class="text-sm text-blue-600 hover:text-blue-900">Edit</a>
-                                        <form action="{{ route('transaction.remove', ['transaction_id' => $transaction->transaction_id]) }}"
-                                              method="POST"
-                                              onsubmit="return confirm('Are you sure you want to delete this transaction?')"
-                                              class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-sm text-red-600 hover:text-red-900">Delete</button>
-                                        </form>
+                                        
                                     @endif
                                 </div>
                             </div>

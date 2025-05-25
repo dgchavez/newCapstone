@@ -368,16 +368,7 @@
                                             <!-- For Pending or Cancelled Transactions -->
                                             <a href="{{ route('transactions.edit', $transaction->transaction_id) }}" 
                                                class="text-blue-600 hover:text-blue-900">Edit</a>
-                                            <form action="{{ route('transactions.destroy', $transaction->transaction_id) }}" 
-                                                  method="POST" 
-                                                  class="inline-block" 
-                                                  onsubmit="return confirmDelete()">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900">
-                                                    Delete
-                                                </button>
-                                            </form>
+                                           
                                         @endif
                                     </div>
                                 </td>
