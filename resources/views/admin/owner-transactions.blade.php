@@ -120,13 +120,7 @@
                                                     Update
                                                 </a>
                                                 <!-- Delete Button -->
-                                                <form action="{{ route('transaction.delete', ['transaction_id' => $transaction->transaction_id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this transaction?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-500 hover:text-red-700 px-4 py-2 border border-red-500 rounded-md">
-                                                        Delete
-                                                    </button>
-                                                </form>
+                                           
                                             @endif
                                         </div>
                                     </td>

@@ -157,8 +157,9 @@
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10">
                                                 <img class="h-10 w-10 rounded-full object-cover" 
-                                                     src="{{ $owner->profile_image ? asset('storage/' . $owner->profile_image) : asset('assets/default-avatar.png') }}" 
-                                                     alt="">
+                                                     src="{{ $owner->profile_image ? asset('storage/' . $owner->profile_image) : 
+                                                          ($owner->user->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
+                                                     alt="{{ $owner->user->complete_name }}">
                                             </div>
                                             <div class="ml-4">
                                                 <div class="text-sm font-medium text-blue-900">

@@ -46,19 +46,22 @@ class NewBarangayController extends Controller
     // Show the form for editing the specified barangay
     public function edit(Barangay $barangay)
     {
-        return view('barangays.edit', compact('barangay'));
+        return view('receptionist.edit-barangay', compact('barangay'));
     }
 
     // Update the specified barangay
     public function update(Request $request, Barangay $barangay)
     {
         $request->validate([
-            'barangay_name' => 'required|string|max:255',
+            'barangay_name' => 'required|string|max:255|unique:barangays,barangay_name,' . $barangay->id,
         ]);
 
-        $barangay->update($request->all());
+        $barangay->update([
+            'barangay_name' => $request->barangay_name
+        ]);
 
-        return redirect()->route('admin.barangay-index');
+        return redirect()->route('newbarangay.load')
+            ->with('success', 'Barangay updated successfully.');
     }
 
     public function destroy($id)

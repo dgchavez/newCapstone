@@ -31,7 +31,7 @@
                 <div class="absolute -top-16 left-6">
                     <div class="relative">
                         <img class="w-32 h-32 rounded-xl object-cover border-4 border-white shadow-lg" 
-                             src="{{ $owner->profile_image ? Storage::url($owner->profile_image) : asset('assets/default-avatar.png') }}" 
+                             src="{{ $owner->profile_image ? Storage::url($owner->profile_image) : asset('assets/animal-default.png') }}" 
                              alt="{{ $owner->complete_name }}">
                         <div class="absolute bottom-2 right-2 w-4 h-4 rounded-full bg-green-500 border-2 border-white"></div>
                     </div>
@@ -241,7 +241,7 @@
                                         <td class="px-6 py-4">
                                             <div class="flex items-center">
                                                 <img class="h-10 w-10 rounded-full object-cover" 
-                                                     src="{{ $animal->photo_front ? asset('storage/' . $animal->photo_front) : asset('assets/default-avatar.png') }}"
+                                                     src="{{ $animal->photo_front ? asset('storage/' . $animal->photo_front) : asset('assets/animal-default.png') }}"
                                                      alt="{{ $animal->name }}">
                                                 <div class="ml-4">
                                                     <!-- Animal Name -->

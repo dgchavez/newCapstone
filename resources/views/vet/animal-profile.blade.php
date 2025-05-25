@@ -68,7 +68,7 @@
                 <div class="absolute -top-16 left-8">
                     <div class="relative">
                         <img class="w-32 h-32 rounded-xl object-cover border-4 border-white shadow-lg" 
-                             src="{{ $animal->photo_front ? asset('storage/' . $animal->photo_front) : asset('assets/default-avatar.png') }}" 
+                             src="{{ $animal->photo_front ? asset('storage/' . $animal->photo_front) : asset('assets/animal-default.png') }}" 
                              alt="{{ $animal->name }}">
                         <div class="absolute bottom-2 right-2 w-4 h-4 rounded-full 
                             {{ $animal->is_vaccinated == 1 ? 'bg-green-500' : 

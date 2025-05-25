@@ -180,11 +180,10 @@
                                         <!-- Display Owner Profile Image -->
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             <div class="flex-shrink-0 h-10 w-10">
-                                                @if ($transaction->owner->user->profile_image)
-                                                    <img src="{{ asset('storage/' . $transaction->owner->user->profile_image) }}" alt="Owner Profile" class="h-10 w-10 rounded-full object-cover shadow">
-                                                @else
-                                                    <img src="{{ asset('assets/default-avatar.png') }}" alt="Default Owner Photo" class="h-10 w-10 rounded-full object-cover shadow">
-                                                @endif
+                                                <img src="{{ $transaction->owner->user->profile_image ? asset('storage/' . $transaction->owner->user->profile_image) : 
+                                                          ($transaction->owner->user->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
+                                                     alt="{{ $transaction->owner->user->complete_name }}" 
+                                                     class="h-10 w-10 rounded-full object-cover shadow">
                                             </div>
                                         </td>
 
@@ -201,7 +200,7 @@
                                                 @if ($transaction->animal && $transaction->animal->photo_front)
                                                     <img src="{{ asset('storage/' . $transaction->animal->photo_front) }}" alt="Animal Photo" class="h-10 w-10 rounded-lg object-cover shadow">
                                                 @else
-                                                    <img src="{{ asset('assets/default-avatar.png') }}" alt="Default Animal Photo" class="h-10 w-10 rounded-lg object-cover shadow">
+                                                    <img src="{{ asset('assets/animal-default.png') }}" alt="Default Animal Photo" class="h-10 w-10 rounded-lg object-cover shadow">
                                                 @endif
                                             </div>
                                         </td>

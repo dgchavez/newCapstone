@@ -167,7 +167,7 @@
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10">
                                                 <img class="h-10 w-10 rounded-full object-cover" 
-                                                     src="{{ asset($animal->photo_front ? 'storage/' . $animal->photo_front : 'assets/default-avatar.png') }}" 
+                                                     src="{{ asset($animal->photo_front ? 'storage/' . $animal->photo_front : 'assets/animal-default.png') }}" 
                                                      alt="Animal Photo">
                                             </div>
                                             <div class="ml-4">

@@ -156,7 +156,7 @@
                                 @foreach($recentAnimals as $animal)
                                     <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                         <img class="h-16 w-16 rounded-full object-cover" 
-                                             src="{{ $animal->photo_front ? asset('storage/' . $animal->photo_front) : asset('assets/default-avatar.png') }}"
+                                             src="{{ $animal->photo_front ? asset('storage/' . $animal->photo_front) : asset('assets/animal-default.png') }}"
                                              alt="{{ $animal->name }}">
                                         <div>
                                             <h3 class="text-lg font-medium text-gray-900">{{ $animal->name }}</h3>

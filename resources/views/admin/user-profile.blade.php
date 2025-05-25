@@ -18,8 +18,9 @@
     <!-- Profile Image -->
     <div class="flex-shrink-0 flex justify-center mb-6">
         <img class="w-60 h-60 object-cover rounded-full border-4 border-dark-green shadow-xl hover:scale-105 transition-all duration-300 ease-in-out" 
-             src="{{ $user->profile_image ? Storage::url($user->profile_image) : asset('assets/default-avatar.png') }}" 
-             alt="Profile Image">
+             src="{{ $user->profile_image ? Storage::url($user->profile_image) : 
+                  ($user->gender === 'Female' ? asset('assets/female-default.png') : asset('assets/male-default.png')) }}" 
+             alt="{{ $user->complete_name }}'s Profile Image">
     </div>
 
     <!-- User Info -->
