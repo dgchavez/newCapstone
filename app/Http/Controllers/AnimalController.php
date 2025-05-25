@@ -277,29 +277,34 @@ public function showAddAnimalForm()
 
 public function animalStore(Request $request)
 {
+    // Set default isAlive status to 1 (Alive)
+    $request->merge(['isAlive' => 1]);
+
     // Validate the form input
     $request->validate([
-        'name' => 'required_if:is_group,false|string|max:255', // Required for individual animals
+        'name' => 'required_if:is_group,false|string|max:255',
         'owner_id' => 'required|exists:owners,owner_id',
         'species_id' => 'required|exists:species,id',
         'breed_id' => 'required|exists:breeds,id',
         'group_count' => 'required_if:is_group,true|integer|min:1',
-        'birth_date' => ['nullable', 'date', 'before_or_equal:today'], // Ensure birthdate is not in the future
-        'gender' => 'nullable|required_if:is_group,false|in:Male,Female', // Gender required for individual animals
+        'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
+        'gender' => 'nullable|required_if:is_group,false|in:Male,Female',
         'medical_condition' => 'nullable|string|max:255',
-        'color' => 'required|string|max:100', // New color field, required for both
+        'color' => 'required|string|max:100',
         'photo_front' => 'nullable|image|max:2048',
         'photo_back' => 'nullable|image|max:2048',
         'photo_left_side' => 'nullable|image|max:2048',
         'photo_right_side' => 'nullable|image|max:2048',
-        'is_group' => 'required|boolean', // Determine if it's a group
-        'is_vaccinated' => 'required|in:0,1,2', // Add validation for is_vaccinated
-
+        'is_group' => 'required|boolean',
+        'is_vaccinated' => 'required|in:0,1,2',
+        'isAlive' => 'required|boolean', // Add validation for isAlive
     ]);
     
     // Prepare the animal data
     $data = $request->only([
-        'name','color', 'owner_id', 'species_id', 'breed_id', 'birth_date', 'gender', 'medical_condition', 'is_group', 'group_count','is_vaccinated',
+        'name', 'color', 'owner_id', 'species_id', 'breed_id', 'birth_date', 
+        'gender', 'medical_condition', 'is_group', 'group_count', 'is_vaccinated',
+        'isAlive' // Include isAlive in the data
     ]);
 
     // Convert is_group to boolean
@@ -321,28 +326,28 @@ foreach (['photo_front', 'photo_back', 'photo_left_side', 'photo_right_side'] as
     }
 }
     try {
-        // Save the animal record and get the created instance
+        // Save the animal record with isAlive status
         $animal = Animal::create([
-            'name' => $data['name'], // Use default for groups
-            'color' => $data['color'], // Use default for groups
+            'name' => $data['name'],
+            'color' => $data['color'],
             'owner_id' => $data['owner_id'],
             'species_id' => $data['species_id'],
             'breed_id' => $data['breed_id'],
             'birth_date' => $data['birth_date'],
-            'gender' => $data['gender'], // Null for groups
+            'gender' => $data['gender'],
             'medical_condition' => $data['medical_condition'],
             'is_group' => $data['is_group'],
-            'group_count' => $data['group_count'] ?? 1, // Null for individual animals
+            'group_count' => $data['group_count'] ?? 1,
             'is_vaccinated' => $data['is_vaccinated'],
+            'isAlive' => $data['isAlive'], // Add isAlive field
             'photo_front' => $data['photo_front'] ?? null,
             'photo_back' => $data['photo_back'] ?? null,
             'photo_left_side' => $data['photo_left_side'] ?? null,
             'photo_right_side' => $data['photo_right_side'] ?? null,
         ]);
 
-        // Redirect with success message
         return redirect()->route('admin-animals')
-        ->with('message', 'Animal added successfully.');
+            ->with('message', 'Animal added successfully.');
     
 
     } catch (\Exception $e) {
