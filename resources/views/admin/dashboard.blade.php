@@ -106,13 +106,11 @@
                 </h2>
             <div class="bg-white p-6 rounded-2xl shadow-md space-y-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Filters & Search</h2>
                     <a href="{{ route('admin-dashboard') }}" 
                        class="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300">
                         Reset Filters
                     </a>
                 </div>
-                <div class="flex flex-col lg:flex-row justify-between gap-6">
                     <!-- Search Input -->
                     <div class="flex-1">
                         <form method="GET" action="{{ route('admin-dashboard') }}" class="flex gap-2">
