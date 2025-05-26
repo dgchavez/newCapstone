@@ -1,26 +1,23 @@
 <x-app-layout>
     <!-- Main Container -->
-        <!-- Navigation Bar with Greeting -->
-        <nav class="bg-white border-b border-gray-200 shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-end h-16">
-                    <div class="flex items-center">
+        <!-- Dashboard Header with Greeting -->
+        <div class="bg-gradient-to-r from-green-800 to-green-600 shadow-xl">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+                <!-- Greeting in Upper Right -->
+                <div class="absolute top-4 right-4 sm:right-6 lg:right-8 z-20">
+                    <div class="flex items-center space-x-3">
                         @php
                             $hour = date('H');
                             $greeting = 'Good evening';
                             if($hour < 12) $greeting = 'Good morning';
                             elseif($hour < 17) $greeting = 'Good afternoon';
                         @endphp
-                        <span class="text-sm text-gray-600 mr-4">{{ $greeting }}, {{ auth()->user()->complete_name }}</span>
-                        <span class="text-sm bg-yellow-100 text-yellow-800 py-1 px-3 rounded-full font-semibold">Receptionist</span>
+                        <span class="text-sm text-white/90">{{ $greeting }}, {{ auth()->user()->complete_name }}</span>
+                        <span class="text-xs bg-white/20 text-white py-1 px-3 rounded-full font-semibold backdrop-blur-sm">Receptionist</span>
                     </div>
                 </div>
-            </div>
-        </nav>
 
-        <!-- Dashboard Header -->
-        <div class="bg-gradient-to-r from-green-800 to-green-600 shadow-xl">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+                <!-- Background Pattern -->
                 <div class="absolute inset-0 opacity-10">
                     <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#pet-pattern)" />
@@ -31,7 +28,9 @@
                         </pattern>
                     </defs>
                 </div>
-                <div class="relative z-10 flex flex-col md:flex-row justify-between items-center">
+
+                <!-- Main Header Content -->
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-center pt-8">
                     <div>
                         <h1 class="text-3xl font-bold text-white">Dashboard</h1>
                         <p class="text-blue-100 mt-1">Manage transactions and monitor clinic activity</p>

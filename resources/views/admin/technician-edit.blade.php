@@ -2,7 +2,7 @@
     <div class="bg-gradient-to-b from-green-50 to-white min-h-screen">
         <div class="container mx-auto p-4">
             <!-- Header with gradient banner -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6 max-w-2xl mx-auto">
                 <div class="bg-gradient-to-r from-green-600 to-green-400 h-16"></div>
                 <div class="px-6 py-4 -mt-1">
                     <h1 class="text-xl font-bold text-gray-800 flex items-center">
@@ -12,7 +12,7 @@
             </div>
             
             <!-- Form section -->
-            <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
                 <form action="{{ route('veterinary-technicians.update', $technician->technician_id) }}" method="POST">
                     @csrf
                     @method('PUT')

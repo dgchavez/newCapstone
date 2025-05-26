@@ -46,12 +46,14 @@
                                                 <div class="text-sm font-medium text-gray-900">{{ $barangay->barangay_name }}</div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <a href="{{ route('barangays.edit', $barangay) }}"
-                                               class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200">
-                                                <i class="fas fa-edit"></i>
-                                                <span>Edit</span>
-                                            </a>
+                                        <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">
+                                            <div class="flex justify-center gap-3">
+                                                <a href="{{ route('barangays.edit', $barangay) }}"
+                                                class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200">
+                                                    <i class="fas fa-edit"></i>
+                                                    <span>Edit</span>
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
