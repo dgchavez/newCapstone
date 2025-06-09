@@ -1,6 +1,21 @@
 <x-app-layout>
     <!-- Hero Section with Welcome Banner -->
     <div class="relative bg-gradient-to-r from-green-800 to-green-600 shadow-xl mb-8">
+        <!-- Greeting in Upper Right -->
+        <div class="absolute top-4 right-4 sm:right-6 lg:right-8 z-20">
+            <div class="flex items-center space-x-3">
+                @php
+                    $hour = date('H');
+                    $greeting = 'Good evening';
+                    if($hour < 12) $greeting = 'Good morning';
+                    elseif($hour < 17) $greeting = 'Good afternoon';
+                @endphp
+                <span class="text-sm text-white/90">{{ $greeting }}, {{ Auth::user()->complete_name }}</span>
+                <span class="text-xs bg-white/20 text-white py-1 px-3 rounded-full font-semibold backdrop-blur-sm">Owner</span>
+            </div>
+        </div>
+
+        <!-- Background Pattern -->
         <div class="absolute inset-0 opacity-10">
             <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#pet-pattern)" />
@@ -11,22 +26,24 @@
                 </pattern>
             </defs>
         </div>
+
+        <!-- Main Hero Content -->
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="flex flex-col md:flex-row items-center justify-between pt-8">
                 <div class="mb-6 md:mb-0">
                     <h1 class="text-3xl md:text-4xl font-bold text-white">Welcome, {{ Auth::user()->complete_name }}!</h1>
                     <p class="mt-2 text-blue-100 text-lg">Manage your pets and track their health records</p>
                 </div>
                 <div class="flex space-x-4">
-                    <a href="{{ route('owner.createAnimalForm', ['owner_id' => Auth::user()->owner->owner_id]) }}" 
-                       class="inline-flex items-center px-5 py-3 bg-white text-green-700 rounded-lg shadow-md hover:bg-green-50 transition-all duration-300">
+                    <a href="{{ route('owner.createAnimalForm', ['owner_id' => Auth::user()->owner->owner_id]) }}"
+                        class="inline-flex items-center px-5 py-3 bg-white text-green-700 rounded-lg shadow-md hover:bg-green-50 transition-all duration-300">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                         Register New Pet
                     </a>
-                    <a href="{{ route('owners.profile', ['owner_id' => Auth::user()->owner->owner_id]) }}" 
-                       class="inline-flex items-center px-5 py-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-800 transition-all duration-300">
+                    <a href="{{ route('owners.profile', ['owner_id' => Auth::user()->owner->owner_id]) }}"
+                        class="inline-flex items-center px-5 py-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-800 transition-all duration-300">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>

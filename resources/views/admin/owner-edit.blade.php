@@ -3,16 +3,9 @@
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg relative">
         
         <!-- Title with Gradient Background -->
-        <div class="text-center mb-6 bg-gradient-to-r from-blue-600 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
+        <div class="text-center mb-6 bg-gradient-to-r from-green-800 to-green-600 p-6 rounded-t-lg -mt-8 -mx-8 shadow-md">
             <h2 class="text-3xl font-bold text-white">Edit Animal Owner</h2>
-            <p class="text-lg text-blue-100">Update the owner details below</p>
-        </div>
-
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <a href="/admin/users">
-                <img class="h-24 w-auto mx-auto hover:scale-105 transition-transform duration-300" src="{{ asset('assets/1.jpg') }}" alt="Your Logo">
-            </a>
+            <p class="text-lg text-green-100">Update the owner details below</p>
         </div>
 
         <!-- Error Messages -->

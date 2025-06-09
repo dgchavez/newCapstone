@@ -3,11 +3,11 @@
         <!-- Main Form Card -->
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
             <!-- Header Section -->
-            <div class="relative h-32 bg-gradient-to-r from-blue-600 to-blue-800">
+            <div class="relative h-32 bg-gradient-to-r from-green-800 to-green-600">
                 <div class="absolute inset-0 bg-black/20"></div>
                 <div class="absolute bottom-6 left-8">
                     <h2 class="text-2xl font-bold text-white">Edit Animal Profile</h2>
-                    <p class="text-blue-100 mt-1">Update information and photos</p>
+                    <p class="text-green-100 mt-1">Update information and photos</p>
                 </div>
             </div>
 

@@ -21,11 +21,11 @@
                 <div class="absolute inset-0 bg-black/20"></div>
                 <!-- Action Buttons -->
                 <div class="absolute top-4 right-4 flex space-x-3">
-                    <a href="{{ route('admin-owners') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-all">
+                    <button onclick="window.history.back()" 
+                            class="inline-flex items-center px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-all">
                         <i class="fas fa-arrow-left mr-2"></i>
-                        Back to List
-                    </a>
+                        Back
+                    </button>
                     <a href="{{ route('admin.owner-edit-form', ['id' => $owner->user_id]) }}" 
                        class="inline-flex items-center px-4 py-2 bg-yellow-500/90 backdrop-blur-sm rounded-lg text-sm font-medium text-white hover:bg-yellow-500 transition-all">
                         <i class="fas fa-edit mr-2"></i>

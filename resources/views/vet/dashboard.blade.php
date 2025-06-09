@@ -1,24 +1,21 @@
 <x-app-layout>
     <!-- Hero Section with Welcome Banner (based on owner dashboard) -->
     <div class="relative bg-gradient-to-r from-green-800 to-green-600 shadow-xl mb-8">
-
-        <!-- Navigation Bar with Greeting -->
-        <nav class="bg-white border-b border-gray-200 shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-end h-16">
-                    <div class="flex items-center">
-                        @php
-                            $hour = date('H');
-                            $greeting = 'Good evening';
-                            if($hour < 12) $greeting = 'Good morning';
-                            elseif($hour < 17) $greeting = 'Good afternoon';
-                        @endphp
-                        <span class="text-sm text-gray-600 mr-4">{{ $greeting }}, {{ auth()->user()->complete_name }}</span>
-                        <span class="text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-semibold">Veterinarian</span>
-                    </div>
-                </div>
+        <!-- Greeting in Upper Right -->
+        <div class="absolute top-4 right-4 sm:right-6 lg:right-8 z-20">
+            <div class="flex items-center space-x-3">
+                @php
+                    $hour = date('H');
+                    $greeting = 'Good evening';
+                    if($hour < 12) $greeting = 'Good morning';
+                    elseif($hour < 17) $greeting = 'Good afternoon';
+                @endphp
+                <span class="text-sm text-white/90">{{ $greeting }}, {{ auth()->user()->complete_name }}</span>
+                <span class="text-xs bg-white/20 text-white py-1 px-3 rounded-full font-semibold backdrop-blur-sm">Veterinarian</span>
             </div>
-        </nav>
+        </div>
+
+        <!-- Background Pattern -->
         <div class="absolute inset-0 opacity-10">
             <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#pet-pattern)" />
@@ -29,22 +26,24 @@
                 </pattern>
             </defs>
         </div>
+
+        <!-- Main Hero Content -->
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="flex flex-col md:flex-row items-center justify-between pt-8">
                 <div class="mb-6 md:mb-0">
                     <h1 class="text-3xl md:text-4xl font-bold text-white">Welcome, {{ auth()->user()->complete_name }}!</h1>
                     <p class="mt-2 text-blue-100 text-lg">Here's an overview of your veterinary practice</p>
                 </div>
                 <div class="flex space-x-4">
-                    <a href="{{ route('reports.index') }}" 
-                      class="inline-flex items-center px-5 py-3 bg-white text-green-700 rounded-lg shadow-md hover:bg-green-50 transition-all duration-300">
+                    <a href="{{ route('reports.index') }}"
+                    class="inline-flex items-center px-5 py-3 bg-white text-green-700 rounded-lg shadow-md hover:bg-green-50 transition-all duration-300">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Generate Report
                     </a>
-                    <a href="{{ route('vet.veterinarian.profile', ['user_id' => auth()->user()->user_id]) }}" 
-                      class="inline-flex items-center px-5 py-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-800 transition-all duration-300">
+                    <a href="{{ route('vet.veterinarian.profile', ['user_id' => auth()->user()->user_id]) }}"
+                    class="inline-flex items-center px-5 py-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-800 transition-all duration-300">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
@@ -266,12 +265,6 @@
                         </div>
                         <div class="flex flex-col items-end">
                             <p class="text-4xl font-bold text-blue-600">{{ $lastMonthTransactions }}</p>
-                            <div class="flex items-center mt-1 text-green-600 text-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                </svg>
-                                <span class="ml-1">12% increase</span>
-                            </div>
                         </div>
                     </div>
                     
