@@ -95,6 +95,25 @@
                 </div>
             </div>
 
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" wire:ignore>
+                <!-- Transaction Status Distribution -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Transaction Status Distribution</h3>
+                    <div wire:ignore>
+                        <canvas id="transactionStatusChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Statistics Overview -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Statistics Overview</h3>
+                    <div wire:ignore>
+                        <canvas id="statisticsChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <!-- Filters and Search Section -->
             <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-500">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
@@ -310,7 +329,118 @@
         </div>
     </div>
 
+    <!-- Add Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
+        // Store chart instances globally
+        let charts = {
+            status: null,
+            stats: null
+        };
+
+        function destroyCharts() {
+            if (charts.status) {
+                charts.status.destroy();
+                charts.status = null;
+            }
+            if (charts.stats) {
+                charts.stats.destroy();
+                charts.stats = null;
+            }
+        }
+
+        function createCharts() {
+            destroyCharts();
+
+            // Get the canvas contexts
+            const statusCtx = document.getElementById('transactionStatusChart');
+            const statsCtx = document.getElementById('statisticsChart');
+
+            if (!statusCtx || !statsCtx) return;
+
+            // Transaction Status Distribution Chart
+            charts.status = new Chart(statusCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Completed', 'Canceled'],
+                    datasets: [{
+                        data: [
+                            {{ $pendingTransactions }},
+                            {{ $completedTransactions }},
+                            {{ $canceledTransactions }}
+                        ],
+                        backgroundColor: [
+                            '#FCD34D', // yellow for pending
+                            '#34D399', // green for completed
+                            '#F87171'  // red for canceled
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Statistics Overview Chart
+            charts.stats = new Chart(statsCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Total Owners', 'Completed Transactions', 'Total Animals'],
+                    datasets: [{
+                        label: 'Statistics Overview',
+                        data: [
+                            {{ $totalOwners }},
+                            {{ $successfulTransactions }},
+                            {{ $totalAnimals }}
+                        ],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)', // blue
+                            'rgba(16, 185, 129, 0.7)', // green
+                            'rgba(245, 158, 11, 0.7)'  // yellow
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(245, 158, 11, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create charts when page loads
+        document.addEventListener('DOMContentLoaded', createCharts);
+
+        // Handle Livewire page navigation
+        document.addEventListener('livewire:navigating', destroyCharts);
+        document.addEventListener('livewire:navigated', createCharts);
+
+        // Handle Livewire updates
+        document.addEventListener('livewire:update', createCharts);
+
         function submitForm() {
             document.getElementById('filterForm').submit();
         }
