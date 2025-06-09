@@ -77,6 +77,11 @@ class AdminController extends Controller
         $lastWeekTransactions = Transaction::whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])
             ->count();
 
+        // Add transaction status counts
+        $pendingTransactions = Transaction::where('status', 0)->count();
+        $completedTransactions = Transaction::where('status', 1)->count();
+        $canceledTransactions = Transaction::where('status', 2)->count();
+
         return view('admin.dashboard', compact(
             'veterinarians',
             'technicians',
@@ -85,7 +90,10 @@ class AdminController extends Controller
             'totalOwners',
             'successfulTransactions',
             'totalAnimals',
-            'lastWeekTransactions'
+            'lastWeekTransactions',
+            'pendingTransactions',
+            'completedTransactions',
+            'canceledTransactions'
         ));
     }
 
