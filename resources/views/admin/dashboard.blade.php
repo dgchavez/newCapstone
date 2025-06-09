@@ -143,78 +143,98 @@
             </div>
 
             <!-- Enhanced Charts Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" wire:ignore>
-                <!-- Transaction Status Distribution -->
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Transaction Status Distribution</h3>
-                    <div wire:ignore>
-                        <canvas id="transactionStatusChart" width="400" height="300"></canvas>
-                    </div>
-                </div>
-
-                <!-- Vaccination Statistics -->
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-800">Vaccination Trends</h3>
-                        <div class="flex items-center space-x-2">
-                            <form method="GET" action="{{ route('admin-dashboard') }}" class="flex items-center space-x-2">
-                                <select name="period" class="p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300" onchange="this.form.submit()">
-                                    <option value="weekly" {{ $period === 'weekly' ? 'selected' : '' }}>Weekly</option>
-                                    <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>Monthly</option>
-                                    <option value="yearly" {{ $period === 'yearly' ? 'selected' : '' }}>Yearly</option>
-                                </select>
-                            </form>
-                        </div>
-                    </div>
-                    <div wire:ignore>
-                        <canvas id="vaccinationChart" width="400" height="300"></canvas>
-                    </div>
-                    <!-- Vaccination Statistics Summary -->
-                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-purple-50 p-4 rounded-lg">
-                            <h4 class="text-sm font-semibold text-purple-800">Total Vaccinations</h4>
-                            <p class="text-2xl font-bold text-purple-600">{{ $totalVaccinations }}</p>
-                        </div>
-                        <div class="bg-purple-50 p-4 rounded-lg">
-                            <h4 class="text-sm font-semibold text-purple-800">This Month</h4>
-                            <p class="text-2xl font-bold text-purple-600">{{ $vaccinationsThisMonth }}</p>
-                        </div>
-                        <div class="bg-purple-50 p-4 rounded-lg">
-                            <h4 class="text-sm font-semibold text-purple-800">Average per {{ $period }}</h4>
-                            <p class="text-2xl font-bold text-purple-600">
-                                {{ count($vaccinationCounts) > 0 ? round(array_sum($vaccinationCounts) / count($vaccinationCounts), 1) : 0 }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Species-wise Vaccination Distribution -->
-                <div class="bg-white p-6 rounded-xl shadow-lg mt-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Vaccinations by Species</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        @foreach($vaccinationsBySpecies as $species)
-                            <div class="bg-purple-50 p-4 rounded-lg">
-                                <h4 class="text-sm font-semibold text-purple-800">{{ $species->name }}</h4>
-                                <p class="text-2xl font-bold text-purple-600">{{ $species->animals_count }}</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" wire:ignore>
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Transaction Status Distribution -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Transaction Status</h3>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <span class="mr-2">Total: {{ $pendingTransactions + $completedTransactions + $canceledTransactions }}</span>
                             </div>
-                        @endforeach
+                        </div>
+                        <div class="h-64">
+                            <canvas id="transactionStatusChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Animal Types Distribution -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Species Distribution</h3>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <span class="mr-2">Total: {{ array_sum($animalTypeCounts) }}</span>
+                            </div>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="animalTypesChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Statistics Overview -->
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Statistics Overview</h3>
-                    <div wire:ignore>
-                        <canvas id="statisticsChart" width="400" height="300"></canvas>
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Vaccination Statistics -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Vaccination Trends</h3>
+                            <div class="flex items-center space-x-2">
+                                <form method="GET" action="{{ route('admin-dashboard') }}" class="flex items-center">
+                                    <select name="period" class="text-sm p-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" onchange="this.form.submit()">
+                                        <option value="weekly" {{ $period === 'weekly' ? 'selected' : '' }}>Weekly</option>
+                                        <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>Monthly</option>
+                                        <option value="yearly" {{ $period === 'yearly' ? 'selected' : '' }}>Yearly</option>
+                                    </select>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="vaccinationChart"></canvas>
+                        </div>
+                        <div class="mt-4 grid grid-cols-3 gap-3">
+                            <div class="bg-purple-50 p-3 rounded-lg">
+                                <p class="text-xs font-semibold text-purple-800">Total</p>
+                                <p class="text-lg font-bold text-purple-600">{{ $totalVaccinations }}</p>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded-lg">
+                                <p class="text-xs font-semibold text-purple-800">This Month</p>
+                                <p class="text-lg font-bold text-purple-600">{{ $vaccinationsThisMonth }}</p>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded-lg">
+                                <p class="text-xs font-semibold text-purple-800">Avg/{{ $period }}</p>
+                                <p class="text-lg font-bold text-purple-600">
+                                    {{ count($vaccinationCounts) > 0 ? round(array_sum($vaccinationCounts) / count($vaccinationCounts), 1) : 0 }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Overview -->
+                    <div class="bg-white p-4 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Overview</h3>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <span>Monthly Summary</span>
+                            </div>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="statisticsChart"></canvas>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Animal Types Distribution -->
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Animal Types Distribution</h3>
-                    <div wire:ignore>
-                        <canvas id="animalTypesChart" width="400" height="300"></canvas>
-                    </div>
+            <!-- Species-wise Vaccination Distribution -->
+            <div class="bg-white p-4 rounded-xl shadow-lg mt-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Vaccinations by Species</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                    @foreach($vaccinationsBySpecies as $species)
+                        <div class="bg-purple-50 p-3 rounded-lg">
+                            <h4 class="text-sm font-semibold text-purple-800">{{ $species->name }}</h4>
+                            <p class="text-xl font-bold text-purple-600">{{ $species->animals_count }}</p>
+                        </div>
+                    @endforeach
                 </div>
             </div>
 
@@ -226,70 +246,161 @@
                     </svg>
                     Filters & Search
                 </h2>
-            <div class="bg-white p-6 rounded-2xl shadow-md space-y-6">
-                <div class="flex justify-between items-center mb-4">
-                    <a href="{{ route('admin-dashboard') }}" 
-                       class="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300">
-                        Reset Filters
-                    </a>
-                </div>
-                    <!-- Search Input -->
-                    <div class="flex-1">
-                        <form method="GET" action="{{ route('admin-dashboard') }}" class="flex gap-2">
-                            <input name="search" value="{{ request('search') }}" 
-                                   class="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
-                                   placeholder="Search by Owner or Animal">
-                            <button type="submit" class="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-300 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
-                                Search
-                            </button>
-                        </form>
+                <div class="bg-white p-6 rounded-2xl shadow-md space-y-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <a href="{{ route('admin-dashboard') }}" 
+                           class="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300">
+                            Reset Filters
+                        </a>
                     </div>
 
-                    <!-- Filters -->
-                    <div class="flex flex-wrap gap-4">
-                        <!-- Status Filter -->
-                        <form method="GET" action="{{ route('admin-dashboard') }}">
-                            <select name="status" class="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300" onchange="this.form.submit()">
-                                <option value="" {{ request('status') === null || request('status') === '' ? 'selected' : '' }}>All Status</option>
+                    <!-- Enhanced Filters -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Existing Filters -->
+                        <form method="GET" action="{{ route('admin-dashboard') }}" class="space-y-4">
+                            <!-- Status Filter -->
+                            <select name="status" class="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300">
+                                <option value="" {{ request('status') === null ? 'selected' : '' }}>All Status</option>
                                 @foreach($statuses as $key => $status)
-                                    <option value="{{ $key }}" {{ request('status') !== null && request('status') !== '' && (string)request('status') === (string)$key ? 'selected' : '' }}>
+                                    <option value="{{ $key }}" {{ request('status') == $key ? 'selected' : '' }}>
                                         {{ $status }}
                                     </option>
                                 @endforeach
                             </select>
-                        </form>
 
-                        <!-- Veterinarian Filter -->
-                        <form method="GET" action="{{ route('admin-dashboard') }}">
-                            <select name="veterinarian" class="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300" onchange="this.form.submit()">
-                                <option value="">All Veterinarians</option>
-                                @foreach($veterinarians as $veterinarian)
-                                    <option value="{{ $veterinarian->user_id }}" 
-                                            {{ request('veterinarian') == $veterinarian->user_id ? 'selected' : '' }}>
-                                        {{ $veterinarian->complete_name }}
+                            <!-- Barangay Filter -->
+                            <select name="barangay" class="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300">
+                                <option value="">All Barangays</option>
+                                @foreach($barangays as $barangay)
+                                    <option value="{{ $barangay->id }}" {{ $barangayFilter == $barangay->id ? 'selected' : '' }}>
+                                        {{ $barangay->barangay_name }}
                                     </option>
                                 @endforeach
                             </select>
-                        </form>
 
-                        <!-- Technician Filter -->
-                        <form method="GET" action="{{ route('admin-dashboard') }}">
-                            <select name="technician" class="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300" onchange="this.form.submit()">
-                                <option value="">All Technicians</option>
-                                @foreach($technicians as $technician)
-                                    <option value="{{ $technician->technician_id }}" 
-                                            {{ request('technician') == $technician->technician_id ? 'selected' : '' }}>
-                                        {{ $technician->full_name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <!-- Show Unvaccinated Checkbox -->
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" name="show_unvaccinated" id="show_unvaccinated" 
+                                       class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                       {{ $showUnvaccinated ? 'checked' : '' }}>
+                                <label for="show_unvaccinated" class="text-sm text-gray-700">
+                                    Show Unvaccinated Animals
+                                </label>
+                            </div>
+
+                            <button type="submit" class="w-full px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-300">
+                                Apply Filters
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
+
+            <!-- Barangay Vaccination Statistics -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mt-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Barangay Vaccination Statistics
+                    </h2>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barangay</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Animals</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccinated</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unvaccinated</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccination Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($barangayStats as $stat)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ $stat->barangay_name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ $stat->total_animals }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-green-600">{{ $stat->vaccinated_animals }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-red-600">{{ $stat->unvaccinated_animals }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="relative w-32 h-2 bg-gray-200 rounded">
+                                                <div class="absolute top-0 left-0 h-2 bg-green-500 rounded" 
+                                                     style="width: {{ $stat->vaccination_rate }}%"></div>
+                                            </div>
+                                            <span class="ml-2 text-sm text-gray-600">{{ $stat->vaccination_rate }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @if($showUnvaccinated)
+            <!-- Unvaccinated Animals List -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mt-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Unvaccinated Animals
+                    </h2>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Animal Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Species</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barangay</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($unvaccinatedAnimals as $animal)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ $animal->name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ $animal->species->name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ $animal->owner->user->complete_name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ $animal->owner->user->address->barangay->barangay_name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <a href="{{ route('animals.profile', ['animal_id' => $animal->animal_id]) }}" 
+                                           class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:border-green-700 focus:shadow-outline-green active:bg-green-700 transition duration-150 ease-in-out">
+                                            View Profile
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
 
             <!-- Recent Transactions Section -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -470,175 +581,176 @@
             destroyCharts();
 
             try {
-                // Transaction Status Chart (existing)
-                const statusCtx = document.getElementById('transactionStatusChart').getContext('2d');
-                charts.status = new Chart(statusCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Pending', 'Completed', 'Canceled'],
-                        datasets: [{
-                            data: [
-                                {{ $pendingTransactions }},
-                                {{ $completedTransactions }},
-                                {{ $canceledTransactions }}
-                            ],
-                            backgroundColor: [
-                                '#FCD34D',
-                                '#34D399',
-                                '#F87171'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
+                // Transaction Status Chart
+                charts.status = new Chart(
+                    document.getElementById('transactionStatusChart').getContext('2d'),
+                    {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Pending', 'Completed', 'Canceled'],
+                            datasets: [{
+                                data: [{{ $pendingTransactions }}, {{ $completedTransactions }}, {{ $canceledTransactions }}],
+                                backgroundColor: ['#FCD34D', '#34D399', '#F87171']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        padding: 15
+                                    }
+                                }
+                            },
+                            cutout: '65%'
                         }
                     }
-                });
+                );
 
-                // Vaccination Trends Chart
-                const vaccinationCtx = document.getElementById('vaccinationChart').getContext('2d');
-                charts.vaccination = new Chart(vaccinationCtx, {
-                    type: 'line',
-                    data: {
-                        labels: {!! json_encode($vaccinationLabels) !!},
-                        datasets: [{
-                            label: 'Vaccinations',
-                            data: {!! json_encode($vaccinationCounts) !!},
-                            borderColor: 'rgb(147, 51, 234)',
-                            backgroundColor: 'rgba(147, 51, 234, 0.1)',
-                            tension: 0.3,
-                            fill: true,
-                            pointBackgroundColor: 'rgb(147, 51, 234)',
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 1,
-                                    callback: function(value) {
-                                        if (Math.floor(value) === value) {
-                                            return value;
+                // Vaccination Chart
+                charts.vaccination = new Chart(
+                    document.getElementById('vaccinationChart').getContext('2d'),
+                    {
+                        type: 'line',
+                        data: {
+                            labels: {!! json_encode($vaccinationLabels) !!},
+                            datasets: [{
+                                data: {!! json_encode($vaccinationCounts) !!},
+                                borderColor: 'rgb(147, 51, 234)',
+                                backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    titleColor: '#1F2937',
+                                    bodyColor: '#1F2937',
+                                    borderColor: '#E5E7EB',
+                                    borderWidth: 1,
+                                    padding: 10,
+                                    displayColors: false,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `Vaccinations: ${context.parsed.y}`;
                                         }
                                     }
                                 }
                             },
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top'
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                titleColor: '#1F2937',
-                                bodyColor: '#1F2937',
-                                borderColor: '#E5E7EB',
-                                borderWidth: 1,
-                                padding: 10,
-                                displayColors: false,
-                                callbacks: {
-                                    label: function(context) {
-                                        return `Vaccinations: ${context.parsed.y}`;
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1,
+                                        callback: function(value) {
+                                            if (Math.floor(value) === value) return value;
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        maxRotation: 45,
+                                        minRotation: 45
                                     }
                                 }
                             }
                         }
                     }
-                });
+                );
 
-                // Statistics Overview Chart (enhanced)
-                const statsCtx = document.getElementById('statisticsChart').getContext('2d');
-                charts.stats = new Chart(statsCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Total Owners', 'Active Transactions', 'Total Animals', 'Vaccinations'],
-                        datasets: [{
-                            label: 'Statistics Overview',
-                            data: [
-                                {{ $totalOwners }},
-                                {{ $successfulTransactions }},
-                                {{ $totalAnimals }},
-                                {{ $totalVaccinations ?? 0 }}
-                            ],
-                            backgroundColor: [
-                                'rgba(59, 130, 246, 0.7)',
-                                'rgba(16, 185, 129, 0.7)',
-                                'rgba(245, 158, 11, 0.7)',
-                                'rgba(147, 51, 234, 0.7)'
-                            ],
-                            borderColor: [
-                                'rgba(59, 130, 246, 1)',
-                                'rgba(16, 185, 129, 1)',
-                                'rgba(245, 158, 11, 1)',
-                                'rgba(147, 51, 234, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
+                // Statistics Overview Chart
+                charts.stats = new Chart(
+                    document.getElementById('statisticsChart').getContext('2d'),
+                    {
+                        type: 'bar',
+                        data: {
+                            labels: ['Owners', 'Transactions', 'Animals', 'Vaccinations'],
+                            datasets: [{
+                                data: [
+                                    {{ $totalOwners }},
+                                    {{ $successfulTransactions }},
+                                    {{ $totalAnimals }},
+                                    {{ $totalVaccinations ?? 0 }}
+                                ],
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.7)',
+                                    'rgba(16, 185, 129, 0.7)',
+                                    'rgba(245, 158, 11, 0.7)',
+                                    'rgba(147, 51, 234, 0.7)'
+                                ]
+                            }]
                         },
-                        plugins: {
-                            legend: {
-                                display: false
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                }
                             }
                         }
                     }
-                });
+                );
 
-                // Animal Types Distribution Chart
-                const animalTypesCtx = document.getElementById('animalTypesChart').getContext('2d');
-                charts.animalTypes = new Chart(animalTypesCtx, {
-                    type: 'pie',
-                    data: {
-                        labels: {!! json_encode($animalTypes ?? []) !!},
-                        datasets: [{
-                            data: {!! json_encode($animalTypeCounts ?? []) !!},
-                            backgroundColor: [
-                                'rgba(59, 130, 246, 0.7)',
-                                'rgba(16, 185, 129, 0.7)',
-                                'rgba(245, 158, 11, 0.7)',
-                                'rgba(147, 51, 234, 0.7)',
-                                'rgba(239, 68, 68, 0.7)',
-                                'rgba(217, 70, 239, 0.7)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
+                // Animal Types Chart
+                charts.animalTypes = new Chart(
+                    document.getElementById('animalTypesChart').getContext('2d'),
+                    {
+                        type: 'pie',
+                        data: {
+                            labels: {!! json_encode($animalTypes) !!},
+                            datasets: [{
+                                data: {!! json_encode($animalTypeCounts) !!},
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.7)',
+                                    'rgba(16, 185, 129, 0.7)',
+                                    'rgba(245, 158, 11, 0.7)',
+                                    'rgba(147, 51, 234, 0.7)',
+                                    'rgba(239, 68, 68, 0.7)',
+                                    'rgba(217, 70, 239, 0.7)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        padding: 15
+                                    }
+                                }
                             }
                         }
                     }
-                });
+                );
 
                 console.log('All charts created successfully');
             } catch (error) {
@@ -647,23 +759,14 @@
         }
 
         // Create charts when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing charts...');
-            createCharts();
-        });
-
-        // Handle Livewire page navigation
+        document.addEventListener('DOMContentLoaded', createCharts);
         document.addEventListener('livewire:navigating', destroyCharts);
         document.addEventListener('livewire:navigated', createCharts);
-
-        // Handle Livewire updates
         document.addEventListener('livewire:update', createCharts);
 
-        // Additional check for Alpine.js initialization if you're using it
+        // Additional check for Alpine.js initialization
         if (window.Alpine) {
-            window.Alpine.nextTick(() => {
-                createCharts();
-            });
+            window.Alpine.nextTick(createCharts);
         }
 
         function submitForm() {
