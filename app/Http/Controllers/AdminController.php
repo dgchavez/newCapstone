@@ -34,6 +34,7 @@ class AdminController extends Controller
         $statusFilter = $request->input('status');
         $veterinarianFilter = $request->input('veterinarian');
         $technicianFilter = $request->input('technician');
+        $period = $request->input('period', 'monthly'); // Default to monthly view
 
         // Query for transactions with filters
         $transactionsQuery = Transaction::with(['transactionSubtype', 'owner.user', 'animal', 'vet', 'technician']);
@@ -74,10 +75,102 @@ class AdminController extends Controller
         $totalOwners = User::where('role', 1)->count();
         $successfulTransactions = Transaction::where('status', 1)->count();
         $totalAnimals = Animal::count();
-        $lastWeekTransactions = Transaction::whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])
+
+        // New statistics
+        $newOwnersThisMonth = User::where('role', 1)
+            ->whereMonth('created_at', now()->month)
             ->count();
 
-        // Add transaction status counts
+        $transactionsThisMonth = Transaction::where('status', 1)
+            ->whereMonth('created_at', now()->month)
+            ->count();
+
+        $newAnimalsThisMonth = Animal::whereMonth('created_at', now()->month)
+            ->count();
+
+        // Enhanced Vaccination Statistics
+        $vaccinationQuery = Transaction::where(function($query) {
+            $query->whereNotNull('vaccine_id')  // Transactions with vaccines
+                ->orWhereHas('transactionType', function($q) {
+                    $q->where('type_name', 'like', '%vaccination%')
+                        ->orWhere('type_name', 'like', '%vaccine%');
+                });
+        });
+
+        $totalVaccinations = $vaccinationQuery->count();
+        $vaccinationsThisMonth = (clone $vaccinationQuery)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        // Get vaccination trends based on selected period
+        $vaccinationMonths = [];
+        $vaccinationCounts = [];
+        $vaccinationLabels = [];
+
+        switch($period) {
+            case 'weekly':
+                // Last 12 weeks
+                for ($i = 11; $i >= 0; $i--) {
+                    $startDate = now()->subWeeks($i)->startOfWeek();
+                    $endDate = now()->subWeeks($i)->endOfWeek();
+                    
+                    $count = (clone $vaccinationQuery)
+                        ->whereBetween('created_at', [$startDate, $endDate])
+                        ->count();
+                    
+                    $vaccinationCounts[] = $count;
+                    $vaccinationLabels[] = $startDate->format('M d') . ' - ' . $endDate->format('M d');
+                }
+                break;
+
+            case 'yearly':
+                // Last 5 years
+                for ($i = 4; $i >= 0; $i--) {
+                    $year = now()->subYears($i)->year;
+                    $count = (clone $vaccinationQuery)
+                        ->whereYear('created_at', $year)
+                        ->count();
+                    
+                    $vaccinationCounts[] = $count;
+                    $vaccinationLabels[] = $year;
+                }
+                break;
+
+            case 'monthly':
+            default:
+                // Last 12 months
+                for ($i = 11; $i >= 0; $i--) {
+                    $date = now()->subMonths($i);
+                    $count = (clone $vaccinationQuery)
+                        ->whereYear('created_at', $date->year)
+                        ->whereMonth('created_at', $date->month)
+                        ->count();
+                    
+                    $vaccinationCounts[] = $count;
+                    $vaccinationLabels[] = $date->format('M Y');
+                }
+                break;
+        }
+
+        // Get vaccination statistics by species
+        $vaccinationsBySpecies = Species::withCount(['animals' => function($query) {
+            $query->whereHas('transactions', function($q) {
+                $q->where(function($query) {
+                    $query->whereNotNull('vaccine_id')
+                        ->orWhereHas('transactionType', function($q) {
+                            $q->where('type_name', 'like', '%vaccination%')
+                                ->orWhere('type_name', 'like', '%vaccine%');
+                        });
+                });
+            });
+        }])->get();
+
+        // Get animal types distribution
+        $animalTypes = Species::pluck('name')->toArray();
+        $animalTypeCounts = Species::withCount('animals')->pluck('animals_count')->toArray();
+
+        // Transaction status counts
         $pendingTransactions = Transaction::where('status', 0)->count();
         $completedTransactions = Transaction::where('status', 1)->count();
         $canceledTransactions = Transaction::where('status', 2)->count();
@@ -90,10 +183,20 @@ class AdminController extends Controller
             'totalOwners',
             'successfulTransactions',
             'totalAnimals',
-            'lastWeekTransactions',
             'pendingTransactions',
             'completedTransactions',
-            'canceledTransactions'
+            'canceledTransactions',
+            'newOwnersThisMonth',
+            'transactionsThisMonth',
+            'newAnimalsThisMonth',
+            'totalVaccinations',
+            'vaccinationsThisMonth',
+            'vaccinationLabels',
+            'vaccinationCounts',
+            'animalTypes',
+            'animalTypeCounts',
+            'period',
+            'vaccinationsBySpecies'
         ));
     }
 
