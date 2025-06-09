@@ -29,6 +29,9 @@ class AdminController extends Controller
 {
     public function loadAdminDashboard(Request $request)
     {
+        // Get all species for the filter dropdown
+        $species = Species::select('id', 'name')->orderBy('name')->get();
+
         // Retrieve filter and search inputs
         $search = $request->input('search');
         $statusFilter = $request->input('status');
@@ -60,7 +63,7 @@ class AdminController extends Controller
                 ->where('addresses.barangay_id', $barangayFilter);
         }
 
-        // Get vaccination statistics by barangay
+        // Get vaccination statistics by barangay with detailed counts
         $barangayStats = DB::table('barangays')
             ->select(
                 'barangays.id',
@@ -70,22 +73,68 @@ class AdminController extends Controller
                     WHEN transactions.vaccine_id IS NOT NULL 
                     OR transaction_types.type_name LIKE "%vaccination%" 
                     OR transaction_types.type_name LIKE "%vaccine%" 
-                    THEN animals.animal_id END) as vaccinated_animals')
+                    THEN animals.animal_id END) as vaccinated_animals'),
+                DB::raw('COUNT(DISTINCT CASE 
+                    WHEN animals.animal_id IS NOT NULL 
+                    AND NOT EXISTS (
+                        SELECT 1 FROM transactions t 
+                        JOIN transaction_types tt ON t.transaction_type_id = tt.id 
+                        WHERE t.animal_id = animals.animal_id 
+                        AND (t.vaccine_id IS NOT NULL 
+                            OR tt.type_name LIKE "%vaccination%" 
+                            OR tt.type_name LIKE "%vaccine%")
+                    )
+                    THEN animals.animal_id END) as unvaccinated_animals'),
+                DB::raw('COUNT(DISTINCT CASE 
+                    WHEN transactions.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                    AND (transactions.vaccine_id IS NOT NULL 
+                        OR transaction_types.type_name LIKE "%vaccination%" 
+                        OR transaction_types.type_name LIKE "%vaccine%")
+                    THEN animals.animal_id END) as vaccinated_last_30_days'),
+                DB::raw('COUNT(DISTINCT CASE 
+                    WHEN transactions.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    AND (transactions.vaccine_id IS NOT NULL 
+                        OR transaction_types.type_name LIKE "%vaccination%" 
+                        OR transaction_types.type_name LIKE "%vaccine%")
+                    THEN animals.animal_id END) as vaccinated_last_7_days'),
+                DB::raw('GROUP_CONCAT(DISTINCT species.name) as animal_species')
             )
             ->leftJoin('addresses', 'barangays.id', '=', 'addresses.barangay_id')
             ->leftJoin('users', 'addresses.user_id', '=', 'users.user_id')
             ->leftJoin('owners', 'users.user_id', '=', 'owners.user_id')
             ->leftJoin('animals', 'owners.owner_id', '=', 'animals.owner_id')
+            ->leftJoin('species', 'animals.species_id', '=', 'species.id')
             ->leftJoin('transactions', 'animals.animal_id', '=', 'transactions.animal_id')
             ->leftJoin('transaction_types', 'transactions.transaction_type_id', '=', 'transaction_types.id')
+            ->when($request->input('show_unvaccinated_only'), function($query) {
+                return $query->having('unvaccinated_animals', '>', 0);
+            })
+            ->when($request->input('min_unvaccinated'), function($query) use ($request) {
+                return $query->having('unvaccinated_animals', '>=', $request->input('min_unvaccinated'));
+            })
+            ->when($request->input('species_filter'), function($query) use ($request) {
+                return $query->whereIn('species.id', (array)$request->input('species_filter'));
+            })
             ->groupBy('barangays.id', 'barangays.barangay_name')
             ->get()
             ->map(function($barangay) {
-                $barangay->unvaccinated_animals = $barangay->total_animals - $barangay->vaccinated_animals;
                 $barangay->vaccination_rate = $barangay->total_animals > 0 
                     ? round(($barangay->vaccinated_animals / $barangay->total_animals) * 100, 1)
                     : 0;
+                $barangay->recent_vaccination_rate = $barangay->total_animals > 0
+                    ? round(($barangay->vaccinated_last_30_days / $barangay->total_animals) * 100, 1)
+                    : 0;
+                $barangay->animal_species_array = array_filter(explode(',', $barangay->animal_species));
                 return $barangay;
+            })
+            ->when($request->input('sort_by'), function($collection) use ($request) {
+                $sortBy = $request->input('sort_by');
+                $sortDir = $request->input('sort_dir', 'asc');
+                
+                return $collection->sortBy($sortBy, SORT_REGULAR, $sortDir === 'desc');
+            }, function($collection) {
+                // Default sorting: most unvaccinated animals first
+                return $collection->sortByDesc('unvaccinated_animals');
             });
 
         // Get unvaccinated animals if filter is active
@@ -238,18 +287,17 @@ class AdminController extends Controller
         }
 
         // Get vaccination statistics by species
-        $vaccinationsBySpecies = DB::table('species')
-            ->select('species.name', DB::raw('COUNT(DISTINCT animals.animal_id) as animals_count'))
-            ->leftJoin('animals', 'species.id', '=', 'animals.species_id')
-            ->leftJoin('transactions', 'animals.animal_id', '=', 'transactions.animal_id')
-            ->leftJoin('transaction_types', 'transactions.transaction_type_id', '=', 'transaction_types.id')
-            ->where(function($query) {
-                $query->whereNotNull('transactions.vaccine_id')
-                    ->orWhere('transaction_types.type_name', 'like', '%vaccination%')
-                    ->orWhere('transaction_types.type_name', 'like', '%vaccine%');
-            })
-            ->groupBy('species.id', 'species.name')
-            ->get();
+        $vaccinationsBySpecies = Species::withCount(['animals' => function ($query) {
+            $query->whereHas('transactions', function ($q) {
+                $q->where(function ($q) {
+                    $q->whereNotNull('vaccine_id')
+                        ->orWhereHas('transactionType', function ($q) {
+                            $q->where('type_name', 'like', '%vaccination%')
+                                ->orWhere('type_name', 'like', '%vaccine%');
+                        });
+                });
+            });
+        }])->get();
 
         // Get animal types distribution
         $animalTypes = Species::pluck('name')->toArray();
@@ -259,6 +307,11 @@ class AdminController extends Controller
         $pendingTransactions = Transaction::where('status', 0)->count();
         $completedTransactions = Transaction::where('status', 1)->count();
         $canceledTransactions = Transaction::where('status', 2)->count();
+
+        // Get species for filter dropdown
+        $species = Species::select('id', 'name')
+            ->orderBy('name')
+            ->get();
 
         return view('admin.dashboard', compact(
             'veterinarians',
@@ -286,7 +339,8 @@ class AdminController extends Controller
             'barangayStats',
             'barangayFilter',
             'showUnvaccinated',
-            'unvaccinatedAnimals'
+            'unvaccinatedAnimals',
+            'species'
         ));
     }
 

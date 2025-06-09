@@ -146,7 +146,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" wire:ignore>
                 <!-- Left Column -->
                 <div class="space-y-6">
-                    <!-- Transaction Status Distribution -->
+                <!-- Transaction Status Distribution -->
                     <div class="bg-white p-4 rounded-xl shadow-lg">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-800">Transaction Status</h3>
@@ -207,10 +207,10 @@
                                     {{ count($vaccinationCounts) > 0 ? round(array_sum($vaccinationCounts) / count($vaccinationCounts), 1) : 0 }}
                                 </p>
                             </div>
-                        </div>
                     </div>
+                </div>
 
-                    <!-- Statistics Overview -->
+                <!-- Statistics Overview -->
                     <div class="bg-white p-4 rounded-xl shadow-lg">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-800">Overview</h3>
@@ -246,19 +246,19 @@
                     </svg>
                     Filters & Search
                 </h2>
-                <div class="bg-white p-6 rounded-2xl shadow-md space-y-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <a href="{{ route('admin-dashboard') }}" 
-                           class="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300">
-                            Reset Filters
-                        </a>
+            <div class="bg-white p-6 rounded-2xl shadow-md space-y-6">
+                <div class="flex justify-between items-center mb-4">
+                    <a href="{{ route('admin-dashboard') }}" 
+                       class="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300">
+                        Reset Filters
+                    </a>
                     </div>
 
                     <!-- Enhanced Filters -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Existing Filters -->
                         <form method="GET" action="{{ route('admin-dashboard') }}" class="space-y-4">
-                            <!-- Status Filter -->
+                        <!-- Status Filter -->
                             <select name="status" class="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300">
                                 <option value="" {{ request('status') === null ? 'selected' : '' }}>All Status</option>
                                 @foreach($statuses as $key => $status)
@@ -288,6 +288,8 @@
                                 </label>
                             </div>
 
+                            </div>
+
                             <button type="submit" class="w-full px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-300">
                                 Apply Filters
                             </button>
@@ -308,6 +310,63 @@
                     </h2>
                 </div>
 
+                <!-- Enhanced Filters -->
+                <div class="p-4 bg-gray-50 border-b border-gray-200">
+                    <form method="GET" action="{{ route('admin-dashboard') }}" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Show Only Unvaccinated -->
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" name="show_unvaccinated_only" id="show_unvaccinated_only" 
+                                       class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                       {{ request('show_unvaccinated_only') ? 'checked' : '' }}>
+                                <label for="show_unvaccinated_only" class="text-sm text-gray-700">
+                                    Show Only Barangays with Unvaccinated Animals
+                                </label>
+                            </div>
+
+                            <!-- Minimum Unvaccinated Filter -->
+                            <div class="flex items-center space-x-2">
+                                <label for="min_unvaccinated" class="text-sm text-gray-700">Minimum Unvaccinated:</label>
+                                <input type="number" name="min_unvaccinated" id="min_unvaccinated" 
+                                       class="rounded-lg border-gray-300 text-sm w-20"
+                                       value="{{ request('min_unvaccinated') }}" min="0">
+                            </div>
+
+
+                        <!-- Sort Options -->
+                        <div class="flex items-center space-x-4">
+                            <label for="sort_by" class="text-sm text-gray-700">Sort by:</label>
+                            <select name="sort_by" id="sort_by" class="rounded-lg border-gray-300 text-sm">
+                                <option value="unvaccinated_animals" {{ request('sort_by') == 'unvaccinated_animals' ? 'selected' : '' }}>
+                                    Unvaccinated Count
+                                </option>
+                                <option value="vaccination_rate" {{ request('sort_by') == 'vaccination_rate' ? 'selected' : '' }}>
+                                    Vaccination Rate
+                                </option>
+                                <option value="total_animals" {{ request('sort_by') == 'total_animals' ? 'selected' : '' }}>
+                                    Total Animals
+                                </option>
+                                <option value="barangay_name" {{ request('sort_by') == 'barangay_name' ? 'selected' : '' }}>
+                                    Barangay Name
+                                </option>
+                            </select>
+
+                            <select name="sort_dir" id="sort_dir" class="rounded-lg border-gray-300 text-sm">
+                                <option value="asc" {{ request('sort_dir') == 'asc' ? 'selected' : '' }}>Ascending</option>
+                                <option value="desc" {{ request('sort_dir', 'desc') == 'desc' ? 'selected' : '' }}>Descending</option>
+                            </select>
+
+                            <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm">
+                                Apply Filters
+                            </button>
+
+                            <a href="{{ route('admin-dashboard') }}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm">
+                                Reset Filters
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -316,12 +375,15 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Animals</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccinated</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unvaccinated</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last 30 Days</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last 7 Days</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Species Present</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccination Rate</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($barangayStats as $stat)
-                                <tr class="hover:bg-gray-50">
+                                <tr class="hover:bg-gray-50 {{ $stat->unvaccinated_animals > 0 ? 'bg-red-50' : '' }}">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900">{{ $stat->barangay_name }}</div>
                                     </td>
@@ -332,16 +394,36 @@
                                         <div class="text-sm text-green-600">{{ $stat->vaccinated_animals }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-red-600">{{ $stat->unvaccinated_animals }}</div>
+                                        <div class="text-sm text-red-600 font-semibold">{{ $stat->unvaccinated_animals }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-blue-600">{{ $stat->vaccinated_last_30_days }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-blue-600">{{ $stat->vaccinated_last_7_days }}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900">
+                                            @foreach($stat->animal_species_array as $species)
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1">
+                                                    {{ $species }}
+                                                </span>
+                                            @endforeach
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="relative w-32 h-2 bg-gray-200 rounded">
-                                                <div class="absolute top-0 left-0 h-2 bg-green-500 rounded" 
+                                                <div class="absolute top-0 left-0 h-2 {{ $stat->vaccination_rate >= 70 ? 'bg-green-500' : ($stat->vaccination_rate >= 40 ? 'bg-yellow-500' : 'bg-red-500') }} rounded" 
                                                      style="width: {{ $stat->vaccination_rate }}%"></div>
                                             </div>
                                             <span class="ml-2 text-sm text-gray-600">{{ $stat->vaccination_rate }}%</span>
                                         </div>
+                                        @if($stat->vaccinated_last_30_days > 0)
+                                            <div class="text-xs text-green-600 mt-1">
+                                                +{{ $stat->recent_vaccination_rate }}% in last 30 days
+                                            </div>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
@@ -585,19 +667,19 @@
                 charts.status = new Chart(
                     document.getElementById('transactionStatusChart').getContext('2d'),
                     {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Pending', 'Completed', 'Canceled'],
-                            datasets: [{
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Completed', 'Canceled'],
+                    datasets: [{
                                 data: [{{ $pendingTransactions }}, {{ $completedTransactions }}, {{ $canceledTransactions }}],
                                 backgroundColor: ['#FCD34D', '#34D399', '#F87171']
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
                                     position: 'bottom',
                                     labels: {
                                         boxWidth: 12,
@@ -673,39 +755,39 @@
                     }
                 );
 
-                // Statistics Overview Chart
+            // Statistics Overview Chart
                 charts.stats = new Chart(
                     document.getElementById('statisticsChart').getContext('2d'),
                     {
-                        type: 'bar',
-                        data: {
+                type: 'bar',
+                data: {
                             labels: ['Owners', 'Transactions', 'Animals', 'Vaccinations'],
-                            datasets: [{
-                                data: [
-                                    {{ $totalOwners }},
-                                    {{ $successfulTransactions }},
+                    datasets: [{
+                        data: [
+                            {{ $totalOwners }},
+                            {{ $successfulTransactions }},
                                     {{ $totalAnimals }},
                                     {{ $totalVaccinations ?? 0 }}
-                                ],
-                                backgroundColor: [
+                        ],
+                        backgroundColor: [
                                     'rgba(59, 130, 246, 0.7)',
                                     'rgba(16, 185, 129, 0.7)',
                                     'rgba(245, 158, 11, 0.7)',
                                     'rgba(147, 51, 234, 0.7)'
                                 ]
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                             plugins: {
                                 legend: {
                                     display: false
                                 }
                             },
-                            scales: {
-                                y: {
-                                    beginAtZero: true
+                    scales: {
+                        y: {
+                            beginAtZero: true
                                 },
                                 x: {
                                     grid: {
@@ -739,8 +821,8 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
+                    plugins: {
+                        legend: {
                                     position: 'bottom',
                                     labels: {
                                         boxWidth: 12,
