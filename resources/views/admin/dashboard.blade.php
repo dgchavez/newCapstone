@@ -643,45 +643,105 @@
                 !document.getElementById('statisticsChart') || 
                 !document.getElementById('vaccinationChart') || 
                 !document.getElementById('animalTypesChart')) {
-                console.log('Waiting for chart elements to be available...');
-                setTimeout(createCharts, 100); // Try again in 100ms
+                console.log('Charts not ready, retrying...');
+                setTimeout(createCharts, 300); // Increased timeout
                 return;
             }
 
             try {
                 destroyCharts();
                 initializeCharts();
-                console.log('All charts created successfully');
+                console.log('Charts initialized successfully');
             } catch (error) {
                 console.error('Error creating charts:', error);
+                // Retry on error after a delay
+                setTimeout(createCharts, 500);
             }
         }
 
-        // Initialize charts when the page loads
+        // Multiple event listeners to catch different scenarios
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing charts...');
             createCharts();
         });
 
-        // Re-initialize charts when navigating with Livewire
-        document.addEventListener('livewire:navigating', destroyCharts);
-        document.addEventListener('livewire:navigated', createCharts);
-        document.addEventListener('livewire:update', createCharts);
-
-        // Handle Turbolinks if present
-        document.addEventListener('turbolinks:load', createCharts);
-
-        // Additional check for Alpine.js initialization
-        if (window.Alpine) {
-            window.Alpine.nextTick(createCharts);
+        // Backup initialization for cases where DOMContentLoaded might have already fired
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            console.log('Document already loaded, initializing charts...');
+            setTimeout(createCharts, 100);
         }
 
-        // Retry initialization if charts fail to load
-        window.addEventListener('load', function() {
-            if (!charts.status || !charts.stats || !charts.vaccination || !charts.animalTypes) {
-                console.log('Retrying chart initialization...');
-                createCharts();
-            }
+        // Handle Livewire updates
+        document.addEventListener('livewire:load', function() {
+            console.log('Livewire loaded, initializing charts...');
+            createCharts();
         });
+
+        document.addEventListener('livewire:navigating', function() {
+            console.log('Destroying charts before navigation...');
+            destroyCharts();
+        });
+
+        document.addEventListener('livewire:navigated', function() {
+            console.log('Navigation complete, reinitializing charts...');
+            createCharts();
+        });
+
+        // Handle Turbolinks if present
+        if (typeof Turbolinks !== 'undefined') {
+            document.addEventListener('turbolinks:load', function() {
+                console.log('Turbolinks loaded, initializing charts...');
+                createCharts();
+            });
+        }
+
+        // Alpine.js integration
+        if (window.Alpine) {
+            window.Alpine.nextTick(function() {
+                console.log('Alpine next tick, initializing charts...');
+                createCharts();
+            });
+        }
+
+        // Mutation observer to watch for chart containers being added to the DOM
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length) {
+                    const chartElements = [
+                        'transactionStatusChart',
+                        'statisticsChart',
+                        'vaccinationChart',
+                        'animalTypesChart'
+                    ];
+                    
+                    const shouldInitialize = chartElements.some(id => 
+                        Array.from(mutation.addedNodes).some(node => 
+                            node.id === id || (node.querySelector && node.querySelector('#' + id))
+                        )
+                    );
+
+                    if (shouldInitialize) {
+                        console.log('Chart elements added to DOM, initializing...');
+                        createCharts();
+                    }
+                }
+            });
+        });
+
+        // Start observing the document with the configured parameters
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Cleanup function
+        function cleanup() {
+            observer.disconnect();
+            destroyCharts();
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('unload', cleanup);
 
         function submitForm() {
             document.getElementById('filterForm').submit();
