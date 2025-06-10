@@ -1545,16 +1545,17 @@ public function getBarangayStats(Request $request)
         ->leftJoin('transactions', 'animals.animal_id', '=', 'transactions.animal_id')
         ->leftJoin('transaction_types', 'transactions.transaction_type_id', '=', 'transaction_types.id');
 
-        // Apply filters
-        if ($request->filled('dateRange') && $request->dateRange !== 'all') {
-            $days = intval($request->dateRange);
-            $query->where('transactions.created_at', '>=', now()->subDays($days));
+        // Apply barangay filter if provided
+        if ($request->filled('barangay')) {
+            $query->where('barangays.barangay_name', $request->barangay);
         }
 
+        // Apply species filter if provided
         if ($request->filled('species')) {
             $query->where('species.id', $request->species);
         }
 
+        // Apply vaccination status filter
         if ($request->filled('status')) {
             if ($request->status === 'vaccinated') {
                 $query->whereRaw('EXISTS (
@@ -1575,6 +1576,12 @@ public function getBarangayStats(Request $request)
                         OR tt.type_name LIKE "%vaccine%")
                 )');
             }
+        }
+
+        // Apply date range filter
+        if ($request->filled('dateRange') && $request->dateRange !== 'all') {
+            $days = (int) $request->dateRange;
+            $query->where('transactions.created_at', '>=', now()->subDays($days));
         }
 
         $barangayStats = $query->groupBy('barangays.id', 'barangays.barangay_name')->get();
