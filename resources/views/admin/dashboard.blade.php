@@ -238,13 +238,128 @@
 
             <!-- Recent Transactions Section -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        Recent Transactions
-                    </h2>
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex flex-col space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Recent Transactions
+                            </h2>
+                            
+                            <!-- Toggle Filters Button -->
+                            <button type="button" onclick="toggleFilters()" 
+                                    class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                </svg>
+                                <span>Filters</span>
+                                @if(request('search') || request('status') !== null || request('veterinarian') || request('technician'))
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Active
+                                    </span>
+                                @endif
+                            </button>
+                        </div>
+
+                        <!-- Filters Section -->
+                        <div id="filtersSection" class="hidden bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <form method="GET" action="{{ route('admin-dashboard') }}" class="space-y-4">
+                                <!-- Preserve other query parameters -->
+                                @if(request('period'))
+                                    <input type="hidden" name="period" value="{{ request('period') }}">
+                                @endif
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <!-- Search Input -->
+                                    <div>
+                                        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search Owner/Animal</label>
+                                        <div class="relative rounded-md shadow-sm">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                                </svg>
+                                            </div>
+                                            <input type="text" 
+                                                   id="search" 
+                                                   name="search" 
+                                                   value="{{ request('search') }}"
+                                                   class="pl-10 w-full rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500" 
+                                                   placeholder="Search...">
+                                        </div>
+                                    </div>
+
+                                    <!-- Status Filter -->
+                                    <div>
+                                        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                        <select id="status" 
+                                                name="status" 
+                                                class="w-full rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500">
+                                            <option value="">All Status</option>
+                                            @foreach($statuses as $key => $status)
+                                                <option value="{{ $key }}" {{ (string)request('status') === (string)$key ? 'selected' : '' }}>
+                                                    {{ $status }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- Veterinarian Filter -->
+                                    <div>
+                                        <label for="veterinarian" class="block text-sm font-medium text-gray-700 mb-1">Veterinarian</label>
+                                        <select id="veterinarian" 
+                                                name="veterinarian" 
+                                                class="w-full rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500">
+                                            <option value="">All Veterinarians</option>
+                                            @foreach($veterinarians as $vet)
+                                                <option value="{{ $vet->user_id }}" {{ (string)request('veterinarian') === (string)$vet->user_id ? 'selected' : '' }}>
+                                                    {{ $vet->complete_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- Technician Filter -->
+                                    <div>
+                                        <label for="technician" class="block text-sm font-medium text-gray-700 mb-1">Technician</label>
+                                        <select id="technician" 
+                                                name="technician" 
+                                                class="w-full rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500">
+                                            <option value="">All Technicians</option>
+                                            @foreach($technicians as $tech)
+                                                <option value="{{ $tech->technician_id }}" {{ (string)request('technician') === (string)$tech->technician_id ? 'selected' : '' }}>
+                                                    {{ $tech->full_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end space-x-2 pt-2">
+                                    @if(request('search') || request('status') !== null || request('veterinarian') || request('technician'))
+                                        <a href="{{ route('admin-dashboard', array_merge(
+                                            request()->except(['search', 'status', 'veterinarian', 'technician']),
+                                            ['period' => request('period')]
+                                        )) }}" 
+                                           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                            Clear Filters
+                                        </a>
+                                    @endif
+                                    <button type="submit" 
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                        </svg>
+                                        Apply Filters
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -789,5 +904,17 @@
         function closeBarangayModal() {
             document.getElementById('barangayModal').classList.add('hidden');
         }
+
+        function toggleFilters() {
+            const filtersSection = document.getElementById('filtersSection');
+            filtersSection.classList.toggle('hidden');
+        }
+
+        // Show filters section if any filters are active
+        document.addEventListener('DOMContentLoaded', function() {
+            if (@json(request('search') || request('status') !== null || request('veterinarian') || request('technician'))) {
+                document.getElementById('filtersSection').classList.remove('hidden');
+            }
+        });
     </script>
 </x-app-layout>
