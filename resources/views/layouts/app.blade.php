@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name') }}</title>
+    <meta name="base-url" content="{{ url('') }}">
+
+    <title>{{ config('app.name', 'ValenciaVeterinariansOffice') }}</title>
 
     <!-- Preload Critical Assets -->
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
@@ -216,5 +218,7 @@ window.downloadIdCard = function(type) {
             </div>
         </div>
     </div>
+
+    @stack('scripts')
 </body>
 </html>

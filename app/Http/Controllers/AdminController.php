@@ -1498,4 +1498,114 @@ public function download(Document $document)
     );
 }
 
+public function getBarangayStats(Request $request)
+{
+    try {
+        \Log::info('Barangay Stats Request:', $request->all());
+
+        $query = Barangay::select(
+            'barangays.id',
+            'barangays.barangay_name',
+            DB::raw('COUNT(DISTINCT animals.animal_id) as total_animals'),
+            DB::raw('COUNT(DISTINCT CASE 
+                WHEN transactions.vaccine_id IS NOT NULL 
+                OR transaction_types.type_name LIKE "%vaccination%" 
+                OR transaction_types.type_name LIKE "%vaccine%" 
+                THEN animals.animal_id END) as vaccinated_animals'),
+            DB::raw('COUNT(DISTINCT CASE 
+                WHEN animals.animal_id IS NOT NULL 
+                AND NOT EXISTS (
+                    SELECT 1 FROM transactions t 
+                    JOIN transaction_types tt ON t.transaction_type_id = tt.id 
+                    WHERE t.animal_id = animals.animal_id 
+                    AND (t.vaccine_id IS NOT NULL 
+                        OR tt.type_name LIKE "%vaccination%" 
+                        OR tt.type_name LIKE "%vaccine%")
+                )
+                THEN animals.animal_id END) as unvaccinated_animals'),
+            DB::raw('COUNT(DISTINCT CASE 
+                WHEN transactions.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                AND (transactions.vaccine_id IS NOT NULL 
+                    OR transaction_types.type_name LIKE "%vaccination%" 
+                    OR transaction_types.type_name LIKE "%vaccine%")
+                THEN animals.animal_id END) as vaccinated_last_30_days'),
+            DB::raw('COUNT(DISTINCT CASE 
+                WHEN transactions.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                AND (transactions.vaccine_id IS NOT NULL 
+                    OR transaction_types.type_name LIKE "%vaccination%" 
+                    OR transaction_types.type_name LIKE "%vaccine%")
+                THEN animals.animal_id END) as vaccinated_last_7_days'),
+            DB::raw('GROUP_CONCAT(DISTINCT species.name) as animal_species')
+        )
+        ->leftJoin('addresses', 'barangays.id', '=', 'addresses.barangay_id')
+        ->leftJoin('users', 'addresses.user_id', '=', 'users.user_id')
+        ->leftJoin('owners', 'users.user_id', '=', 'owners.user_id')
+        ->leftJoin('animals', 'owners.owner_id', '=', 'animals.owner_id')
+        ->leftJoin('species', 'animals.species_id', '=', 'species.id')
+        ->leftJoin('transactions', 'animals.animal_id', '=', 'transactions.animal_id')
+        ->leftJoin('transaction_types', 'transactions.transaction_type_id', '=', 'transaction_types.id');
+
+        // Apply filters
+        if ($request->filled('dateRange') && $request->dateRange !== 'all') {
+            $days = intval($request->dateRange);
+            $query->where('transactions.created_at', '>=', now()->subDays($days));
+        }
+
+        if ($request->filled('species')) {
+            $query->where('species.id', $request->species);
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'vaccinated') {
+                $query->whereRaw('EXISTS (
+                    SELECT 1 FROM transactions t 
+                    JOIN transaction_types tt ON t.transaction_type_id = tt.id 
+                    WHERE t.animal_id = animals.animal_id 
+                    AND (t.vaccine_id IS NOT NULL 
+                        OR tt.type_name LIKE "%vaccination%" 
+                        OR tt.type_name LIKE "%vaccine%")
+                )');
+            } elseif ($request->status === 'unvaccinated') {
+                $query->whereRaw('NOT EXISTS (
+                    SELECT 1 FROM transactions t 
+                    JOIN transaction_types tt ON t.transaction_type_id = tt.id 
+                    WHERE t.animal_id = animals.animal_id 
+                    AND (t.vaccine_id IS NOT NULL 
+                        OR tt.type_name LIKE "%vaccination%" 
+                        OR tt.type_name LIKE "%vaccine%")
+                )');
+            }
+        }
+
+        $barangayStats = $query->groupBy('barangays.id', 'barangays.barangay_name')->get();
+        $species = Species::orderBy('name')->get();
+        
+        \Log::info('Barangay Stats Query Result Count: ' . $barangayStats->count());
+
+        $view = view('admin.partials.barangay-stats', [
+            'barangayStats' => $barangayStats,
+            'species' => $species
+        ]);
+
+        if ($request->ajax()) {
+            return response($view->render())
+                ->header('Content-Type', 'text/html');
+        }
+
+        return $view;
+
+    } catch (\Exception $e) {
+        \Log::error('Error in getBarangayStats: ' . $e->getMessage());
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
+        
+        if ($request->ajax()) {
+            return response()->json([
+                'error' => 'Failed to load barangay statistics',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+        
+        throw $e;
+    }
+}
 }
