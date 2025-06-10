@@ -347,7 +347,11 @@ Route::put('/update-tech/{transaction_id}', [AdminController::class, 'updateTech
 
 Route::put('/admin/{transaction_id}/update-dets', [AdminController::class, 'updateDetails'])->name('update.dets');
 
-
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('admin')->middleware(['admin'])->group(function () {
+        Route::get('/barangay-stats', [AdminController::class, 'getBarangayStats'])->name('admin.barangay-stats');
+    });
+});
 
 });
 
