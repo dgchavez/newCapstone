@@ -143,72 +143,75 @@
             </div>
 
             <!-- Enhanced Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" wire:ignore>
-                <!-- Left Column -->
-                <div class="space-y-6">
-                <!-- Transaction Status Distribution -->
-                    <div class="bg-white p-4 rounded-xl shadow-lg">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Transaction Status</h3>
-                            <div class="flex items-center text-sm text-gray-500">
-                                <span class="mr-2">Total: {{ $pendingTransactions + $completedTransactions + $canceledTransactions }}</span>
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Dashboard Analytics</h2>
+                
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Left Side -->
+                    <div class="space-y-6">
+                        <!-- Transaction Status Distribution -->
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800">Transaction Status</h3>
+                                <div class="text-sm text-gray-500">
+                                    <span class="mr-2">Total: {{ $pendingTransactions + $completedTransactions + $canceledTransactions }}</span>
+                                </div>
+                            </div>
+                            <div class="h-[250px]">
+                                <canvas id="transactionStatusChart"></canvas>
                             </div>
                         </div>
-                        <div class="h-64">
-                            <canvas id="transactionStatusChart"></canvas>
+
+                        <!-- Species Distribution -->
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800">Species Distribution</h3>
+                                <div class="text-sm text-gray-500">
+                                    <span class="mr-2">Total: {{ array_sum($animalTypeCounts) }}</span>
+                                </div>
+                            </div>
+                            <div class="h-[250px]">
+                                <canvas id="animalTypesChart"></canvas>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Animal Types Distribution -->
-                    <div class="bg-white p-4 rounded-xl shadow-lg">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Species Distribution</h3>
-                            <div class="flex items-center text-sm text-gray-500">
-                                <span class="mr-2">Total: {{ array_sum($animalTypeCounts) }}</span>
+                    <!-- Right Side -->
+                    <div class="space-y-6">
+                        <!-- Vaccination Statistics -->
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800">Vaccination Trends</h3>
+                                <div class="flex items-center space-x-2">
+                                    <form method="GET" action="{{ route('admin-dashboard') }}" class="flex items-center">
+                                        <select name="period" class="text-sm p-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" onchange="this.form.submit()">
+                                            <option value="weekly" {{ $period === 'weekly' ? 'selected' : '' }}>Weekly</option>
+                                            <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>Monthly</option>
+                                            <option value="yearly" {{ $period === 'yearly' ? 'selected' : '' }}>Yearly</option>
+                                        </select>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="animalTypesChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Column -->
-                <div class="space-y-6">
-                    <!-- Vaccination Statistics -->
-                    <div class="bg-white p-4 rounded-xl shadow-lg">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Vaccination Trends</h3>
-                            <div class="flex items-center space-x-2">
-                                <form method="GET" action="{{ route('admin-dashboard') }}" class="flex items-center">
-                                    <select name="period" class="text-sm p-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" onchange="this.form.submit()">
-                                        <option value="weekly" {{ $period === 'weekly' ? 'selected' : '' }}>Weekly</option>
-                                        <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>Monthly</option>
-                                        <option value="yearly" {{ $period === 'yearly' ? 'selected' : '' }}>Yearly</option>
-                                    </select>
-                                </form>
+                            <div class="h-[200px] mb-4">
+                                <canvas id="vaccinationChart"></canvas>
                             </div>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="vaccinationChart"></canvas>
-                        </div>
-                        <div class="mt-4 grid grid-cols-3 gap-3">
-                            <div class="bg-purple-50 p-3 rounded-lg">
-                                <p class="text-xs font-semibold text-purple-800">Total</p>
-                                <p class="text-lg font-bold text-purple-600">{{ $totalVaccinations }}</p>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="bg-purple-50 p-3 rounded-lg">
+                                    <p class="text-xs font-semibold text-purple-800">Total</p>
+                                    <p class="text-lg font-bold text-purple-600">{{ $totalVaccinations }}</p>
+                                </div>
+                                <div class="bg-purple-50 p-3 rounded-lg">
+                                    <p class="text-xs font-semibold text-purple-800">This Month</p>
+                                    <p class="text-lg font-bold text-purple-600">{{ $vaccinationsThisMonth }}</p>
+                                </div>
+                                <div class="bg-purple-50 p-3 rounded-lg">
+                                    <p class="text-xs font-semibold text-purple-800">Avg/{{ $period }}</p>
+                                    <p class="text-lg font-bold text-purple-600">
+                                        {{ count($vaccinationCounts) > 0 ? round(array_sum($vaccinationCounts) / count($vaccinationCounts), 1) : 0 }}
+                                    </p>
+                                </div>
                             </div>
-                            <div class="bg-purple-50 p-3 rounded-lg">
-                                <p class="text-xs font-semibold text-purple-800">This Month</p>
-                                <p class="text-lg font-bold text-purple-600">{{ $vaccinationsThisMonth }}</p>
-                            </div>
-                            <div class="bg-purple-50 p-3 rounded-lg">
-                                <p class="text-xs font-semibold text-purple-800">Avg/{{ $period }}</p>
-                                <p class="text-lg font-bold text-purple-600">
-                                    {{ count($vaccinationCounts) > 0 ? round(array_sum($vaccinationCounts) / count($vaccinationCounts), 1) : 0 }}
-                                </p>
-                            </div>
-                            <!-- Add View Details Button -->
-                            <div class="col-span-3 mt-3">
+                            <div class="mt-3">
                                 <button type="button" onclick="openBarangayModal()"
                                     class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-200 flex items-center justify-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -217,24 +220,23 @@
                                     View Barangay Statistics
                                 </button>
                             </div>
-                    </div>
-                </div>
-
-                <!-- Statistics Overview -->
-                    <div class="bg-white p-4 rounded-xl shadow-lg">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Overview</h3>
-                            <div class="flex items-center text-sm text-gray-500">
-                                <span>Monthly Summary</span>
-                            </div>
                         </div>
-                        <div class="h-64">
-                            <canvas id="statisticsChart"></canvas>
+
+                        <!-- Statistics Overview -->
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800">Overview</h3>
+                                <div class="text-sm text-gray-500">
+                                    <span>Monthly Summary</span>
+                                </div>
+                            </div>
+                            <div class="h-[250px]">
+                                <canvas id="statisticsChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
 
             <!-- Recent Transactions Section -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">

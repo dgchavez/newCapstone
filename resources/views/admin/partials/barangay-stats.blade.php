@@ -1,55 +1,7 @@
 <!-- Enhanced Filters -->
 <div class="p-4 bg-gray-50 border-b border-gray-200">
     <form id="barangayFilterForm" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Show Only Unvaccinated -->
-            <div class="flex items-center space-x-2">
-                <input type="checkbox" name="show_unvaccinated_only" id="show_unvaccinated_only" 
-                       class="rounded border-gray-300 text-green-600 focus:ring-green-500 filter-input"
-                       {{ request('show_unvaccinated_only') ? 'checked' : '' }}>
-                <label for="show_unvaccinated_only" class="text-sm text-gray-700">
-                    Show Only Barangays with Unvaccinated Animals
-                </label>
-            </div>
 
-            <!-- Minimum Unvaccinated Filter -->
-            <div class="flex items-center space-x-2">
-                <label for="min_unvaccinated" class="text-sm text-gray-700">Minimum Unvaccinated:</label>
-                <input type="number" name="min_unvaccinated" id="min_unvaccinated" 
-                       class="rounded-lg border-gray-300 text-sm w-20 filter-input"
-                       value="{{ request('min_unvaccinated') }}" min="0">
-            </div>
-
-            <!-- Sort Options -->
-            <div class="flex items-center space-x-4">
-                <label for="sort_by" class="text-sm text-gray-700">Sort by:</label>
-                <select name="sort_by" id="sort_by" class="rounded-lg border-gray-300 text-sm filter-input">
-                    <option value="unvaccinated_animals" {{ request('sort_by') == 'unvaccinated_animals' ? 'selected' : '' }}>
-                        Unvaccinated Count
-                    </option>
-                    <option value="vaccination_rate" {{ request('sort_by') == 'vaccination_rate' ? 'selected' : '' }}>
-                        Vaccination Rate
-                    </option>
-                    <option value="total_animals" {{ request('sort_by') == 'total_animals' ? 'selected' : '' }}>
-                        Total Animals
-                    </option>
-                    <option value="barangay_name" {{ request('sort_by') == 'barangay_name' ? 'selected' : '' }}>
-                        Barangay Name
-                    </option>
-                </select>
-
-                <select name="sort_dir" id="sort_dir" class="rounded-lg border-gray-300 text-sm filter-input">
-                    <option value="asc" {{ request('sort_dir') == 'asc' ? 'selected' : '' }}>Ascending</option>
-                    <option value="desc" {{ request('sort_dir', 'desc') == 'desc' ? 'selected' : '' }}>Descending</option>
-                </select>
-
-                <button type="button" onclick="resetFilters()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm">
-                    Reset Filters
-                </button>
-            </div>
-        </div>
-    </form>
-</div>
 
 <div id="barangayStatsContent" class="overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200">
