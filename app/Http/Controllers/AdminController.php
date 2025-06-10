@@ -1538,6 +1538,9 @@ public function getBarangayStats(Request $request)
     try {
         \Log::info('Barangay Stats Request:', $request->all());
 
+        // Get all species for the filter dropdown
+        $species = \App\Models\Species::select('id', 'name')->orderBy('name')->get();
+
         $query = Barangay::select(
             'barangays.id',
             'barangays.barangay_name',
@@ -1655,11 +1658,11 @@ public function getBarangayStats(Request $request)
             });
 
         if ($request->ajax()) {
-            $view = view('admin.partials.barangay-stats', compact('barangayStats'))->render();
+            $view = view('admin.partials.barangay-stats', compact('barangayStats', 'species'))->render();
             return response($view)->header('Content-Type', 'text/html');
         }
 
-        return view('admin.partials.barangay-stats', compact('barangayStats'));
+        return view('admin.partials.barangay-stats', compact('barangayStats', 'species'));
 
     } catch (\Exception $e) {
         \Log::error('Error in getBarangayStats: ' . $e->getMessage());

@@ -306,29 +306,54 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('barangayFilterForm');
-    const filters = form.querySelectorAll('select');
+document.addEventListener('livewire:navigated', function() {
+    initializeBarangayStats();
+});
 
+document.addEventListener('DOMContentLoaded', function() {
+    initializeBarangayStats();
+});
+
+function initializeBarangayStats() {
+    const form = document.getElementById('barangayFilterForm');
+    if (!form) return;
+
+    const filters = form.querySelectorAll('select');
     filters.forEach(filter => {
         filter.addEventListener('change', () => {
             updateBarangayStats();
         });
     });
-});
+}
 
 function resetFilters() {
     const form = document.getElementById('barangayFilterForm');
+    if (!form) return;
+    
     form.reset();
     updateBarangayStats();
 }
 
 function updateBarangayStats() {
-    const formData = new FormData(document.getElementById('barangayFilterForm'));
+    const form = document.getElementById('barangayFilterForm');
+    if (!form) return;
+
+    const formData = new FormData(form);
     const queryString = new URLSearchParams(formData).toString();
 
+    // Store current filter values
+    const currentFilters = {
+        barangay: form.querySelector('#barangay')?.value || '',
+        dateRange: form.querySelector('#dateRange')?.value || '',
+        species: form.querySelector('#species')?.value || '',
+        status: form.querySelector('#status')?.value || ''
+    };
+
     // Show loading state
-    document.getElementById('barangayStatsContent').innerHTML = `
+    const contentDiv = document.getElementById('barangayStatsContent');
+    if (!contentDiv) return;
+
+    contentDiv.innerHTML = `
         <div class="flex justify-center items-center p-8">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
             <span class="ml-2 text-gray-600">Updating statistics...</span>
@@ -378,19 +403,34 @@ function updateBarangayStats() {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html.trim();
             
-            // Look for the content
+            // Update the content
+            const targetElement = document.getElementById('barangayStatsContent');
+            if (!targetElement) throw new Error('Target element not found');
+
             const newContent = tempDiv.querySelector('#barangayStatsContent');
             if (!newContent) {
                 console.error('Response HTML:', html);
                 throw new Error('Could not find statistics content in response');
             }
+            targetElement.innerHTML = newContent.innerHTML;
 
-            const targetElement = document.getElementById('barangayStatsContent');
-            if (!targetElement) {
-                throw new Error('Target element not found on page');
+            // Restore filter values
+            const newForm = document.getElementById('barangayFilterForm');
+            if (newForm) {
+                const barangaySelect = newForm.querySelector('#barangay');
+                const dateRangeSelect = newForm.querySelector('#dateRange');
+                const speciesSelect = newForm.querySelector('#species');
+                const statusSelect = newForm.querySelector('#status');
+
+                if (barangaySelect) barangaySelect.value = currentFilters.barangay;
+                if (dateRangeSelect) dateRangeSelect.value = currentFilters.dateRange;
+                if (speciesSelect) speciesSelect.value = currentFilters.species;
+                if (statusSelect) statusSelect.value = currentFilters.status;
+
+                // Reinitialize event listeners
+                initializeBarangayStats();
             }
 
-            targetElement.innerHTML = newContent.innerHTML;
         } catch (error) {
             console.error('Error processing response:', error);
             throw new Error('Failed to process server response');
@@ -398,7 +438,10 @@ function updateBarangayStats() {
     })
     .catch(error => {
         console.error('Error details:', error);
-        document.getElementById('barangayStatsContent').innerHTML = `
+        const contentDiv = document.getElementById('barangayStatsContent');
+        if (!contentDiv) return;
+
+        contentDiv.innerHTML = `
             <div class="text-center py-12">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
                     <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
