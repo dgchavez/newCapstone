@@ -1,5 +1,93 @@
 <!-- Enhanced Filters -->
 <div class="p-4 bg-gray-50 border-b border-gray-200">
+    <!-- Summary Cards -->
+    @if(isset($barangayStats) && $barangayStats->isNotEmpty())
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        @php
+            $totalAnimals = $barangayStats->sum('total_animals');
+            $totalVaccinated = $barangayStats->sum('vaccinated_animals');
+            $totalUnvaccinated = $barangayStats->sum('unvaccinated_animals');
+            $overallCoverage = $totalAnimals > 0 ? ($totalVaccinated / $totalAnimals) * 100 : 0;
+            $recentVaccinations = $barangayStats->sum('vaccinated_last_30_days');
+        @endphp
+        
+        <!-- Total Animals Card -->
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Animals</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($totalAnimals) }}</p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-full">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-2">
+                <p class="text-sm text-gray-600">Across {{ $barangayStats->count() }} barangays</p>
+            </div>
+        </div>
+
+        <!-- Vaccination Coverage Card -->
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Overall Coverage</p>
+                    <p class="text-2xl font-bold {{ $overallCoverage >= 70 ? 'text-green-600' : ($overallCoverage >= 40 ? 'text-yellow-600' : 'text-red-600') }}">
+                        {{ number_format($overallCoverage, 1) }}%
+                    </p>
+                </div>
+                <div class="p-3 rounded-full {{ $overallCoverage >= 70 ? 'bg-green-100' : ($overallCoverage >= 40 ? 'bg-yellow-100' : 'bg-red-100') }}">
+                    <svg class="w-6 h-6 {{ $overallCoverage >= 70 ? 'text-green-600' : ($overallCoverage >= 40 ? 'text-yellow-600' : 'text-red-600') }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-2">
+                <p class="text-sm text-gray-600">{{ number_format($totalVaccinated) }} vaccinated animals</p>
+            </div>
+        </div>
+
+        <!-- Recent Activity Card -->
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Recent Vaccinations</p>
+                    <p class="text-2xl font-bold text-purple-600">{{ number_format($recentVaccinations) }}</p>
+                </div>
+                <div class="p-3 bg-purple-100 rounded-full">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-2">
+                <p class="text-sm text-gray-600">In the last 30 days</p>
+            </div>
+        </div>
+
+        <!-- Attention Needed Card -->
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Need Vaccination</p>
+                    <p class="text-2xl font-bold text-red-600">{{ number_format($totalUnvaccinated) }}</p>
+                </div>
+                <div class="p-3 bg-red-100 rounded-full">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-2">
+                <p class="text-sm text-gray-600">Require immediate attention</p>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Filters Form -->
     <form id="barangayFilterForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
             <label for="dateRange" class="block text-sm font-medium text-gray-700">Date Range</label>
@@ -51,31 +139,56 @@
                     <tr class="hover:bg-gray-50 {{ $stat->unvaccinated_animals > 0 ? 'bg-red-50' : '' }}">
                         <td class="px-6 py-4">
                             <div class="flex items-center">
-                                <div class="text-sm font-medium text-gray-900">{{ $stat->barangay_name }}</div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $stat->barangay_name }}</div>
+                                    @if($stat->total_animals > 0)
+                                        <div class="text-xs text-gray-500">
+                                            Rank: {{ $loop->iteration }} of {{ $loop->count }}
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ $stat->total_animals }}</div>
+                            <div class="text-sm text-gray-900">{{ number_format($stat->total_animals) }}</div>
+                            <div class="text-xs text-gray-500">
+                                {{ number_format(($stat->total_animals / $totalAnimals) * 100, 1) }}% of total
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-green-600 font-medium">{{ $stat->vaccinated_animals }}</div>
+                            <div class="text-sm text-green-600 font-medium">{{ number_format($stat->vaccinated_animals) }}</div>
                             @if($stat->vaccinated_last_30_days > 0)
-                                <div class="text-xs text-green-500">+{{ $stat->vaccinated_last_30_days }} in 30d</div>
+                                <div class="text-xs text-green-500">
+                                    +{{ number_format($stat->vaccinated_last_30_days) }} in 30d
+                                    <span class="text-gray-500">({{ number_format(($stat->vaccinated_last_30_days / $stat->vaccinated_animals) * 100, 1) }}%)</span>
+                                </div>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-red-600 font-medium">{{ $stat->unvaccinated_animals }}</div>
+                            <div class="text-sm text-red-600 font-medium">{{ number_format($stat->unvaccinated_animals) }}</div>
                             @if($stat->unvaccinated_animals > 0)
-                                <div class="text-xs text-red-500">Needs attention</div>
+                                <div class="text-xs text-red-500">
+                                    {{ number_format(($stat->unvaccinated_animals / $stat->total_animals) * 100, 1) }}% unprotected
+                                </div>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex flex-col space-y-1">
                                 <div class="text-sm text-gray-600">
-                                    Last 7d: {{ $stat->vaccinated_last_7_days }}
+                                    Last 7d: {{ number_format($stat->vaccinated_last_7_days) }}
+                                    @if($stat->vaccinated_last_7_days > 0)
+                                        <span class="text-xs text-green-500">
+                                            ({{ number_format(($stat->vaccinated_last_7_days / $stat->vaccinated_last_30_days) * 100, 1) }}% of 30d)
+                                        </span>
+                                    @endif
                                 </div>
                                 <div class="text-sm text-gray-600">
-                                    Last 30d: {{ $stat->vaccinated_last_30_days }}
+                                    Last 30d: {{ number_format($stat->vaccinated_last_30_days) }}
+                                    @if($stat->vaccinated_last_30_days > 0)
+                                        <span class="text-xs text-green-500">
+                                            ({{ number_format(($stat->vaccinated_last_30_days / $stat->vaccinated_animals) * 100, 1) }}% of total)
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </td>
@@ -83,16 +196,25 @@
                             <div class="flex flex-wrap gap-1">
                                 @php
                                     $speciesArray = explode(',', $stat->animal_species ?? '');
+                                    $speciesCount = count(array_filter($speciesArray));
                                 @endphp
                                 @forelse($speciesArray as $species)
                                     @if(!empty(trim($species)))
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                             {{ trim($species) }}
+                                            @if(isset($stat->species_counts) && is_array($stat->species_counts))
+                                                <span class="ml-1 text-blue-600">({{ $stat->species_counts[trim($species)] ?? 0 }})</span>
+                                            @endif
                                         </span>
                                     @endif
                                 @empty
                                     <span class="text-sm text-gray-500">No species data</span>
                                 @endforelse
+                                @if($speciesCount > 0)
+                                    <div class="w-full mt-1 text-xs text-gray-500">
+                                        {{ $speciesCount }} species present
+                                    </div>
+                                @endif
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -116,6 +238,15 @@
                                 }}">
                                     {{ number_format($vaccinationRate, 1) }}%
                                 </span>
+                            </div>
+                            <div class="mt-1 text-xs text-gray-500">
+                                @if($vaccinationRate >= 70)
+                                    Good coverage
+                                @elseif($vaccinationRate >= 40)
+                                    Needs improvement
+                                @else
+                                    Critical attention needed
+                                @endif
                             </div>
                         </td>
                     </tr>
