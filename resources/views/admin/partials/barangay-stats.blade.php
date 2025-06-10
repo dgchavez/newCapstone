@@ -147,6 +147,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unvaccinated</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recent Activity</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Species Present</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccines Used</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Coverage</th>
                 </tr>
             </thead>
@@ -230,6 +231,20 @@
                                     <div class="w-full mt-1 text-xs text-gray-500">
                                         {{ $speciesCount }} species present
                                     </div>
+                                @endif
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-wrap gap-1">
+                                @if(isset($stat->vaccines_used))
+                                    @foreach($stat->vaccines_used as $vaccine => $count)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            {{ $vaccine }}
+                                            <span class="ml-1 text-green-600">({{ $count }})</span>
+                                        </span>
+                                    @endforeach
+                                @else
+                                    <span class="text-sm text-gray-500">No vaccine data</span>
                                 @endif
                             </div>
                         </td>
