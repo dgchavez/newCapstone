@@ -207,6 +207,16 @@
                                     {{ count($vaccinationCounts) > 0 ? round(array_sum($vaccinationCounts) / count($vaccinationCounts), 1) : 0 }}
                                 </p>
                             </div>
+                            <!-- Add View Details Button -->
+                            <div class="col-span-3 mt-3">
+                                <button type="button" onclick="openBarangayModal()"
+                                    class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-200 flex items-center justify-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    View Barangay Statistics
+                                </button>
+                            </div>
                     </div>
                 </div>
 
@@ -225,264 +235,6 @@
                 </div>
             </div>
 
-            <!-- Species-wise Vaccination Distribution -->
-            <div class="bg-white p-4 rounded-xl shadow-lg mt-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Vaccinations by Species</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                    @foreach($vaccinationsBySpecies as $species)
-                        <div class="bg-purple-50 p-3 rounded-lg">
-                            <h4 class="text-sm font-semibold text-purple-800">{{ $species->name }}</h4>
-                            <p class="text-xl font-bold text-purple-600">{{ $species->animals_count }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Filters and Search Section -->
-            <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-500">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    Filters & Search
-                </h2>
-            <div class="bg-white p-6 rounded-2xl shadow-md space-y-6">
-                <div class="flex justify-between items-center mb-4">
-                    <a href="{{ route('admin-dashboard') }}" 
-                       class="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300">
-                        Reset Filters
-                    </a>
-                    </div>
-
-                    <!-- Enhanced Filters -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <!-- Existing Filters -->
-                        <form method="GET" action="{{ route('admin-dashboard') }}" class="space-y-4">
-                        <!-- Status Filter -->
-                            <select name="status" class="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300">
-                                <option value="" {{ request('status') === null ? 'selected' : '' }}>All Status</option>
-                                @foreach($statuses as $key => $status)
-                                    <option value="{{ $key }}" {{ request('status') == $key ? 'selected' : '' }}>
-                                        {{ $status }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            <!-- Barangay Filter -->
-                            <select name="barangay" class="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300">
-                                <option value="">All Barangays</option>
-                                @foreach($barangays as $barangay)
-                                    <option value="{{ $barangay->id }}" {{ $barangayFilter == $barangay->id ? 'selected' : '' }}>
-                                        {{ $barangay->barangay_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            <!-- Show Unvaccinated Checkbox -->
-                            <div class="flex items-center space-x-2">
-                                <input type="checkbox" name="show_unvaccinated" id="show_unvaccinated" 
-                                       class="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                                       {{ $showUnvaccinated ? 'checked' : '' }}>
-                                <label for="show_unvaccinated" class="text-sm text-gray-700">
-                                    Show Unvaccinated Animals
-                                </label>
-                            </div>
-
-                            </div>
-
-                            <button type="submit" class="w-full px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-300">
-                                Apply Filters
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Barangay Vaccination Statistics -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden mt-6">
-                <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        Barangay Vaccination Statistics
-                    </h2>
-                </div>
-
-                <!-- Enhanced Filters -->
-                <div class="p-4 bg-gray-50 border-b border-gray-200">
-                    <form method="GET" action="{{ route('admin-dashboard') }}" class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <!-- Show Only Unvaccinated -->
-                            <div class="flex items-center space-x-2">
-                                <input type="checkbox" name="show_unvaccinated_only" id="show_unvaccinated_only" 
-                                       class="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                                       {{ request('show_unvaccinated_only') ? 'checked' : '' }}>
-                                <label for="show_unvaccinated_only" class="text-sm text-gray-700">
-                                    Show Only Barangays with Unvaccinated Animals
-                                </label>
-                            </div>
-
-                            <!-- Minimum Unvaccinated Filter -->
-                            <div class="flex items-center space-x-2">
-                                <label for="min_unvaccinated" class="text-sm text-gray-700">Minimum Unvaccinated:</label>
-                                <input type="number" name="min_unvaccinated" id="min_unvaccinated" 
-                                       class="rounded-lg border-gray-300 text-sm w-20"
-                                       value="{{ request('min_unvaccinated') }}" min="0">
-                            </div>
-
-
-                        <!-- Sort Options -->
-                        <div class="flex items-center space-x-4">
-                            <label for="sort_by" class="text-sm text-gray-700">Sort by:</label>
-                            <select name="sort_by" id="sort_by" class="rounded-lg border-gray-300 text-sm">
-                                <option value="unvaccinated_animals" {{ request('sort_by') == 'unvaccinated_animals' ? 'selected' : '' }}>
-                                    Unvaccinated Count
-                                </option>
-                                <option value="vaccination_rate" {{ request('sort_by') == 'vaccination_rate' ? 'selected' : '' }}>
-                                    Vaccination Rate
-                                </option>
-                                <option value="total_animals" {{ request('sort_by') == 'total_animals' ? 'selected' : '' }}>
-                                    Total Animals
-                                </option>
-                                <option value="barangay_name" {{ request('sort_by') == 'barangay_name' ? 'selected' : '' }}>
-                                    Barangay Name
-                                </option>
-                            </select>
-
-                            <select name="sort_dir" id="sort_dir" class="rounded-lg border-gray-300 text-sm">
-                                <option value="asc" {{ request('sort_dir') == 'asc' ? 'selected' : '' }}>Ascending</option>
-                                <option value="desc" {{ request('sort_dir', 'desc') == 'desc' ? 'selected' : '' }}>Descending</option>
-                            </select>
-
-                            <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm">
-                                Apply Filters
-                            </button>
-
-                            <a href="{{ route('admin-dashboard') }}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm">
-                                Reset Filters
-                            </a>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barangay</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Animals</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccinated</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unvaccinated</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last 30 Days</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last 7 Days</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Species Present</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccination Rate</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($barangayStats as $stat)
-                                <tr class="hover:bg-gray-50 {{ $stat->unvaccinated_animals > 0 ? 'bg-red-50' : '' }}">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">{{ $stat->barangay_name }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $stat->total_animals }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-green-600">{{ $stat->vaccinated_animals }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-red-600 font-semibold">{{ $stat->unvaccinated_animals }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-blue-600">{{ $stat->vaccinated_last_30_days }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-blue-600">{{ $stat->vaccinated_last_7_days }}</div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-900">
-                                            @foreach($stat->animal_species_array as $species)
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1">
-                                                    {{ $species }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="relative w-32 h-2 bg-gray-200 rounded">
-                                                <div class="absolute top-0 left-0 h-2 {{ $stat->vaccination_rate >= 70 ? 'bg-green-500' : ($stat->vaccination_rate >= 40 ? 'bg-yellow-500' : 'bg-red-500') }} rounded" 
-                                                     style="width: {{ $stat->vaccination_rate }}%"></div>
-                                            </div>
-                                            <span class="ml-2 text-sm text-gray-600">{{ $stat->vaccination_rate }}%</span>
-                                        </div>
-                                        @if($stat->vaccinated_last_30_days > 0)
-                                            <div class="text-xs text-green-600 mt-1">
-                                                +{{ $stat->recent_vaccination_rate }}% in last 30 days
-                                            </div>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            @if($showUnvaccinated)
-            <!-- Unvaccinated Animals List -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden mt-6">
-                <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                        Unvaccinated Animals
-                    </h2>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Animal Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Species</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barangay</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($unvaccinatedAnimals as $animal)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">{{ $animal->name }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $animal->species->name }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $animal->owner->user->complete_name }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $animal->owner->user->address->barangay->barangay_name }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <a href="{{ route('animals.profile', ['animal_id' => $animal->animal_id]) }}" 
-                                           class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:border-green-700 focus:shadow-outline-green active:bg-green-700 transition duration-150 ease-in-out">
-                                            View Profile
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            @endif
 
             <!-- Recent Transactions Section -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -626,6 +378,41 @@
         </div>
     </div>
 
+    <!-- Barangay Statistics Modal -->
+    <div id="barangayModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <!-- Modal panel -->
+            <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-7xl sm:w-full">
+                <div class="absolute top-0 right-0 pt-4 pr-4">
+                    <button type="button" onclick="closeBarangayModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Barangay Vaccination Statistics
+                    </h2>
+
+                    <!-- Copy the content from the original section -->
+                    @include('admin.partials.barangay-stats')
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -635,6 +422,30 @@
             stats: null,
             vaccination: null,
             animalTypes: null
+        };
+
+        let chartData = {
+            transactionStatus: {
+                labels: ['Pending', 'Completed', 'Canceled'],
+                data: [{{ $pendingTransactions }}, {{ $completedTransactions }}, {{ $canceledTransactions }}]
+            },
+            vaccination: {
+                labels: {!! json_encode($vaccinationLabels) !!},
+                data: {!! json_encode($vaccinationCounts) !!}
+            },
+            statistics: {
+                labels: ['Owners', 'Transactions', 'Animals', 'Vaccinations'],
+                data: [
+                    {{ $totalOwners }},
+                    {{ $successfulTransactions }},
+                    {{ $totalAnimals }},
+                    {{ $totalVaccinations ?? 0 }}
+                ]
+            },
+            animalTypes: {
+                labels: {!! json_encode($animalTypes) !!},
+                data: {!! json_encode($animalTypeCounts) !!}
+            }
         };
 
         function destroyCharts() {
@@ -651,35 +462,25 @@
             };
         }
 
-        function createCharts() {
-            if (!document.getElementById('transactionStatusChart') || 
-                !document.getElementById('statisticsChart') || 
-                !document.getElementById('vaccinationChart') || 
-                !document.getElementById('animalTypesChart')) {
-                console.log('Chart elements not found, waiting...');
-                return;
-            }
-
-            destroyCharts();
-
-            try {
-                // Transaction Status Chart
+        function initializeCharts() {
+            // Transaction Status Chart
+            if (document.getElementById('transactionStatusChart')) {
                 charts.status = new Chart(
                     document.getElementById('transactionStatusChart').getContext('2d'),
                     {
-                type: 'doughnut',
-                data: {
-                    labels: ['Pending', 'Completed', 'Canceled'],
-                    datasets: [{
-                                data: [{{ $pendingTransactions }}, {{ $completedTransactions }}, {{ $canceledTransactions }}],
+                        type: 'doughnut',
+                        data: {
+                            labels: chartData.transactionStatus.labels,
+                            datasets: [{
+                                data: chartData.transactionStatus.data,
                                 backgroundColor: ['#FCD34D', '#34D399', '#F87171']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
                                     position: 'bottom',
                                     labels: {
                                         boxWidth: 12,
@@ -691,16 +492,18 @@
                         }
                     }
                 );
+            }
 
-                // Vaccination Chart
+            // Vaccination Chart
+            if (document.getElementById('vaccinationChart')) {
                 charts.vaccination = new Chart(
                     document.getElementById('vaccinationChart').getContext('2d'),
                     {
                         type: 'line',
                         data: {
-                            labels: {!! json_encode($vaccinationLabels) !!},
+                            labels: chartData.vaccination.labels,
                             datasets: [{
-                                data: {!! json_encode($vaccinationCounts) !!},
+                                data: chartData.vaccination.data,
                                 borderColor: 'rgb(147, 51, 234)',
                                 backgroundColor: 'rgba(147, 51, 234, 0.1)',
                                 tension: 0.3,
@@ -754,40 +557,37 @@
                         }
                     }
                 );
+            }
 
             // Statistics Overview Chart
+            if (document.getElementById('statisticsChart')) {
                 charts.stats = new Chart(
                     document.getElementById('statisticsChart').getContext('2d'),
                     {
-                type: 'bar',
-                data: {
-                            labels: ['Owners', 'Transactions', 'Animals', 'Vaccinations'],
-                    datasets: [{
-                        data: [
-                            {{ $totalOwners }},
-                            {{ $successfulTransactions }},
-                                    {{ $totalAnimals }},
-                                    {{ $totalVaccinations ?? 0 }}
-                        ],
-                        backgroundColor: [
+                        type: 'bar',
+                        data: {
+                            labels: chartData.statistics.labels,
+                            datasets: [{
+                                data: chartData.statistics.data,
+                                backgroundColor: [
                                     'rgba(59, 130, 246, 0.7)',
                                     'rgba(16, 185, 129, 0.7)',
                                     'rgba(245, 158, 11, 0.7)',
                                     'rgba(147, 51, 234, 0.7)'
                                 ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
                             plugins: {
                                 legend: {
                                     display: false
                                 }
                             },
-                    scales: {
-                        y: {
-                            beginAtZero: true
+                            scales: {
+                                y: {
+                                    beginAtZero: true
                                 },
                                 x: {
                                     grid: {
@@ -798,16 +598,18 @@
                         }
                     }
                 );
+            }
 
-                // Animal Types Chart
+            // Animal Types Chart
+            if (document.getElementById('animalTypesChart')) {
                 charts.animalTypes = new Chart(
                     document.getElementById('animalTypesChart').getContext('2d'),
                     {
                         type: 'pie',
                         data: {
-                            labels: {!! json_encode($animalTypes) !!},
+                            labels: chartData.animalTypes.labels,
                             datasets: [{
-                                data: {!! json_encode($animalTypeCounts) !!},
+                                data: chartData.animalTypes.data,
                                 backgroundColor: [
                                     'rgba(59, 130, 246, 0.7)',
                                     'rgba(16, 185, 129, 0.7)',
@@ -821,8 +623,8 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
+                            plugins: {
+                                legend: {
                                     position: 'bottom',
                                     labels: {
                                         boxWidth: 12,
@@ -833,23 +635,53 @@
                         }
                     }
                 );
+            }
+        }
 
+        function createCharts() {
+            if (!document.getElementById('transactionStatusChart') || 
+                !document.getElementById('statisticsChart') || 
+                !document.getElementById('vaccinationChart') || 
+                !document.getElementById('animalTypesChart')) {
+                console.log('Waiting for chart elements to be available...');
+                setTimeout(createCharts, 100); // Try again in 100ms
+                return;
+            }
+
+            try {
+                destroyCharts();
+                initializeCharts();
                 console.log('All charts created successfully');
             } catch (error) {
                 console.error('Error creating charts:', error);
             }
         }
 
-        // Create charts when page loads
-        document.addEventListener('DOMContentLoaded', createCharts);
+        // Initialize charts when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            createCharts();
+        });
+
+        // Re-initialize charts when navigating with Livewire
         document.addEventListener('livewire:navigating', destroyCharts);
         document.addEventListener('livewire:navigated', createCharts);
         document.addEventListener('livewire:update', createCharts);
+
+        // Handle Turbolinks if present
+        document.addEventListener('turbolinks:load', createCharts);
 
         // Additional check for Alpine.js initialization
         if (window.Alpine) {
             window.Alpine.nextTick(createCharts);
         }
+
+        // Retry initialization if charts fail to load
+        window.addEventListener('load', function() {
+            if (!charts.status || !charts.stats || !charts.vaccination || !charts.animalTypes) {
+                console.log('Retrying chart initialization...');
+                createCharts();
+            }
+        });
 
         function submitForm() {
             document.getElementById('filterForm').submit();
@@ -887,6 +719,15 @@
                     <p class="text-lg font-medium text-gray-700">Loading transaction details...</p>
                 </div>
             `;
+        }
+
+        // Add these new functions for the barangay modal
+        function openBarangayModal() {
+            document.getElementById('barangayModal').classList.remove('hidden');
+        }
+        
+        function closeBarangayModal() {
+            document.getElementById('barangayModal').classList.add('hidden');
         }
     </script>
 </x-app-layout>
